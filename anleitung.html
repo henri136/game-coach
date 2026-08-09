@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Splatoon 3 Coach – Anleitung</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f4f2e9; --surface: #fffdf7; --text: #171310; --sekundaer: #55504b;
+    --muted: #8a847d; --border: rgba(23,19,16,0.12); --pink: #d21f74; --gruen: #9bd315;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page: #0e0c13; --surface: #1b1722; --text: #f2eef7; --sekundaer: #b4abc4;
+      --muted: #8d8399; --border: rgba(242,238,247,0.14); --pink: #ef4f9f;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 20px 16px 60px;
+    background-color: var(--page); color: var(--text);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23d21f74' fill-opacity='0.08' d='M100 15C140 5 175 35 180 75c5 35 20 50 5 75-20 30-65 15-85 35-20 15-55 0-70-25C10 130 25 110 15 80 5 45 55 25 100 15Z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right -70px top -60px; background-size: 340px;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 16px; line-height: 1.55;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 28px; transform: rotate(-1deg); margin: 10px 0 4px; }
+  h1 span { color: var(--pink); }
+  .untertitel { color: var(--sekundaer); margin: 0 0 24px; }
+  .karte { background: var(--surface); border: 1.5px solid var(--border); border-radius: 18px; padding: 18px 20px; margin: 16px 0; }
+  .karte h2 { font-size: 18px; margin: 0 0 10px; }
+  ol, ul { margin: 8px 0; padding-left: 22px; }
+  li { margin: 6px 0; }
+  .gross {
+    display: inline-block; background: var(--pink); color: #fff; font-weight: 700;
+    padding: 10px 18px; border-radius: 999px; text-decoration: none; margin: 6px 0;
+    transform: rotate(-1deg); word-break: break-all;
+  }
+  code { background: var(--page); border: 1px solid var(--border); border-radius: 6px; padding: 1px 7px; font-size: 14px; }
+  .hinweis { color: var(--muted); font-size: 13.5px; }
+  .fuss { color: var(--muted); font-size: 13px; margin-top: 30px; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🦑 Splatoon 3 <span>Coach</span></h1>
+  <p class="untertitel">Eine Gratis-App, die deine Splatoon-3-Matches sammelt und dir wie ein Coach zeigt, wie du besser wirst. Ein Projekt von <strong>Henri</strong>.</p>
+
+  <div class="karte">
+    <h2>🚀 Los geht's (1 Minute)</h2>
+    <ol>
+      <li>Öffne diesen Link auf deinem iPad, Handy oder PC:<br>
+        <a class="gross" href="https://henri136.github.io/game-coach/splatoon.html">henri136.github.io/game-coach/splatoon.html</a></li>
+      <li><strong>iPad/Handy:</strong> Im Browser auf <em>Teilen</em> → <em>„Zum Home-Bildschirm“</em> tippen – jetzt hast du sie als App mit eigenem Symbol.</li>
+      <li>Fertig! Alles wird nur <strong>auf deinem Gerät</strong> gespeichert – nichts wird hochgeladen, kein Konto nötig.</li>
+    </ol>
+  </div>
+
+  <div class="karte">
+    <h2>👀 Erstmal nur gucken?</h2>
+    <p>Tab <strong>„Matches“</strong> → <strong>„Beispieldaten laden“</strong> – dann füllt sich die App mit Übungs-Daten und du kannst alles ausprobieren. Danach mit <strong>„🧹 Beispieldaten löschen“</strong> wieder aufräumen.</p>
+  </div>
+
+  <div class="karte">
+    <h2>✍️ Deine eigenen Matches</h2>
+    <p>Zwei Wege:</p>
+    <ul>
+      <li><strong>Von Hand:</strong> Nach dem Spielen die Zahlen vom Ergebnisbildschirm im Tab „Matches“ eintragen (aufklappen: „➕ Match von Hand eintragen“). Geht schnell und reicht völlig!</li>
+      <li><strong>Vollautomatisch:</strong> Mit einem kostenlosen stat.ink-Konto und dem Community-Programm s3s kommen alle Matches von selbst in die App – samt Karte, Waffe und Salmon Run. Die Einrichtung braucht einmal einen PC und am besten einen Erwachsenen. Anleitung: In der App im Tab „Matches“ unter <em>„Automatischer Import“</em>. Danach deinen stat.ink-Namen oben im Feld „Profil“ eintragen.</li>
+    </ul>
+    <p class="hinweis">Wichtig: Trage <strong>deinen eigenen</strong> stat.ink-Namen ein – sonst bleibt der Auto-Abgleich einfach aus.</p>
+  </div>
+
+  <div class="karte">
+    <h2>🎁 Was die App alles kann</h2>
+    <ul>
+      <li>📊 <strong>Coach:</strong> vergleicht dich mit echten Top-Spieler-Daten und sagt dir, woran du arbeiten solltest</li>
+      <li>🕒 <strong>Gerade spielbar:</strong> zeigt live die aktuellen Karten und wo DU die beste Winrate hast</li>
+      <li>🗺️ Alle 26 Karten und 173 Waffen mit Bildern – funktioniert komplett offline</li>
+      <li>🐟 <strong>Salmon Run:</strong> eigene Statistiken + Gegnerkunde für alle Bosse und Könige</li>
+      <li>🔮 <strong>Ausrüstungs-Helfer:</strong> welche Marke welche Fähigkeit bringt (+ Seed-Vorhersage)</li>
+      <li>📚 <strong>Wissen:</strong> Spielmechaniken mit echten Zahlen, Waffen-Meta aller Spieler (aktualisiert sich wöchentlich selbst), Profi-Tipps</li>
+      <li>🔴 <strong>Live-Coach:</strong> zählt mit Kamera oder Videodatei automatisch deine Deaths</li>
+    </ul>
+  </div>
+
+  <div class="karte">
+    <h2>❓ Kurze Antworten</h2>
+    <ul>
+      <li><strong>Kostet das was?</strong> Nein, gar nichts. Keine Werbung, kein Konto.</li>
+      <li><strong>Sieht jemand meine Daten?</strong> Nein – alles bleibt im Browser-Speicher deines Geräts.</li>
+      <li><strong>Updates?</strong> Die Web-App aktualisiert sich beim Öffnen von selbst; sonst gibt es den ⬆-Update-Knopf.</li>
+      <li><strong>Etwas kaputt?</strong> Browser-Speicher der Seite nicht löschen – da wohnen deine Daten! Vorher im Matches-Tab „Export (JSON)“ als Sicherung speichern.</li>
+    </ul>
+  </div>
+
+  <p class="fuss">Ein Fan-Projekt von Henri, programmiert mit KI-Hilfe (Claude). Kein Zusammenhang mit Nintendo – Splatoon ist eine Marke von Nintendo.<br>
+  Datenquellen: stat.ink (offene Daten, CC BY 4.0), Inkipedia, splatoon3.ink.</p>
+</main>
+</body>
+</html>

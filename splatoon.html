@@ -287,7 +287,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.24"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.25"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -464,7 +464,7 @@ const APP_VERSION = "2026-08-10.24"; // Zähler ab jetzt immer zweistellig (Stri
     <div id="wissenInhalt"></div>
   </section>
 
-  <p class="footnote">Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.</p>
+  <p class="footnote"><a href="https://henri136.github.io/game-coach/anleitung.html" target="_blank" rel="noopener" style="color:var(--series-1); font-weight:600">📖 Anleitung zum Weitergeben an Freunde</a><br>Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.</p>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
