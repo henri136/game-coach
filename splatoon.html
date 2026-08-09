@@ -336,7 +336,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.40"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.41"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2744,8 +2744,8 @@ function initialisiereMonitor() {
           <button id="sprachBtn" type="button" title="Der Coach sagt dir Tipps laut an – direkt beim Spielen"></button>
         </div>
         <div class="form-actions" style="margin-top:8px">
-          <button id="monLernenSieg" title="Am Match-Ende drücken, während oben links „Sieg!“ steht">🏆 Das ist der „Sieg!“-Bildschirm</button>
-          <button id="monLernenNieder" title="Am Match-Ende drücken, während oben links „Verloren…“ steht">😞 Das ist der „Verloren…“-Bildschirm</button>
+          <button id="monLernenSieg" title="Auf dem ERSTEN Ergebnis-Bildschirm (Karte + „Sieg!“ oben links) drücken – nicht auf der Punkte-Liste">🏆 Das ist der „Sieg!“-Bildschirm</button>
+          <button id="monLernenNieder" title="Auf dem ERSTEN Ergebnis-Bildschirm (Karte + „Verloren…“ oben links) drücken – nicht auf der Punkte-Liste">😞 Das ist der „Verloren…“-Bildschirm</button>
         </div>
         <div id="liveFeedback" role="status" style="display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--series-1); font-size:16px; font-weight:600"></div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
@@ -2837,8 +2837,8 @@ function initialisiereMonitor() {
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
     if (!B.death.length) return "Noch nicht angelernt – zeige mir zuerst einen Death-Bildschirm.";
     const ende = ((B.sieg || []).length || (B.niederlage || []).length)
-      ? ` Dazu ${(B.sieg || []).length}× Sieg- und ${(B.niederlage || []).length}× Niederlage-Bildschirm – am Match-Ende speichere ich automatisch.`
-      : " Tipp: Lerne auch den Sieg- und Niederlage-Bildschirm an (🏆/😞) – dann speichere ich das Match am Ende von selbst.";
+      ? ` Dazu ${(B.sieg || []).length}× Sieg- und ${(B.niederlage || []).length}× Verloren-Bildschirm – am Match-Ende speichere ich automatisch.`
+      : " Tipp: Lerne auch den Sieg- und Verloren-Bildschirm an (🏆/😞, auf dem ersten Ergebnis-Bild mit der Karte) – dann speichere ich das Match am Ende von selbst.";
     return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.` + ende;
   }
 
