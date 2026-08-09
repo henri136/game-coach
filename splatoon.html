@@ -278,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.19"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.20"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2743,6 +2743,22 @@ function renderWissen() {
         </details>`;
       }).join("")}
     </div>`;
+  const werkzeugeHtml = `
+    <div class="card"><h2>🧰 Nützliche Community-Werkzeuge</h2>
+      <p class="sub">Praktische Helfer anderer Splatoon-Fans – öffnen sich im Browser.</p>
+      <div class="coach-item"><div class="icon">🔮</div><div>
+        <h3><a href="https://leanny.github.io/splat3seedchecker/index.html#/" target="_blank" rel="noopener" style="color:var(--series-1)">Seed Checker (Leanny)</a></h3>
+        <p>Sagt dir voraus, welche Neben-Fähigkeiten deine Kleidung beim Aufleveln bekommt! Du gibst ein, welche Fähigkeiten ein Kleidungsstück bisher bekommen hat – das Werkzeug knackt daraus das Muster und zeigt dir alle zukünftigen. So levelst du nur Sachen auf, die gut werden, und sparst Unmengen an Münzen und Fähigkeits-Kügelchen.</p></div></div>
+      <div class="coach-item"><div class="icon">🛠️</div><div>
+        <h3><a href="https://sendou.ink/builds" target="_blank" rel="noopener" style="color:var(--series-1)">sendou.ink</a></h3>
+        <p>Die größte Wettkampf-Seite: Schau nach, welche Fähigkeiten-Kombinationen Turnier-Spieler für deine Lieblingswaffe benutzen.</p></div></div>
+      <div class="coach-item"><div class="icon">🕒</div><div>
+        <h3><a href="https://splatoon3.ink" target="_blank" rel="noopener" style="color:var(--series-1)">splatoon3.ink</a></h3>
+        <p>Rotationen und Salmon-Run-Fahrplan – die Daten davon siehst du schon direkt in deiner Übersicht („Gerade spielbar“).</p></div></div>
+      <div class="coach-item"><div class="icon">📊</div><div>
+        <h3><a href="https://stat.ink/@Henri/spl3" target="_blank" rel="noopener" style="color:var(--series-1)">stat.ink</a></h3>
+        <p>Dein Match-Archiv im Netz – die Quelle, aus der sich deine App automatisch bedient.</p></div></div>
+    </div>`;
   const quellenHtml = (W.quellen || []).length ? `<div class="card"><h2>Quellen der Recherche</h2>
     <ul class="quellen">${W.quellen.map(q => `<li>${esc(q)}</li>`).join("")}</ul></div>` : "";
   // Spiel-Wissen: aus Inkipedia recherchierte Mechaniken, Waffen- und Salmon-Run-Fakten (Splatoon 1-3)
@@ -2824,6 +2840,7 @@ function renderWissen() {
     ${spielWissenHtml}
     <div class="card"><h2>So trainieren Top-Spieler</h2>${trainingHtml}</div>
     ${lexikonHtml}
+    ${werkzeugeHtml}
     ${quellenHtml}`;
 }
 
