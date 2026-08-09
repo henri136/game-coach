@@ -335,7 +335,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.32"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.33"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2456,6 +2456,55 @@ let monitorStream = null, monitorTimer = null, monitorCanvas = null, monitorQuel
 let monitorLetzterTreffer = -1e12, monitorTrefferSerie = 0, autoDeaths = 0;
 let aufnahmeRolle = null, aufnahmeStart = 0, aufnahmeVideoStart = 0, aufnahmeTicker = null;
 let monitorDateiUrl = null;
+
+/* ---- Live-Feedback während des Spielens: große Anzeige + Sprachausgabe.
+   Reagiert auf die automatisch erkannten Deaths – der Coach redet mit dir,
+   ohne dass du aufs iPad schauen musst. ---- */
+let lcDeaths = [], lcLetzterText = "", lcLobZeit = 0;
+const lcAn = () => !(state.monitor && state.monitor.sprachcoach === false);
+function lcSage(text) {
+  if (!text || text === lcLetzterText) return;
+  lcLetzterText = text;
+  const f = document.getElementById("liveFeedback");
+  if (f) { f.style.display = "block"; f.textContent = text; }
+  if (lcAn() && "speechSynthesis" in window) {
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text.replace(/^[^A-Za-zÄÖÜäöü0-9]+\s*/, ""));
+      u.lang = "de-DE"; u.rate = 1.06;
+      speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+}
+const lcDeathSchnitt = () => {
+  const voll = state.matches.filter(m => !m.unvollst);
+  return voll.length ? voll.reduce((s, m) => s + m.deaths, 0) / voll.length : 8;
+};
+const LC_FOKUS = {
+  deaths: "Denk an deinen Fokus: nur Kämpfe mit Fluchtweg annehmen.",
+  spezial: "Denk an deinen Fokus: aktiv malen und die Spezialwaffe vor dem Risiko zünden.",
+  assists: "Denk an deinen Fokus: kämpf mit dem Team – erzwing zwei gegen eins.",
+  farbe: "Denk an deinen Fokus: auf dem Weg zum Ziel malen – Fläche, Wege, Rückzug.",
+};
+function liveCoachDeath() {
+  if (monitorQuelle === "datei") return; // Video-Analyse: kein Live-Zuruf
+  const t = Date.now();
+  lcDeaths.push(t);
+  const n = lcDeaths.length;
+  const schnell = n >= 2 && t - lcDeaths[n - 2] < 45000;
+  const schnitt = lcDeathSchnitt();
+  const fokusId = state.session && state.session.fokus;
+  let text;
+  if (schnell && n >= 3) text = `⚠️ ${n} Deaths, die letzten zwei kurz nacheinander – nimm dich 20 Sekunden raus, mal Fläche, sammel dein Team.`;
+  else if (schnell) text = "⚠️ Zwei Deaths kurz nacheinander. Nicht sofort zurück in denselben Fight – erst sammeln, dann zu viert rein.";
+  else if (n === 1) text = "☠️ Erster Death. Kurz fragen: Was hat der Fight gebracht? Wenn nichts – so einen nächstes Mal nicht annehmen.";
+  else if (n >= Math.max(3, Math.ceil(schnitt))) text = `🛑 Death Nummer ${n} – dein Schnitt liegt bei ${Math.round(schnitt)}. Ab jetzt nur noch Fights mit klarem Vorteil.`;
+  else if (LC_FOKUS[fokusId]) text = "🎯 " + LC_FOKUS[fokusId];
+  else text = ["🧭 Position checken: Höhe halten, Rückweg freihalten.",
+               "💡 Vor dem nächsten Fight: Lampen checken – wer lebt, wessen Spezial ist geladen?",
+               "🖌️ Erst malen, dann kämpfen – bleib am Rand deiner eigenen Farbe."][n % 3];
+  lcSage(text);
+}
 const MON_RASTER = 6;
 const MON_MAX_BEISPIELE = 12;
 
@@ -2499,7 +2548,9 @@ function monKlassifiziere(sig) {
 
 function monitorNeuesMatch() {
   autoDeaths = 0; monitorTrefferSerie = 0;
+  lcDeaths = []; lcLetzterText = "";
   const el = document.getElementById("monDeaths"); if (el) el.textContent = "0";
+  const f = document.getElementById("liveFeedback"); if (f) f.style.display = "none";
 }
 
 function initialisiereMonitor() {
@@ -2511,7 +2562,7 @@ function initialisiereMonitor() {
       <h2>📺 Live-Monitor – lernende Erkennung (Capture-Karte oder iPad-Kamera)</h2>
       <p class="sub">Am PC: Capture-Karte als Quelle wählen. Am iPad: Kamera als Quelle wählen und das iPad so aufstellen, dass es den Fernseher sieht –
       dann mit „Bildausschnitt“ ein Rechteck genau um das TV-Bild ziehen. Die App zählt deine Deaths automatisch mit.
-      Mit ＋/－ (oder zwei Fingern) zoomst du ins Bild und verschiebst es mit einem Finger – die Erkennung schaut trotzdem aufs ganze Bild.
+      Mit ＋/－ (oder zwei Fingern) zoomst du ins Bild und verschiebst es mit einem Finger – die Erkennung schaut trotzdem aufs ganze Bild. Der Sprach-Coach sagt dir beim Spielen laut an, was du besser machen kannst.
       Das Bild bleibt komplett auf deinem Gerät. (In der Chat-Vorschau gesperrt; auf dem iPad braucht es die App-Adresse, nicht den claude.ai-Link.)</p>
       <div class="form-actions" style="margin-bottom:10px">
         <select id="monQuelle" style="font:inherit; font-size:16px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--page); color:var(--text-primary); max-width:280px">
@@ -2548,7 +2599,9 @@ function initialisiereMonitor() {
           <button id="monCropBtn">▭ Bildausschnitt wählen</button>
           <button id="monLernen">☠ Das ist der Death-Bildschirm</button>
           <button id="monLernenSpiel">🎮 Das ist normales Spiel</button>
+          <button id="sprachBtn" type="button" title="Der Coach sagt dir Tipps laut an – direkt beim Spielen"></button>
         </div>
+        <div id="liveFeedback" role="status" style="display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--series-1); font-size:16px; font-weight:600"></div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
         <p id="monLive" style="font-size:13px; margin:4px 0 0; color:var(--text-secondary)"></p>
         <p style="margin:10px 0 4px; font-size:14px">Erkannte Deaths in diesem Match:
@@ -2669,6 +2722,7 @@ function initialisiereMonitor() {
             // In die Schnell-Eingabe übernehmen (falls Session läuft)
             const qd = document.getElementById("qDeaths");
             if (qd) { qd.textContent = String(autoDeaths); qd.closest(".stepper").classList.remove("unberuehrt"); }
+            liveCoachDeath();
           }
         }
       } else monitorTrefferSerie = 0;
@@ -2864,6 +2918,26 @@ function initialisiereMonitor() {
   });
   for (const ev of ["pointerup", "pointercancel", "pointerleave"])
     rahmen.addEventListener(ev, (e) => zoomZeiger.delete(e.pointerId));
+  // Sprach-Coach: laut mitgesprochene Live-Tipps an/aus
+  const sprachLabel = () => { $("#sprachBtn").textContent = lcAn() ? "🔊 Sprach-Coach: an" : "🔇 Sprach-Coach: aus"; };
+  sprachLabel();
+  $("#sprachBtn").addEventListener("click", () => {
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { sprachcoach: !lcAn() });
+    speichereState(); sprachLabel();
+    lcLetzterText = "";
+    if (lcAn()) lcSage("🔊 Sprach-Coach ist an – ich sage dir beim Spielen Bescheid.");
+    else if ("speechSynthesis" in window) { try { speechSynthesis.cancel(); } catch (e) {} }
+  });
+  // Lob, wenn nach einem Death lange nichts passiert: Durchhalten laut bestätigen
+  setInterval(() => {
+    if (!monitorTimer || monitorQuelle === "datei" || aufnahmeRolle === "profi") return;
+    const letzte = lcDeaths[lcDeaths.length - 1];
+    if (!letzte || letzte === lcLobZeit) return;
+    if (Date.now() - letzte > 95000) {
+      lcLobZeit = letzte;
+      lcSage("💪 Über eineinhalb Minuten ohne Death – genau dieses Tempo beibehalten.");
+    }
+  }, 10000);
   $("#monReset").addEventListener("click", monitorNeuesMatch);
   $("#monMinus").addEventListener("click", () => {
     autoDeaths = Math.max(0, autoDeaths - 1);
