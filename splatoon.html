@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.04"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.05"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1007,9 +1007,9 @@ function renderMatches() {
   if (!chrono.length) { $("#matchTabelle").innerHTML = ""; return; }
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
   $("#matchTabelle").innerHTML = `<table class="matches">
-    <tr><th>Datum</th><th>Modus</th><th>Waffe</th><th>Ergebnis</th><th>Splats</th><th>Unterst.</th><th>Deaths</th><th>Spezials</th><th>Farbe</th><th>Notiz</th><th></th></tr>` +
+    <tr><th>Datum</th><th>Modus</th><th>Karte</th><th>Waffe</th><th>Ergebnis</th><th>Splats</th><th>Unterst.</th><th>Deaths</th><th>Spezials</th><th>Farbe</th><th>Notiz</th><th></th></tr>` +
     chrono.map(m => `<tr>
-      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${esc(m.waffe)}</td>
+      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${esc(m.karte || "–")}</td><td>${esc(m.waffe)}</td>
       <td><span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span></td>
       <td class="num">${m.splats}</td><td class="num">${m.assists}</td><td class="num">${m.deaths}</td>
       <td class="num">${m.spezials}</td><td class="num">${m.farbe}</td><td>${esc(m.notiz || "")}</td>
@@ -1041,11 +1041,12 @@ document.getElementById("demoBtn").addEventListener("click", () => {
   const tag = (vor) => { const d = new Date(heute); d.setDate(d.getDate() - vor); return d.toISOString().slice(0, 10); };
   const demo = [];
   const waffen = ["Kleckser", "Kleckser", "Kleckser", "Doppler", "Roller"];
+  const demoKarten = ["Sengkluft", "Cetacea-Markt", "Mahi-Mahi-Resort", "Streifenaal-Straße", "Schollensiedlung", "Um'ami-Ruinen", "ROM & RAMen"];
   let id = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
   for (let i = 0; i < 24; i++) {
     const modus = MODI[i % 5];
     const sieg = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1][i] === 1;
-    demo.push({ id: ++id, datum: tag(24 - i), modus, waffe: waffen[i % 5], ergebnis: sieg ? "S" : "N",
+    demo.push({ id: ++id, datum: tag(24 - i), modus, waffe: waffen[i % 5], karte: demoKarten[i % 7], ergebnis: sieg ? "S" : "N",
       splats: 4 + (i * 7) % 6, assists: (i * 3) % 4, deaths: 6 + (i * 5) % 6,
       spezials: 1 + (i * 2) % 3, farbe: modus === "Revierkampf" ? 750 + (i * 37) % 350 : 550 + (i * 53) % 450,
       notiz: i === 3 ? "zu oft allein gepusht" : "" });
