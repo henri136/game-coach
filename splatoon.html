@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.03"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.04"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1997,9 +1997,10 @@ function renderLive(stats) {
    Zeigt das Spielbild der Capture-Karte in der App und zählt Deaths automatisch:
    Der Nutzer lernt einmal den Respawn-Bildschirm ein (Farbsignatur eines 4x4-Rasters);
    taucht dieselbe Signatur wieder auf, zählt der Monitor einen Death. Experimentell. */
-let monitorStream = null, monitorTimer = null, monitorCanvas = null;
-let monitorLetzterTreffer = 0, monitorTrefferSerie = 0, autoDeaths = 0;
-let aufnahmeRolle = null, aufnahmeStart = 0, aufnahmeTicker = null;
+let monitorStream = null, monitorTimer = null, monitorCanvas = null, monitorQuelle = null;
+let monitorLetzterTreffer = -1e12, monitorTrefferSerie = 0, autoDeaths = 0;
+let aufnahmeRolle = null, aufnahmeStart = 0, aufnahmeVideoStart = 0, aufnahmeTicker = null;
+let monitorDateiUrl = null;
 const MON_RASTER = 6;
 const MON_MAX_BEISPIELE = 12;
 
@@ -2060,8 +2061,18 @@ function initialisiereMonitor() {
         <select id="monQuelle" style="font:inherit; font-size:16px; padding:8px 12px; border-radius:999px; border:1.5px solid var(--border); background:var(--page); color:var(--text-primary); max-width:280px">
           <option value="">Quelle: automatisch</option>
         </select>
-        <button id="monStart" class="primary">Monitor starten</button>
+        <button id="monStart" class="primary">📷 Kamera/Capture starten</button>
+        <button id="monBildschirm">🖥️ Bildschirm/Tab ansehen</button>
+        <button id="monDateiBtn">📼 Video-Datei analysieren</button>
+        <input type="file" id="monDatei" accept="video/*" hidden>
         <button id="monStop" hidden>Stopp</button>
+      </div>
+      <div id="monTempo" class="form-actions" style="display:none; margin-bottom:8px">
+        <span style="font-size:12.5px; color:var(--text-secondary)">Abspieltempo:</span>
+        <button data-tempo="1" style="padding:4px 14px">1×</button>
+        <button data-tempo="2" style="padding:4px 14px">2×</button>
+        <button data-tempo="4" style="padding:4px 14px">4×</button>
+        <span style="font-size:12px; color:var(--text-muted)">Tipp: Zum Einlernen auf einen Death-Moment spulen, Pause drücken, dann ☠.</span>
       </div>
       <div id="monFehler" class="empty-hint" style="display:none"></div>
       <div id="monRahmen" style="position:relative; max-width:560px; display:none">
@@ -2143,8 +2154,13 @@ function initialisiereMonitor() {
     if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
     if (monitorStream) { monitorStream.getTracks().forEach(t => t.stop()); monitorStream = null; }
     if (wachLock) { try { wachLock.release(); } catch (e) {} wachLock = null; }
-    $("#monRahmen").style.display = "none"; $("#monSteuerung").style.display = "none";
-    $("#monStart").hidden = false; $("#monStop").hidden = true;
+    const video = $("#monVideo");
+    video.pause(); video.srcObject = null; video.removeAttribute("src"); video.controls = false;
+    if (monitorDateiUrl) { URL.revokeObjectURL(monitorDateiUrl); monitorDateiUrl = null; }
+    monitorQuelle = null;
+    $("#monRahmen").style.display = "none"; $("#monSteuerung").style.display = "none"; $("#monTempo").style.display = "none";
+    $("#monStart").hidden = false; $("#monBildschirm").hidden = false; $("#monDateiBtn").hidden = false;
+    $("#monStop").hidden = true;
   }
 
   function lernStatusText() {
@@ -2156,15 +2172,20 @@ function initialisiereMonitor() {
   function starteAnalyse() {
     const video = $("#monVideo");
     monitorTimer = setInterval(() => {
-      if (!monitorStream || video.readyState < 2) return;
+      if (!monitorQuelle || video.readyState < 2 || (monitorQuelle === "datei" && video.paused)) return;
       const urteil = monKlassifiziere(monSignatur(video));
       const live = document.getElementById("monLive");
       if (!urteil) { if (live) live.textContent = ""; return; }
       if (live) live.textContent = urteil.death ? "Live-Check: ☠ Death-Bildschirm erkannt!" : "Live-Check: 🎮 normales Spiel";
-      const jetzt = Date.now();
+      // Im Datei-Modus zählt die VIDEO-Zeit (funktioniert auch bei 2x/4x-Tempo und Spulen)
+      const jetzt = monitorQuelle === "datei" ? video.currentTime * 1000 : Date.now();
+      if (monitorQuelle === "datei" && jetzt < monitorLetzterTreffer - 1000) monitorLetzterTreffer = -1e12; // zurückgespult
+      const entprellung = monitorQuelle === "datei" ? 6000 : 8000; // Videozeit bzw. Echtzeit
+      // Datei = saubere Bildschirmaufnahme ohne Kamera-Rauschen -> 1 Treffer reicht (wichtig bei 4x-Tempo)
+      const serieNoetig = monitorQuelle === "datei" ? 1 : 2;
       if (urteil.death) {
         monitorTrefferSerie++;
-        if (monitorTrefferSerie >= 2 && jetzt - monitorLetzterTreffer > 8000) {
+        if (monitorTrefferSerie >= serieNoetig && jetzt - monitorLetzterTreffer > entprellung) {
           monitorLetzterTreffer = jetzt;
           // Läuft eine Vergleichs-Aufnahme, zählt der Death dorthin
           if (aufnahmeRolle) {
@@ -2180,27 +2201,74 @@ function initialisiereMonitor() {
           }
         }
       } else monitorTrefferSerie = 0;
-    }, 350);
+    }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
+  }
+
+  function zeigeMonitorUi() {
+    $("#monRahmen").style.display = "block";
+    $("#monSteuerung").style.display = "block";
+    $("#monStart").hidden = true; $("#monBildschirm").hidden = true; $("#monDateiBtn").hidden = true;
+    $("#monStop").hidden = false;
+    $("#monFehler").style.display = "none";
+    $("#monLernStatus").textContent = lernStatusText();
+    zeigeCrop();
+    if (!monitorTimer) starteAnalyse();
+  }
+
+  async function starteMitStream(stream, quelle) {
+    stoppeMonitor();
+    monitorStream = stream; monitorQuelle = quelle;
+    const video = $("#monVideo");
+    video.controls = false; video.srcObject = stream; await video.play();
+    $("#monTempo").style.display = "none";
+    zeigeMonitorUi(); halteWach();
   }
 
   $("#monStart").addEventListener("click", async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      zeigeFehler("Diese Umgebung erlaubt keinen Zugriff auf Videoquellen. Nutze die PC-App (GameCoach.exe) oder öffne die Datei direkt im Browser."); return;
+      zeigeFehler("Diese Umgebung erlaubt keinen Kamera-Zugriff. Nutze die PC-App, die App-Adresse im Browser – oder „📼 Video-Datei analysieren“."); return;
     }
     try {
       const id = $("#monQuelle").value;
-      monitorStream = await navigator.mediaDevices.getUserMedia({
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: id ? { deviceId: { exact: id }, width: 1280 } : { facingMode: "environment", width: 1280 } });
-      const video = $("#monVideo");
-      video.srcObject = monitorStream; $("#monRahmen").style.display = "block"; await video.play();
-      $("#monSteuerung").style.display = "block"; $("#monStart").hidden = true; $("#monStop").hidden = false;
-      $("#monFehler").style.display = "none";
-      $("#monLernStatus").textContent = lernStatusText();
-      zeigeCrop(); halteWach();
+      await starteMitStream(stream, "stream");
       fuelleQuellen();
-      starteAnalyse();
     } catch (e) { zeigeFehler("Zugriff auf die Videoquelle fehlgeschlagen (" + e.name + "). Erlaube den Kamera-/Video-Zugriff oder wähle oben eine andere Quelle – eine Capture-Karte darf nicht von OBS & Co. belegt sein."); }
   });
+
+  // Bildschirm/Tab aufnehmen (PC): z. B. den YouTube-Tab mit dem Profi-Video auswählen
+  $("#monBildschirm").addEventListener("click", async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+      zeigeFehler("Bildschirm-Aufnahme gibt es nur am PC (Chrome/Edge oder PC-App). Auf dem iPad geht stattdessen: Kontrollzentrum → Bildschirmaufnahme starten → YouTube-Video anschauen → Aufnahme stoppen → hier „📼 Video-Datei analysieren“ und die Aufnahme aus „Fotos“/„Dateien“ wählen."); return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      stream.getVideoTracks()[0].addEventListener("ended", stoppeMonitor); // „Teilen beenden“
+      await starteMitStream(stream, "stream");
+    } catch (e) { if (e.name !== "NotAllowedError") zeigeFehler("Bildschirm-Aufnahme fehlgeschlagen (" + e.name + ")."); }
+  });
+
+  // Video-Datei analysieren (funktioniert auch auf dem iPad: Bildschirmaufnahme aus Fotos wählen)
+  $("#monDateiBtn").addEventListener("click", () => $("#monDatei").click());
+  $("#monDatei").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    stoppeMonitor();
+    monitorQuelle = "datei";
+    monitorLetzterTreffer = -1e12; // Videozeit beginnt bei 0 – Zeitanker zurücksetzen
+    if (monitorDateiUrl) URL.revokeObjectURL(monitorDateiUrl);
+    monitorDateiUrl = URL.createObjectURL(f);
+    const video = $("#monVideo");
+    video.srcObject = null; video.src = monitorDateiUrl; video.controls = true;
+    $("#monTempo").style.display = "flex";
+    zeigeMonitorUi();
+    $("#monLernStatus").textContent = "Video geladen – erst unten bei der Vergleichs-Aufnahme „👑 Profi“ oder „🎮 Ich“ wählen, dann ▶ abspielen. " + lernStatusText();
+    e.target.value = "";
+  });
+  document.querySelectorAll("#monTempo [data-tempo]").forEach(b => b.addEventListener("click", () => {
+    $("#monVideo").playbackRate = +b.dataset.tempo;
+  }));
+
   $("#monStop").addEventListener("click", stoppeMonitor);
 
   // Altes Einzel-Signatur-Format in die lernende Erkennung übernehmen
@@ -2277,7 +2345,9 @@ function initialisiereMonitor() {
     const A = state.aufnahmen;
     const live = $("#aufLive");
     if (aufnahmeRolle) {
-      const sek = Math.round((Date.now() - aufnahmeStart) / 1000);
+      const sek = monitorQuelle === "datei"
+        ? Math.max(0, Math.round($("#monVideo").currentTime - aufnahmeVideoStart))
+        : Math.round((Date.now() - aufnahmeStart) / 1000);
       live.textContent = `${aufnahmeRolle === "profi" ? "👑 Profi" : "🎮 Du"} läuft: ${Math.floor(sek / 60)}:${String(sek % 60).padStart(2, "0")} Min – die KI schaut zu und zählt Deaths mit …`;
     } else live.textContent = "";
     const proMin = (a) => a.sek >= 60 ? (a.deaths / (a.sek / 60)) : null;
@@ -2295,17 +2365,20 @@ function initialisiereMonitor() {
       ${fazit ? `<p style="margin:8px 0 0; font-size:13.5px">${fazit}</p>` : ""}` : "";
   }
   function starteAufnahme(rolle) {
-    if (!monitorStream) { alert("Starte zuerst den Monitor (oben)."); return; }
+    if (!monitorQuelle) { alert("Starte zuerst den Monitor oder lade ein Video (oben)."); return; }
     if (!(state.monitor && state.monitor.beispiele && state.monitor.beispiele.death.length)) { alert("Lerne zuerst die Death-Erkennung an (☠-Knopf) – sonst kann die KI nicht mitzählen."); return; }
     if (aufnahmeRolle) beendeAufnahme();
     aufnahmeRolle = rolle; aufnahmeStart = Date.now();
+    aufnahmeVideoStart = monitorQuelle === "datei" ? $("#monVideo").currentTime : 0;
     $("#aufStop").hidden = false; $("#aufProfi").hidden = true; $("#aufIch").hidden = true;
     if (!aufnahmeTicker) aufnahmeTicker = setInterval(zeigeAufnahme, 1000);
     zeigeAufnahme();
   }
   function beendeAufnahme() {
     if (!aufnahmeRolle) return;
-    state.aufnahmen[aufnahmeRolle].sek += Math.round((Date.now() - aufnahmeStart) / 1000);
+    state.aufnahmen[aufnahmeRolle].sek += monitorQuelle === "datei"
+      ? Math.max(0, Math.round($("#monVideo").currentTime - aufnahmeVideoStart))
+      : Math.round((Date.now() - aufnahmeStart) / 1000);
     aufnahmeRolle = null;
     if (aufnahmeTicker) { clearInterval(aufnahmeTicker); aufnahmeTicker = null; }
     speichereState();
