@@ -1,0 +1,2153 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Splatoon Coach">
+<meta name="theme-color" content="#d21f74">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Splatoon 3 Coach – Werde besser wie die Top-Spieler</title>
+<style>
+  /* Splatoon-Design: hell = „Revier am Tag“ (warmes Papier + Tinten-Pink),
+     dunkel = „Splatsville bei Nacht“ (lila-schwarz + Neon-Tinte).
+     Die Tintenfarbe #d21f74 / #ef4f9f ist mit dem Farb-Validator geprüft (Kontrast + Farbenblind-Checks). */
+  :root {
+    color-scheme: light;
+    --page:           #f4f2e9;
+    --surface-1:      #fffdf7;
+    --text-primary:   #171310;
+    --text-secondary: #55504b;
+    --text-muted:     #8a847d;
+    --grid:           #e7e2d4;
+    --baseline:       #c8c1b0;
+    --border:         rgba(23,19,16,0.12);
+    --series-1:       #d21f74;   /* Tinten-Pink */
+    --series-1-track: #f7cce2;
+    --area-wash:      rgba(210,31,116,0.10);
+    --ink-2:          #9bd315;   /* Neon-Grün, nur Deko-Kleckse */
+    --on-accent:      #ffffff;
+    --status-good:    #0ca30c;
+    --status-warning: #fab219;
+    --status-serious: #ec835a;
+    --status-critical:#d03b3b;
+    --delta-good:     #006300;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:           #0e0c13;
+      --surface-1:      #1b1722;
+      --text-primary:   #f7f4ff;
+      --text-secondary: #c9c4d4;
+      --text-muted:     #948e9f;
+      --grid:           #322c3d;
+      --baseline:       #453d54;
+      --border:         rgba(247,244,255,0.12);
+      --series-1:       #ef4f9f;
+      --series-1-track: #571f3f;
+      --area-wash:      rgba(239,79,159,0.12);
+      --ink-2:          #c3ea3c;
+      --on-accent:      #16101a;
+      --delta-good:     #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:           #0e0c13;
+    --surface-1:      #1b1722;
+    --text-primary:   #f7f4ff;
+    --text-secondary: #c9c4d4;
+    --text-muted:     #948e9f;
+    --grid:           #322c3d;
+    --baseline:       #453d54;
+    --border:         rgba(247,244,255,0.12);
+    --series-1:       #ef4f9f;
+    --series-1-track: #571f3f;
+    --area-wash:      rgba(239,79,159,0.12);
+    --ink-2:          #c3ea3c;
+    --on-accent:      #16101a;
+    --delta-good:     #0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 20px 16px 64px; }
+
+  header.app { display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; position: relative; }
+  header.app::before {
+    content: ""; position: absolute; z-index: -1; left: -34px; top: -30px;
+    width: 150px; height: 120px; background: var(--series-1); opacity: 0.16;
+    border-radius: 58% 42% 63% 37% / 55% 48% 52% 45%; transform: rotate(-8deg);
+  }
+  header.app::after {
+    content: ""; position: absolute; z-index: -1; right: 4%; top: -18px;
+    width: 90px; height: 74px; background: var(--ink-2); opacity: 0.22;
+    border-radius: 44% 56% 38% 62% / 60% 40% 60% 40%; transform: rotate(14deg);
+  }
+  header.app h1 { font-size: 26px; margin: 0; font-weight: 800; letter-spacing: 0.01em; transform: rotate(-1.2deg); }
+  header.app p  { margin: 2px 0 0; color: var(--text-secondary); }
+  header.app .spacer { flex: 1; }
+  button, .btn {
+    font: inherit; color: var(--text-primary);
+    background: var(--surface-1); border: 1.5px solid var(--border);
+    border-radius: 999px; padding: 7px 15px; cursor: pointer;
+  }
+  button:hover { border-color: var(--series-1); }
+  button.primary { background: var(--series-1); border-color: transparent; color: var(--on-accent); font-weight: 700; }
+  button.danger  { color: var(--status-critical); }
+
+  nav.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 18px 0; border-bottom: 2px solid var(--grid); padding-bottom: 10px; }
+  nav.tabs button { border: none; background: transparent; padding: 8px 14px; border-radius: 999px; color: var(--text-secondary); font-weight: 600; }
+  nav.tabs button:hover { background: var(--area-wash); border: none; }
+  nav.tabs button.active { background: var(--series-1); border: none; color: var(--on-accent); font-weight: 700; transform: rotate(-1deg); }
+
+  .card {
+    background: var(--surface-1); border: 1.5px solid var(--border);
+    border-radius: 18px; padding: 16px 18px; margin-bottom: 16px;
+  }
+  .card h2 { font-size: 16px; margin: 0 0 4px; }
+  .card h2 + p.sub { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
+
+  .tile-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .tile { background: var(--surface-1); border: 1.5px solid var(--border); border-radius: 16px; padding: 12px 14px; }
+  .tile .label { font-size: 12px; color: var(--text-secondary); }
+  .tile .value { font-size: 26px; font-weight: 600; margin-top: 2px; }
+  .tile .delta { font-size: 12px; margin-top: 2px; color: var(--text-muted); }
+  .tile .delta.good { color: var(--delta-good); }
+  .tile .delta.bad  { color: var(--status-critical); }
+
+  .hero { text-align: left; position: relative; overflow: hidden; }
+  .hero::after {
+    content: ""; position: absolute; right: -26px; top: -22px;
+    width: 120px; height: 96px; background: var(--ink-2); opacity: 0.18;
+    border-radius: 52% 48% 61% 39% / 47% 58% 42% 53%; transform: rotate(18deg); pointer-events: none;
+  }
+  .hero .value { font-size: 48px; font-weight: 800; line-height: 1.1; transform: rotate(-0.8deg); }
+  .hero .label { color: var(--text-secondary); }
+
+  .chart-card { position: relative; }
+  .chart-card svg { display: block; width: 100%; height: auto; }
+  .chart-card svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .tooltip {
+    position: absolute; pointer-events: none; z-index: 5; display: none;
+    background: var(--surface-1); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 10px; font-size: 12.5px; color: var(--text-primary);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12); white-space: nowrap;
+  }
+  details.tableview { margin-top: 8px; }
+  details.tableview summary { cursor: pointer; color: var(--text-muted); font-size: 12.5px; }
+  table.mini { border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+  table.mini th, table.mini td { text-align: left; padding: 3px 12px 3px 0; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
+  table.mini th { color: var(--text-secondary); font-weight: 600; }
+
+  form.match-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end; }
+  form.match-form label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 3px; }
+  form.match-form input, form.match-form select {
+    width: 100%; font: inherit; color: var(--text-primary);
+    background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px;
+  }
+  form.match-form .full { grid-column: 1 / -1; }
+  .form-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .table-scroll { overflow-x: auto; }
+  table.matches { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  table.matches th, table.matches td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+  table.matches th { color: var(--text-secondary); font-weight: 600; }
+  table.matches td.num { font-variant-numeric: tabular-nums; }
+  .result-chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
+  .result-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+  .coach-item { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--grid); }
+  .coach-item:last-child { border-bottom: none; }
+  .coach-item .icon { flex: 0 0 auto; font-size: 16px; line-height: 1.4; }
+  .coach-item h3 { margin: 0; font-size: 14.5px; }
+  .coach-item .sev { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+  .coach-item p { margin: 3px 0 0; color: var(--text-secondary); font-size: 13.5px; }
+  .sev.critical { color: var(--status-critical); }
+  .sev.serious  { color: var(--status-serious); }
+  .sev.warning  { color: var(--status-warning); }
+  .sev.good     { color: var(--status-good); }
+
+  .meter-row { display: grid; grid-template-columns: minmax(130px, 200px) 1fr minmax(120px, 170px); gap: 10px; align-items: center; padding: 8px 0; }
+  .meter-row .mlabel { font-size: 13.5px; color: var(--text-secondary); }
+  .meter-row .mvalue { font-weight: 600; }
+  .meter { position: relative; height: 12px; border-radius: 6px; overflow: visible; }
+  .meter .track { position: absolute; inset: 0; border-radius: 6px; }
+  .meter .fill  { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 6px; }
+  .meter .tick  { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--baseline); }
+  .meter .tick-label { position: absolute; top: -20px; transform: translateX(-50%); font-size: 10.5px; color: var(--text-muted); white-space: nowrap; }
+  .meter-status { font-size: 12.5px; display: inline-flex; align-items: center; gap: 5px; }
+  @media (max-width: 640px) { .meter-row { grid-template-columns: 1fr; gap: 4px; } }
+
+  .habit { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--grid); align-items: flex-start; }
+  .habit:last-child { border-bottom: none; }
+  .habit input[type=checkbox] { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--series-1); }
+  .habit h3 { margin: 0; font-size: 14.5px; }
+  .habit p { margin: 2px 0 0; color: var(--text-secondary); font-size: 13.5px; }
+  .habit .warum { color: var(--text-muted); font-size: 12.5px; margin-top: 2px; }
+  .kat-head { margin: 18px 0 4px; font-size: 13px; font-weight: 800; color: var(--series-1); text-transform: uppercase; letter-spacing: 0.06em; transform: rotate(-0.5deg); }
+
+  .kb-table-scroll { overflow-x: auto; }
+  table.kb { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  table.kb th, table.kb td { text-align: left; padding: 7px 12px 7px 0; border-bottom: 1px solid var(--grid); vertical-align: top; }
+  table.kb th { color: var(--text-secondary); font-weight: 600; }
+  details.mode { border-bottom: 1px solid var(--grid); padding: 8px 0; }
+  details.mode summary { cursor: pointer; font-weight: 600; }
+  details.mode h4 { margin: 10px 0 4px; font-size: 13px; color: var(--text-secondary); }
+  details.mode ul { margin: 4px 0; padding-left: 20px; }
+  details.mode li { margin: 3px 0; font-size: 13.5px; }
+
+  .empty-hint { color: var(--text-muted); padding: 18px 0; }
+
+  /* Live-Coach: große Touch-Ziele fürs iPad neben der Konsole */
+  .live-banner { border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; font-weight: 600; display: flex; gap: 10px; align-items: flex-start; }
+  .live-banner.warnung  { background: color-mix(in srgb, var(--status-warning) 18%, var(--surface-1)); }
+  .live-banner.kritisch { background: color-mix(in srgb, var(--status-critical) 16%, var(--surface-1)); }
+  .live-banner .icon { font-size: 20px; }
+  .live-banner p { margin: 2px 0 0; font-weight: 400; color: var(--text-secondary); font-size: 13.5px; }
+  .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+  .stepper { background: var(--page); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; text-align: center; }
+  .stepper .slabel { font-size: 12px; color: var(--text-secondary); }
+  .stepper .srow { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
+  .stepper button { width: 44px; height: 44px; font-size: 20px; border-radius: 50%; padding: 0; }
+  .stepper .swert { font-size: 22px; font-weight: 650; min-width: 56px; font-variant-numeric: tabular-nums; }
+  .stepper.unberuehrt .swert { opacity: 0.5; }
+  .stepper button, .stepper .swert, .ergebnis-row button {
+    touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  }
+  .ergebnis-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+  .ergebnis-row button { font-size: 17px; font-weight: 800; padding: 16px 10px; border-radius: 999px; border: none; color: #ffffff; }
+  .ergebnis-row .sieg { background: var(--status-good); }
+  .ergebnis-row .niederlage { background: var(--status-critical); }
+  .fokus-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; margin: 8px 0; cursor: pointer; }
+  .fokus-option input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--series-1); }
+  .fokus-option .empf { font-size: 11.5px; font-weight: 700; color: var(--delta-good); text-transform: uppercase; letter-spacing: 0.04em; }
+  .session-stat-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
+  .session-stat-row .gross { font-size: 30px; font-weight: 650; }
+  .footnote { color: var(--text-muted); font-size: 12.5px; margin-top: 24px; }
+  .quellen { font-size: 12.5px; color: var(--text-muted); }
+  .quellen li { margin: 2px 0; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<script>
+/* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
+   Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
+   Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
+const APP_VERSION = "2026-08-09.5";
+(function () {
+  try {
+    const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
+    if (u && u.version && u.html && u.version > APP_VERSION && u.html.indexOf("APP_VERSION") !== -1) {
+      // Neuere Version in einem eigenen Rahmen booten (eigener Skript-Bereich, gleicher Speicher)
+      document.addEventListener("DOMContentLoaded", function () {
+        document.body.innerHTML = "";
+        document.body.style.cssText = "margin:0; overflow:hidden";
+        const f = document.createElement("iframe");
+        f.setAttribute("allow", "camera; microphone");
+        f.style.cssText = "border:0; width:100vw; height:100vh; display:block";
+        f.srcdoc = u.html;
+        document.body.appendChild(f);
+      });
+    }
+  } catch (e) { /* Speicher gesperrt -> eingebaute Version nutzen */ }
+})();
+</script>
+<div class="wrap">
+  <header class="app">
+    <div>
+      <h1>🦑 Splatoon 3 Coach</h1>
+      <p>Trage deine Matches ein – der Coach vergleicht dich mit Top-Spielern und sagt dir, was sie anders machen.</p>
+    </div>
+    <div class="spacer"></div>
+    <button id="updateBtn" title="Nach neuer Version suchen (braucht Internet)">⬆ Update</button>
+    <button id="themeToggle" title="Hell/Dunkel umschalten">🌗 Design</button>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="uebersicht" class="active">Übersicht</button>
+    <button data-tab="matches">Matches</button>
+    <button data-tab="coach">Coach</button>
+    <button data-tab="live">🔴 Live-Coach</button>
+    <button data-tab="salmon">Salmon Run</button>
+    <button data-tab="selbstcheck">Selbst-Check</button>
+    <button data-tab="wissen">Top-Spieler-Wissen</button>
+  </nav>
+
+  <!-- ÜBERSICHT -->
+  <section id="tab-uebersicht">
+    <div id="uebersichtInhalt"></div>
+  </section>
+
+  <!-- MATCHES -->
+  <section id="tab-matches" hidden>
+    <div class="card">
+      <h2>Match eintragen</h2>
+      <p class="sub">Die Zahlen findest du nach jedem Match im Ergebnisbildschirm (Splats = deine Kills inkl. Beteiligungen zählst du bitte getrennt als Splats + Unterstützungen).</p>
+      <form class="match-form" id="matchForm">
+        <div><label for="fDatum">Datum</label><input type="date" id="fDatum" required></div>
+        <div><label for="fModus">Modus</label>
+          <select id="fModus" required>
+            <option>Revierkampf</option><option>Herrschaft</option><option>Turm-Kommando</option>
+            <option>Operation Goldfisch</option><option>Muschelchaos</option>
+          </select></div>
+        <div><label for="fWaffe">Waffe</label>
+          <input id="fWaffe" list="waffenListe" placeholder="z. B. Kleckser" required>
+          <datalist id="waffenListe">
+            <option>Kleckser</option><option>Junior-Kleckser</option><option>Airbrush MG</option>
+            <option>Blaster</option><option>Roller</option><option>Karbon-Roller</option>
+            <option>Konzentrator</option><option>Schwapper</option><option>Splatling</option>
+            <option>Doppler</option><option>Pluviator</option><option>Pinsel</option>
+            <option>Splatana</option><option>Bogen</option>
+          </datalist></div>
+        <div><label for="fErgebnis">Ergebnis</label>
+          <select id="fErgebnis" required><option value="S">Sieg</option><option value="N">Niederlage</option></select></div>
+        <div><label for="fSplats">Splats (Kills)</label><input type="number" id="fSplats" min="0" max="50" required></div>
+        <div><label for="fAssists">Unterstützungen</label><input type="number" id="fAssists" min="0" max="50" value="0" required></div>
+        <div><label for="fDeaths">Deaths</label><input type="number" id="fDeaths" min="0" max="50" required></div>
+        <div><label for="fSpezials">Spezialwaffen-Einsätze</label><input type="number" id="fSpezials" min="0" max="20" required></div>
+        <div><label for="fFarbe">Farbpunkte</label><input type="number" id="fFarbe" min="0" max="4000" step="10" required></div>
+        <div class="full"><label for="fNotiz">Notiz (optional, z. B. „zu oft allein gepusht“)</label><input id="fNotiz" maxlength="200"></div>
+        <div class="full form-actions">
+          <button type="submit" class="primary">Match speichern</button>
+          <button type="button" id="demoBtn">Beispieldaten laden</button>
+          <button type="button" id="exportBtn">Export (JSON)</button>
+          <button type="button" id="importBtn">Import (JSON)</button>
+          <input type="file" id="importFile" accept="application/json" hidden>
+          <button type="button" id="statinkBtn">📥 stat.ink / s3s importieren</button>
+          <input type="file" id="statinkFile" accept=".json,application/json" multiple hidden>
+          <button type="button" id="clearBtn" class="danger">Alle Daten löschen</button>
+        </div>
+        <div class="full form-actions" style="margin-top:2px">
+          <button type="button" id="syncBtn">🔄 stat.ink-Sync</button>
+          <label style="font-size:12.5px; color:var(--text-secondary)">Profil:
+            <input id="syncName" maxlength="40" style="width:110px; font:inherit; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)"></label>
+          <span id="syncStatus" style="font-size:12.5px; color:var(--text-muted)"></span>
+        </div>
+      </form>
+      <details class="tableview" style="margin-top:12px">
+        <summary>Automatischer Import: So kommen deine Matches ohne Tippen in die App</summary>
+        <div style="font-size:13.5px; color:var(--text-secondary); margin-top:8px">
+          <p>Nintendo bietet keine offizielle Schnittstelle – aber die Splatoon-Community hat einen bewährten Umweg
+          (inoffiziell, Nutzung auf eigene Verantwortung):</p>
+          <ol style="padding-left:20px">
+            <li><strong>s3s</strong> auf einem PC/Mac installieren (kostenloses Community-Tool, Suche: „s3s GitHub frozenpandaman“).
+              Es holt deine Matches über deinen Nintendo-Account ab.</li>
+            <li>Bei <strong>stat.ink</strong> ein kostenloses Konto anlegen und den API-Schlüssel in s3s eintragen.</li>
+            <li>s3s laufen lassen, während/nachdem du spielst – es lädt alle Matches automatisch zu stat.ink hoch.</li>
+            <li>Auf stat.ink deine Daten als <strong>JSON herunterladen</strong> (geht auch am iPad im Browser!)
+              und hier über <strong>„stat.ink / s3s importieren“</strong> einlesen – fertig, kein Tippen.</li>
+          </ol>
+          <p>Alternativ liest der Knopf auch die rohen Ergebnis-Dateien, die s3s mit der Option <code>-o</code> lokal speichert.
+          Bereits importierte Matches werden automatisch übersprungen (keine Duplikate).</p>
+        </div>
+      </details>
+    </div>
+    <div class="card">
+      <h2>Deine Matches</h2>
+      <p class="sub" id="matchCount"></p>
+      <div class="table-scroll" id="matchTabelle"></div>
+    </div>
+  </section>
+
+  <!-- COACH -->
+  <section id="tab-coach" hidden>
+    <div id="coachInhalt"></div>
+  </section>
+
+  <!-- LIVE-COACH -->
+  <section id="tab-live" hidden>
+    <div id="liveInhalt"></div>
+    <div id="monitorHalter"></div>
+  </section>
+
+  <!-- SALMON RUN -->
+  <section id="tab-salmon" hidden>
+    <div class="card">
+      <h2>🐟 Salmon-Run-Schicht eintragen</h2>
+      <p class="sub">Die Zahlen findest du im Ergebnisbildschirm nach der Schicht (deine persönlichen Werte).</p>
+      <form class="match-form" id="srForm">
+        <div><label for="sDatum">Datum</label><input type="date" id="sDatum" required></div>
+        <div><label for="sGefahr">Gefahrenstufe (%)</label><input type="number" id="sGefahr" min="0" max="333" required></div>
+        <div><label for="sWellen">Geschaffte Wellen</label>
+          <select id="sWellen" required>
+            <option value="3">3 – Schicht geschafft</option>
+            <option value="2">2 – in Welle 3 gescheitert</option>
+            <option value="1">1 – in Welle 2 gescheitert</option>
+            <option value="0">0 – in Welle 1 gescheitert</option>
+          </select></div>
+        <div><label for="sKoenig">Xtrawelle</label>
+          <select id="sKoenig">
+            <option value="">Keine Xtrawelle</option>
+            <option value="S">König besiegt</option>
+            <option value="N">König entkommen</option>
+          </select></div>
+        <div><label for="sEier">Goldene Eier (persönlich)</label><input type="number" id="sEier" min="0" max="99" required></div>
+        <div><label for="sBosse">Besiegte Boss-Salmoniden</label><input type="number" id="sBosse" min="0" max="99" required></div>
+        <div><label for="sRettungen">Kollegen gerettet</label><input type="number" id="sRettungen" min="0" max="30" required></div>
+        <div><label for="sGerettet">Selbst gerettet worden</label><input type="number" id="sGerettet" min="0" max="30" required></div>
+        <div class="full form-actions">
+          <button type="submit" class="primary">Schicht speichern</button>
+        </div>
+      </form>
+    </div>
+    <div id="salmonInhalt"></div>
+  </section>
+
+  <!-- SELBST-CHECK -->
+  <section id="tab-selbstcheck" hidden>
+    <div class="card">
+      <h2>Selbst-Check: Gewohnheiten der Top-Spieler</h2>
+      <p class="sub">Hake ab, was du bereits regelmäßig machst. Alles Ungehakte fließt in deine Coach-Tipps ein.</p>
+      <div id="habitFortschritt"></div>
+      <div id="habitListe"></div>
+    </div>
+  </section>
+
+  <!-- WISSEN -->
+  <section id="tab-wissen" hidden>
+    <div id="wissenInhalt"></div>
+  </section>
+
+  <p class="footnote">Alle Daten bleiben lokal in deinem Browser (localStorage) – nichts wird hochgeladen.
+  Die Top-Spieler-Benchmarks und Tipps basieren auf einer Recherche zu X-Rang-/Top-500-/Turnierspielern
+  (stat.ink, sendou.ink, Inkipedia, Coaching-Inhalte bekannter Wettkampfspieler). Splatoon ist eine Marke von Nintendo;
+  dieses Fan-Tool steht in keiner Verbindung zu Nintendo.</p>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+"use strict";
+
+/* ================= WISSENSBASIS =================
+   Quelle: Internet-Recherche Aug 2026 (stat.ink Aggregat-Tabellen Saison "Sizzle
+   Season 2026" mit 47.000-108.000 Matches pro Modus, Auswertung von 13.329
+   Salmon-Run-Schichten aus stat.ink-CSV-Exporten Juli 2026, sendou.ink,
+   Inkipedia, Squidboards, Interviews/Guides von Wettkampfspielern). */
+const WISSEN = {
+  /* Echte Durchschnittswerte pro Match und Modus (stat.ink, Anarchie-Serie/X-Kampf).
+     Der Coach vergleicht dich mit dem Schnitt DEINES Modus-Mixes. */
+  modus_erwartung: {
+    "Revierkampf":         { deaths: 3.5, kills: 3.4, assists: 0.9, specials: 2.5, farbe: 943 },
+    "Herrschaft":          { deaths: 4.8, kills: 4.8, assists: 1.7, specials: 3.3, farbe: 931 },
+    "Turm-Kommando":       { deaths: 6.5, kills: 6.4, assists: 2.3, specials: 3.4, farbe: 964 },
+    "Operation Goldfisch": { deaths: 6.7, kills: 6.6, assists: 2.4, specials: 3.0, farbe: 1050 },
+    "Muschelchaos":        { deaths: 7.0, kills: 7.0, assists: 2.6, specials: 3.4, farbe: 1137 },
+  },
+  coach_schwellen: {
+    deaths_faktor_top: 0.85, deaths_faktor_ok: 1.05,
+    kad_top: 1.5, kad_ok: 1.35,
+    specials_faktor_top: 1.2, specials_faktor_ok: 0.9,
+    farbe_faktor_top: 1.25, farbe_faktor_ok: 0.85,
+    assists_faktor_ok: 0.65,
+  },
+  benchmarks: [
+    { metrik: "Kills pro Match", einheit: "", durchschnitt: "3,4 (Revierkampf) bis 7,0 (Muschelchaos)", gut: "leicht über dem Modus-Schnitt", top: "kaum höher! X-2000+: 4,98 vs. 4,96", hinweis: "Kills hängen vom Modus ab, nicht vom Können. Top-Spieler haben NICHT mehr Kills – sie sterben klüger und spielen mehr mit dem Team." },
+    { metrik: "(Kills+Unterst.) / Death", einheit: "", durchschnitt: "1,24 (Revierkampf) – 1,38 (Ranked)", gut: "≈ 1,4", top: "≥ 1,5 dauerhaft", hinweis: "Der beste Einzelwert. „Pros haben K/D 3+“ ist ein Mythos – selbst Top-500-Spieler liegen bei K/D ≈ 1,1–1,2." },
+    { metrik: "Deaths pro Match", einheit: "", durchschnitt: "3,5 / 4,8 / 6,5 / 6,7 / 7,0 je Modus", gut: "unter dem Modus-Schnitt", top: "15 %+ unter dem Schnitt; Anchor-Waffen in Herrschaft nur 2,8–3,5", hinweis: "Auf Top-Niveau korreliert „weniger Deaths“ am stärksten mit Siegen (r = −0,21 in Herrschaft) – mehr Kills fast gar nicht (r = 0,03)." },
+    { metrik: "Unterstützungen pro Match", einheit: "", durchschnitt: "0,9 (Revier) / 1,7–1,9 (Herrschaft) / 2,3–2,7 (Rest)", gut: "Modus-Schnitt", top: "+7 % ggü. niedrigeren Rängen", hinweis: "Der unterschätzte Skill-Marker: Wenige Unterstützungen = du kämpfst allein statt mit dem Team." },
+    { metrik: "Spezialeinsätze pro Match", einheit: "", durchschnitt: "2,5 (Revier) / 3,0–3,5 (Ranked)", gut: "≥ 3", top: "4–6+ auf Support-Waffen", hinweis: "Unter 2 ist ein Warnsignal: zu wenig gemalt oder mit geladener Leiste gestorben. Im Revierkampf korrelieren Spezials am stärksten mit Siegen (r = 0,53)." },
+    { metrik: "Farbpunkte pro Match", einheit: "P", durchschnitt: "940 (Revier) / 930–1150 (Ranked, je Modus)", gut: "1100+ im Revierkampf", top: "Maler-Waffen 1300–1530", hinweis: "Blaster/Roller malen naturgemäß nur 600–800 – vergleiche dich mit deiner Waffenklasse." },
+    { metrik: "Winrate", einheit: "%", durchschnitt: "≈ 50 (Matchmaking gleicht aus!)", gut: "53–55 über 50+ Matches", top: "56+ dauerhaft", hinweis: "50 % ist KEIN Misserfolg: Verbesserung zeigt sich als steigender Rang bei stabiler Winrate, nicht als immer höhere Winrate." },
+    { metrik: "X-Power-Einordnung", einheit: "", durchschnitt: "Start ≈ 1900–2100", gut: "unter 2000", top: "2000+ (harte Matchmaking-Grenze), Top 500 ab ≈ 2340", hinweis: "Seit Spielversion 6.0.0 werden Spieler unter/über 2000 X-Power nie zusammen gematcht – die „2000er-Grenze“ ist die offizielle Top-Spieler-Marke." },
+  ],
+  gewohnheiten: [
+    { id: "gyro", titel: "Bewegungssteuerung (Gyro) aktiv", beschreibung: "Zielen per Bewegungssteuerung statt nur mit dem Stick; der Stick macht nur grobe Drehungen.", warum: "Über 99 % der Top-Spieler nutzen Gyro – der größte einzelne Mechanik-Hebel überhaupt. Umstieg: bei −2,5 starten, wochenweise steigern; 1–3 Wochen fühlt es sich schlechter an, danach deutlich besser.", kategorie: "Mechanik" },
+    { id: "sens-stabil", titel: "Feste, passende Empfindlichkeit", beschreibung: "Empfindlichkeit zur Waffenklasse passend wählen (Charger −3 bis +1, Mittelstrecke −1 bis +3, Nahkampf +1 bis +5; Stick hoch: +3 bis +5) und dann wochenlang NICHT ändern.", warum: "Muskelgedächtnis entsteht nur bei konstanter Empfindlichkeit – ständiges Umstellen ist ein klassischer Durchschnittsspieler-Fehler.", kategorie: "Mechanik" },
+    { id: "sepia-rolle", titel: "Sepia-Rolle aktiv nutzen", beschreibung: "Aus dem Schwimmen Richtungswechsel mit B – behält das Tempo und negiert bis zu 100 Schaden (übersteht z. B. eine Bombe).", warum: "Top-Spieler weben die Rolle ständig in ihre Bewegung ein (unvorhersehbare Strafes, Flucht nach einem Kill) – Durchschnittsspieler nutzen sie fast nie.", kategorie: "Mechanik" },
+    { id: "sepia-sprint", titel: "Sepia-Sprint für Wand-Duelle", beschreibung: "An eingefärbter Wand B gedrückt halten (Augen blinken = voll geladen), dann blitzschnell über die Kante schießen – abbrechbar für Fakes.", warum: "Gewinnt Kanten-Duelle gegen Gegner, die oben campen – Durchschnittsspieler nehmen stattdessen vorhersehbare lange Wege.", kategorie: "Mechanik" },
+    { id: "sub-strafing", titel: "Sub-Strafing beherrschen", beschreibung: "Beim Schwimmen R (Sekundärwaffe) halten: enge, verzögerungsfreie Richtungswechsel; R unter der Tinte loslassen bricht den Wurf ab.", warum: "Entfernt die eingebaute Schwimm-Drehverzögerung – eine der klarsten „Top-Spieler machen es ständig, Durchschnittsspieler kennen es nicht“-Techniken.", kategorie: "Mechanik" },
+    { id: "schwimmform", titel: "Zwischen Kämpfen fast nur Schwimmform", beschreibung: "Rhythmus „schießen → abtauchen → repositionieren“; kaum in Kalmarform herumlaufen. Leises Schwimmen: Stick nur leicht neigen = keine Wellen.", warum: "Laufen zwischen Kämpfen ist ein sicheres Durchschnittsspieler-Erkennungszeichen – Schwimmen ist schneller, lädt Tinte nach und macht unsichtbar.", kategorie: "Mechanik" },
+    { id: "aim-routine", titel: "Kurze tägliche Aim-Routine + Warm-up", beschreibung: "3–5 Minuten an den beweglichen Dummys im Testareal (Verfolgen beim Strafen/Springen), vor Ranked 10–20 Min aufwärmen (Drill + 1–3 lockere Matches oder Salmon Run).", warum: "Top-Spieler behandeln Aim als Pflege, nicht als Talent – schon 3 Minuten täglich bringen messbar mehr Treffer. Nie „kalt“ in Ranked.", kategorie: "Training" },
+    { id: "lampen-check", titel: "Tintenfisch-Lampen ständig checken", beschreibung: "Die Symbole am oberen Bildschirmrand zeigen, wer lebt und wessen Spezialwaffe geladen ist – bei jeder Zustandsänderung (Kill, Death, Spezial) kurz hinschauen.", warum: "Diese eine Gewohnheit steuert fast alle guten Entscheidungen: pushen oder verteidigen, Fight annehmen oder nicht. Durchschnittsspieler schauen nie nach oben.", kategorie: "Positionierung & Karte" },
+    { id: "karte-check", titel: "Karte bei Start + jedem Respawn", beschreibung: "Karte (X) beim Matchstart (gegnerische Ausrüstung/Waffen lesen) und in JEDER Respawn-Phase öffnen: Farblage checken, Route planen.", warum: "Top-Spieler nutzen die tote Zeit als Informationszeit – Durchschnittsspieler nutzen sie zum Ärgern.", kategorie: "Positionierung & Karte" },
+    { id: "eigene-farbe", titel: "Nur aus eigener Farbe kämpfen", beschreibung: "Vor dem Vorrücken malen, am Rand der eigenen Farbe kämpfen, Rückzugswege vorgemalt halten. Steht mehr als die Hälfte gegnerische Farbe zwischen dir und deinem Fluchtweg: erst zurück und neu malen.", warum: "In gegnerischer Farbe bist du langsam, nimmst Schaden, kannst nicht nachladen und nicht abtauchen – der Fight ist verloren, bevor er beginnt.", kategorie: "Positionierung & Karte" },
+    { id: "nicht-vorderster", titel: "Nicht grundlos der vorderste Spieler sein", beschreibung: "Nur mit Frontline-Waffe UND Anschluss ans Team ganz vorn stehen; als Midline/Backline hinter der eigenen Linie halten.", warum: "Team-Struktur (Front/Mitte/Anker) ist die Basis des Wettkampf-Spiels: Wer außerhalb seiner Linie steht, stirbt ohne Absicherung.", kategorie: "Positionierung & Karte" },
+    { id: "ueberzahl", titel: "Überzahl pushen, Unterzahl stallen", beschreibung: "Zeigen die Lampen 4-gegen-3 (oder besser): sofort aufs Ziel pushen. Ist dein Team in Unterzahl: zurückziehen, defensiv halten, auf Respawns warten.", warum: "Jeder Death kostet ~8,5 s Respawn + Rückweg ≈ 10+ Sekunden Unterzahl. Top-Spieler rechnen das ständig mit – Durchschnittsspieler spielen bei 3v4 genauso wie bei 4v3.", kategorie: "Entscheidungen" },
+    { id: "sammeln", titel: "Sammeln statt einzeln reintröpfeln", beschreibung: "Nach einem Team-Wipe oder 2+ Deaths: warten, mit Teamkollegen gruppieren, zu viert zurückkommen. Super-Sprung nur zu sicheren Teamkollegen hinter der Linie.", warum: "Das „Tröpfeln“ (einer nach dem anderen rennt allein rein) ist DER Klassiker, wie Durchschnittsteams nach einem verlorenen Fight das ganze Match verlieren.", kategorie: "Entscheidungen" },
+    { id: "spezial-team", titel: "Spezialwaffen stapeln, nie solo verballern", beschreibung: "Vor einem Push 2–3 Team-Spezials aufbauen und nacheinander schichten (eine öffnet, die nächste deckt, die dritte sichert). Nie sofort und allein einsetzen – und nie mit voller Leiste in riskante Fights.", warum: "Sterben kostet seit Patch 2.7.0 je nach Waffe 40–75 % der Spezialleiste. Ein Solo-Spezial erreicht nichts; 2–3 gestapelte entscheiden das Match.", kategorie: "Entscheidungen" },
+    { id: "death-frage", titel: "Nach jedem Death: „Was hat es gebracht?“", beschreibung: "Guter Death: Träger/Fahrer gestoppt, Push aufgehalten, 2+ gegnerische Spezials gezogen, 1:1 getauscht. Schlechter Death: nichts davon = Feed.", warum: "Top-Spieler nehmen nur Fights an, deren Preis sich lohnt – diese eine Frage nach jedem Death trainiert genau das.", kategorie: "Entscheidungen" },
+    { id: "eine-waffe", titel: "Eine Waffe wirklich meistern", beschreibung: "Eine Hauptwaffe (plus max. eine Zweitwaffe) für mindestens 20+ Matches spielen, bevor gewechselt wird.", warum: "Reichweiten-Duelle, Positionen und Spezial-Timings sind pro Waffe verschieden – die lernst du nur durch Wiederholung. Fast alle Top-Spieler sind Ein-Waffen-Spezialisten.", kategorie: "Training" },
+    { id: "death-review", titel: "Eigene Deaths im Replay anschauen", beschreibung: "Nicht das ganze Match: nur die eigenen Deaths anspulen und in einem Satz notieren, WARUM (überzogen? gegnerische Farbe? 1v2? Spezial übersehen?).", warum: "Die schnellste Form von VOD-Review – nach 10 Deaths siehst du dein Muster schwarz auf weiß.", kategorie: "Training" },
+    { id: "tilt-regel", titel: "Feste Stopp-Regel gegen Tilt", beschreibung: "Nach 2–3 Niederlagen in Folge: Pause, Moduswechsel (Salmon Run!) oder Schluss für heute. Ein Fokus pro Session (z. B. „heute nur Positionierung“).", warum: "Frustriert weiterspielen ist der Ort, an dem Durchschnittsspieler ihren Rang verlieren – Top-Spieler haben feste Stopp-Regeln.", kategorie: "Training" },
+  ],
+  modi: [
+    { modus: "Revierkampf", top_spieler: [
+        "Spezialwaffen und Farbleistung gewinnen diesen Modus – nicht Kills: Spezials korrelieren mit r = 0,53, Farbe mit r = 0,47 mit der Winrate, Kills nur mit r = 0,17 (stat.ink, 107.000 Matches).",
+        "Erst das eigene Startgebiet vollständig färben (sichere Punkte + Spezialladung), dann zur Mitte.",
+        "Große Flächen und Wände mitnehmen, die Gegner ungern anfassen – nicht die schon umkämpfte Mitte zum fünften Mal übermalen.",
+        "Die letzten 30 Sekunden sind das eigentliche Match: Spezials für das Finale aufsparen und in den Schlusssekunden die größten Flächen sichern.",
+      ], typische_fehler: [
+        "Kills jagen und dabei vergessen, dass nur die gefärbte Fläche zählt.",
+        "Das eigene Spawn-Gebiet ungefärbt lassen (freie Punkte + Spezialladung verschenkt).",
+        "Am Ende überziehen und in den entscheidenden Sekunden tot sein.",
+      ] },
+    { modus: "Herrschaft", top_spieler: [
+        "Nie in der eigenen Zone stehen: Nach dem Einnehmen wird DRUMHERUM verteidigt (Wege und Höhen kontrollieren) – ein Death in der eigenen Zone kippt sie am schnellsten.",
+        "Poken statt committen: Aus sicherer Distanz Farbe/Schaden werfen, Spezial farmen – der echte Retake kommt nur als Gruppe mit 2+ gestapelten Spezials oder Überzahl.",
+        "Lockout spielen: Nach gewonnenem Teamfight zur vordersten SICHEREN Position (Engstellen zur Mitte), nicht zum gegnerischen Spawn.",
+        "Stabile Holds anstreben: Die Strafpunkte-Mechanik bestraft ständiges Hin-und-her – wer länger am Stück hält, gewinnt.",
+        "Zwei Spieler reichen zum Halten der meisten Zonen – die anderen nehmen Fläche und Flanken.",
+      ], typische_fehler: [
+        "In der eigenen Zone sterben (schenkt dem Gegner die Neutralisierung).",
+        "Sofort nach dem Respawn solo in 3 Verteidiger rennen (Tröpfeln).",
+        "Mit Führung im Rücken zum gegnerischen Spawn überziehen und den Hold verwerfen.",
+        "Unter 2–3 Spezialeinsätze pro Match = zu wenig gemalt für diesen Spezial-Modus.",
+      ] },
+    { modus: "Turm-Kommando", top_spieler: [
+        "Der Kampf passiert VOR und NEBEN dem Turm, nicht auf ihm: Erst den Weg freikämpfen, dann fahren.",
+        "Nur mit Spieler-Vorteil aufsteigen (mindestens +1, ideal +2) – bei Gleichstand wird nicht gefahren.",
+        "Genau EIN Fahrer (kurze Reichweite), einer sichert daneben, zwei räumen voraus. Mehr Fahrer machen den Turm NICHT schneller (nur Checkpoints) – sie sind nur ein größeres Ziel.",
+        "Spezials für Checkpoints aufheben – die eigenen zum Freiräumen, gegen gegnerische Stalls sind Flächen-Spezials und Bomben AUF die Plattform das beste Retake-Fenster.",
+        "Fahrer-Technik: Stange als rotierende Deckung nutzen, über horizontale Schüsse springen, bei Bomben kurz abspringen und sofort wieder aufsteigen.",
+        "Turm-Kontrolle lädt dem ganzen Team passiv die Spezialleiste (4,5 P/s) – früh anfechten, statt Gratis-Fortschritt zu schenken.",
+      ], typische_fehler: [
+        "Das ganze Team stapelt sich auf dem Turm (ein Flächen-Spezial = Team-Wipe).",
+        "Backline-Waffen fahren den Turm, statt Sichtlinien zu halten.",
+        "Fights gewinnen und dann NICHT fahren – Kills ohne Ziel-Umsetzung sind in diesem Modus wertlos.",
+        "Spezials verbrennen, sobald sie geladen sind, und mit leeren Händen am Checkpoint ankommen.",
+      ] },
+    { modus: "Operation Goldfisch", top_spieler: [
+        "Vor dem Knacken der Barriere sammeln (3+ am Leben) – die Barriere platzen zu lassen, wenn niemand tragen/eskortieren kann, schenkt dem Gegner den Goldfisch.",
+        "Träger-Kill ist Priorität Nr. 1: In keinem Modus korreliert die Kill-Ratio stärker mit dem Sieg (r = 0,36) – jeder Träger-Stopp setzt den Push zurück.",
+        "Routen vorher kennen und vormalen; Checkpoints zum sicheren Neuaufstellen nutzen statt blind durchzurennen.",
+        "Der Träger behält volle Beweglichkeit (auch Sepia-Rolle) – Eskorte läuft voraus und malt, Träger folgt geschützt.",
+        "Als Team hinter dem Träger bleiben – ein Träger allein vor dem Team ist ein Geschenk.",
+      ], typische_fehler: [
+        "Die Barriere solo knacken, während das Team tot ist.",
+        "Als Träger allein vorausrennen oder riskante Duelle suchen.",
+        "Keinen Plan für die Rückroute haben, wenn der Push scheitert.",
+        "Den gegnerischen Träger laufen lassen, um Kills am Rand zu jagen.",
+      ] },
+    { modus: "Muschelchaos", top_spieler: [
+        "Pushes werden VORBEREITET, dann in einem Fenster ausgeführt: Power-Muschel bereit + 2+ Spezials + 4 am Leben – vorher wird nicht committet.",
+        "Muscheln vor dem Push sammeln und verteilen – und mit Muscheln im Gepäck keine riskanten Fights annehmen (Sterben verstreut sie).",
+        "Nach dem Korb-Öffnen sofort nachwerfen: Die Öffnungszeit ist das Zeitfenster, nicht der Einzeltreffer.",
+        "In der Verteidigung Korb-Region halten und gegnerische Muschel-Sammler stören, statt wild zu jagen.",
+      ], typische_fehler: [
+        "Die Power-Muschel allein reinwerfen ohne Team dahinter (Verteidiger schließen den Korb sofort).",
+        "Mit 8 Muscheln in einen 1v2-Fight gehen und alles verstreuen.",
+        "Die „Mitleids-Power-Muschel“ sofort und planlos nutzen.",
+        "Fundamentals vergessen: In diesem Modus schlagen solide Grundlagen rohe Aggression – Trades mit Muscheln im Gepäck sind fast immer schlecht.",
+      ] },
+  ],
+  fehler_vs_top: [
+    { fehler: "Kills jagen, fliehende Gegner über die Mittellinie verfolgen", stattdessen: "Nur Fights mit Vorteil (Überzahl, Höhe, Überraschung) und Fluchtweg annehmen – wer flieht, wird ziehen gelassen." },
+    { fehler: "Sofort nach dem Respawn allein zurück in den Kampf", stattdessen: "Warten, sammeln, zu viert wieder rein – das Tröpfeln (1v4, 2v4 …) ist der häufigste Grund für verlorene Matches." },
+    { fehler: "Spezialwaffe sofort und solo einsetzen, sobald sie geladen ist", stattdessen: "2–3 Team-Spezials aufbauen und für den gemeinsamen Push schichten; ist der Gegner 2+ Spezials voraus: seinen Push auslaufen lassen, dann kontern." },
+    { fehler: "Mit voller Spezialleiste in riskante Fights (und sterben)", stattdessen: "Vor dem Risiko einsetzen – ein Death kostet 40–75 % der Leiste (Patch 2.7.0)." },
+    { fehler: "In gegnerischer Farbe kämpfen", stattdessen: "Erst malen, dann kämpfen: am Rand der eigenen Farbe, mit vorgemaltem Rückzugsweg." },
+    { fehler: "Nie auf die Tintenfisch-Lampen oder die Karte schauen", stattdessen: "Lampen bei jeder Zustandsänderung checken (wer lebt? wessen Spezial ist geladen?); Karte bei Start und jedem Respawn öffnen." },
+    { fehler: "Bei 3-gegen-4 genauso spielen wie bei 4-gegen-3", stattdessen: "Überzahl = 8–10-Sekunden-Push-Fenster aufs Ziel; Unterzahl = zurückziehen und stallen, bis alle leben." },
+    { fehler: "Super-Sprung direkt an die Front", stattdessen: "Nur zu sicheren Teamkollegen hinter der Linie springen – der Landepunkt ist für alle sichtbar." },
+    { fehler: "Ständig die Waffe wechseln", stattdessen: "Eine Waffe 20+ Matches meistern – Top-Spieler sind fast ausnahmslos Spezialisten." },
+    { fehler: "Auf K/D 3+ hinspielen, weil „Pros das haben“", stattdessen: "Haben sie nicht: Auch Top-500-Spieler liegen bei K/D ≈ 1,1–1,2. Sie sterben nur klüger – jeder Death kostet ~10 s Unterzahl." },
+    { fehler: "Die Respawn-Zeit zum Ärgern nutzen", stattdessen: "Splat-Cam + Respawn (~8,5 s) sind Informationszeit: Karte lesen, Route planen, mit wem gruppieren?" },
+    { fehler: "Sieg = viele Kills, Niederlage = schlechtes Team", stattdessen: "Nach jedem Match eine ehrliche Frage: Was hätte ICH anders machen können? (Sonst lernt man exakt nichts.)" },
+  ],
+  training: [
+    { titel: "Death-Review statt Ganz-VODs", beschreibung: "Replay öffnen, nur die eigenen Deaths anspulen, Ursache in einem Satz notieren (überzogen / gegnerische Farbe / 1v2 / Spezial übersehen). Nach 10 Deaths ist dein Muster sichtbar – das effizienteste Training überhaupt." },
+    { titel: "Ein Fokus pro Session", beschreibung: "Vor der Session EIN Ziel festlegen („heute achte ich nur auf die Lampen“ / „heute sterbe ich nie in der eigenen Zone“). Wer alles gleichzeitig verbessern will, verbessert nichts." },
+    { titel: "Tägliche Mini-Aim-Routine", beschreibung: "3–5 Minuten bewegliche Dummys im Testareal: Fadenkreuz beim Strafen und Springen auf dem Ziel halten, Flicks üben. Am PC gibt es den kostenlosen Gyro-Trainer „Squid Aimer“ (funktioniert mit Pro Controller)." },
+    { titel: "Warm-up vor Ranked", beschreibung: "10–20 Minuten: Aim-Drill + 1–3 lockere Matches (Revierkampf, offene Gruppe) oder eine Runde Salmon Run. Nie kalt in die Rangliste – die ersten Matches einer kalten Session kosten messbar Punkte." },
+    { titel: "Gyro-Umstiegsprogramm (2 Wochen)", beschreibung: "Bewegungssteuerung an, Empfindlichkeit −2,5, Stick auf +3. Jede Woche +0,5, bis es sich schnell genug anfühlt. Es wird 1–3 Wochen schlechter, bevor es deutlich besser wird – durchhalten." },
+    { titel: "In 20er-Fenstern denken", beschreibung: "Einzelmatch-Werte schwanken enorm. Bewerte dich nur über rollende 10–20-Match-Fenster (macht dieses Tool automatisch) – und erwarte ~50 % Winrate: Fortschritt zeigt sich im Rang, nicht in der Winrate." },
+    { titel: "Von den Besten abschauen", beschreibung: "Coaching-Inhalte von Squid School (Gem) und ProChara; Streams von Top-Spielern wie ThatSrb2DUDE oder Kiver mit einer Frage anschauen: „Wo steht der Spieler, wenn er NICHT kämpft?“ Builds von verifizierten Top-500-Spielern: sendou.ink." },
+  ],
+  quellen: [
+    "stat.ink – Aggregat-Statistiken Saison „Sizzle Season 2026“ (47.000–108.000 Matches pro Modus): stat.ink/entire/weapons3",
+    "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)",
+    "sendou.ink – Competitive Guidebook, „Ten Splatoon Tips“, X-Rang-Top-500-Suche, Build-Datenbank",
+    "Inkipedia (splatoonwiki.org) – Spielmechaniken: Spezialleiste, Respawn, Turm-Kommando, Herrschaft, Salmon Run „Next Wave“-Daten, Community-Glossar",
+    "Squidboards – Wettkampf-Foren (Warm-up, Sub-Strafing, Tower-Control-Guides, Aim-Training)",
+    "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte",
+    "Game8 – Empfindlichkeits-Guides eines ehemaligen JP-Top-Spielers; Nintendo – offizielle Einsteiger-Guides",
+  ],
+  salmon: {
+    /* Erwartungswerte pro voller Schicht nach Gefahrenstufe (Mediane aus 13.329
+       stat.ink-Schichten, Juli 2026). bis = Obergrenze der Gefahrenstufe in %. */
+    erwartung: [
+      { bis: 100, eier: 17, bosse: 8 },
+      { bis: 160, eier: 22, bosse: 10 },
+      { bis: 200, eier: 25, bosse: 12 },
+      { bis: 270, eier: 30, bosse: 16 },
+      { bis: 999, eier: 36, bosse: 19 },
+    ],
+    schwellen: {
+      eier_faktor_top: 1.2, eier_faktor_ok: 0.8,
+      bosse_faktor_top: 1.2, bosse_faktor_ok: 0.65,
+      gerettet_top: 1.4, gerettet_ok: 2.2,
+    },
+    benchmarks: [
+      { metrik: "Goldene Eier (persönlich, volle Schicht)", einheit: "", durchschnitt: "17 (unter 100 %) / 22–25 (100–200 %) / 30 (200–270 %)", gut: "36 (Median bei 333 %)", top: "46–57+ (obere 10–25 % bei 333 %); Weltrekord-Niveau ≈ 60", hinweis: "Immer relativ zur Gefahrenstufe bewerten – der Coach rechnet das automatisch um." },
+      { metrik: "Besiegte Boss-Salmoniden (pro Schicht)", einheit: "", durchschnitt: "8 (unter 100 %) / 12 (160–200 %) / 16 (200–270 %)", gut: "20 (Median bei 333 %)", top: "23–27+", hinweis: "Top-Teams töten fast alles, was spawnt (75 von max. 97) – schwache Teams lassen ~40 % der Bosse leben. Bosse sind die Eierquelle." },
+      { metrik: "Selbst gerettet worden (Ausfälle)", einheit: "", durchschnitt: "1,4–2,0", gut: "≤ 2", top: "0–1 (28 % der 333-%-Schichten sind ausfallfrei)", hinweis: "Der größte Einzelhebel: 3+ Ausfälle pro Schicht kosten mehr als alles andere." },
+      { metrik: "Kollegen gerettet", einheit: "", durchschnitt: "1,5–3", gut: "mehr retten als selbst ausfallen", top: "Bilanz klar positiv", hinweis: "Auf Top-Niveau fällt schlicht weniger aus – wichtig ist die Bilanz, nicht die absolute Zahl." },
+      { metrik: "Erfolgsquote (3 Wellen geschafft)", einheit: "%", durchschnitt: "≈ 50 im Bereich 100–200 %", gut: "60–70", top: "75–80 bei 333 % (eingespielte Teams)", hinweis: "Dauerhaft unter 40 % = Gefahrenstufe aktuell zu hoch – ein paar Schichten auf Grundlagen konzentrieren." },
+      { metrik: "Eier-Quote des Teams", einheit: "", durchschnitt: "Quote erfüllen (bei 333 %: 30-32-35 = 97)", gut: "1,5× Quote (≈ 150 Team-Eier)", top: "2× Quote; Weltrekord 241", hinweis: "Selbst Top-Teams sammeln nur ~2/3 der gespawnten Eier ein – schnelleres Eier-Laufen bringt mehr als noch mehr Kills." },
+      { metrik: "Gefahrenstufen-Einordnung", einheit: "%", durchschnitt: "unter 100 = Einsteiger, 100–160 = solide", gut: "160–270", top: "270–333; dauerhaft 333 = Overfisher-Niveau", hinweis: "Die Stufe steigt automatisch mit dem Rang – sie IST die ehrlichste Fortschrittsanzeige." },
+    ],
+    top_spieler: [
+      "Bosse zum Korb LOCKEN und erst dort erledigen – die 3 Goldenen Eier fallen dann neben den Korb statt am Kartenrand (der größte Einzeltrick für mehr Eier).",
+      "Goldene Eier WERFEN (statt tragen): Der Eierwurf über Distanz spart Laufwege und rettet Quoten in den letzten Sekunden – kostet aber Tinte, also vorher nachtanken.",
+      "Prioritäts-Bosse SOFORT töten, sobald sie spawnen: Flyfish (Raketenwerfer) und Stinger (Topfturm) beschießen das ganze Team über die halbe Karte, Drizzler (Regenmacher) flutet die Fläche – jede Sekunde, die sie leben, wird die Welle schwerer.",
+      "In Korbnähe zusammenbleiben: 70–80 % der Zeit im mittleren Kartenbereich – wer allein am Rand farmt, stirbt allein und seine Eier verfallen.",
+      "Ausgefallene Kollegen SOFORT wiederbeleben (notfalls ein Ei liegen lassen) – jeder Ausfall bedeutet 25 % weniger Teamleistung und Rettungen sind Sekundensache.",
+      "Boden UND Wände rund um den Korb ständig nachmalen – Bewegungsfreiheit fürs ganze Team und Fluchtwege bei Flut.",
+      "Bei Ebbe rechtzeitig mit RAUS ans Wasser, bei Flut früh die sichere Hochfläche beziehen – Gezeiten-Positionierung entscheidet mehr Wellen als Aim.",
+      "Spezialwaffen (2 Einsätze pro Schicht) gezielt einteilen: eine für den Notfall in Welle 1–2, eine für Welle 3 – nicht beide horten, nicht beide sofort verballern.",
+      "In Welle 1 und 2 ÜBER die Quote liefern – der Puffer entscheidet, ob eine schwere Welle 3 noch reicht.",
+      "Mit „schlechten“ Waffen-Rotationen trotzdem spielen: Top-Spieler kennen jede Waffe der Rotation – genau das trennt sie vom Durchschnitt.",
+      "In der Xtrawelle Goldene Eier auf den Salmoniden-König werfen statt nur zu schießen – die Eierwürfe machen den Großteil des Schadens.",
+    ],
+    typische_fehler: [
+      "Bosse dort töten, wo sie spawnen (am Kartenrand) – die Eier liegen dann unerreichbar weit weg.",
+      "Eier einzeln über die halbe Karte tragen, statt Bosse zu locken oder zu werfen.",
+      "Allein am Kartenrand farmen, außer Reichweite jeder Rettung.",
+      "Kleine Salmoniden tunneln, während Flyfish und Stinger das Team zerlegen.",
+      "Ausgefallene Kollegen liegen lassen, „weil gerade keine Zeit ist“.",
+      "Beide Spezialwaffen-Einsätze bis zum Schluss horten (und mit ihnen untergehen) – oder beide in Welle 1 verballern.",
+      "Nach erfüllter Quote aufhören zu liefern, statt Puffer für die nächste Welle aufzubauen.",
+      "Bei Flut auf der überfluteten Fläche stehen bleiben, bei Ebbe nicht mit rausgehen (Eier verschenkt).",
+    ],
+  },
+};
+/* =============================================================================== */
+
+const STORAGE_KEY = "splatoon3-coach-v1";
+const MODI = ["Revierkampf", "Herrschaft", "Turm-Kommando", "Operation Goldfisch", "Muschelchaos"];
+
+let state = ladeState();
+
+function ladeState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null }; }
+  } catch (e) { /* Speicher gesperrt oder defekt -> im Arbeitsspeicher weiterarbeiten */ }
+  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null };
+}
+function speichereState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+  catch (e) { /* Speicher gesperrt (z. B. Sandbox-Vorschau) -> App läuft trotzdem, nur ohne Dauerspeicherung */ }
+}
+
+/* ---------- Theme ---------- */
+function wendeThemeAn() {
+  const root = document.documentElement;
+  if (state.theme === "dark" || state.theme === "light") root.setAttribute("data-theme", state.theme);
+  else root.removeAttribute("data-theme");
+}
+document.getElementById("themeToggle").addEventListener("click", () => {
+  const dunkelAktiv = document.documentElement.getAttribute("data-theme") === "dark" ||
+    (!document.documentElement.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+  state.theme = dunkelAktiv ? "light" : "dark";
+  speichereState(); wendeThemeAn(); renderAlles();
+});
+wendeThemeAn();
+
+/* ---------- Tabs ---------- */
+document.getElementById("tabs").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-tab]"); if (!btn) return;
+  document.querySelectorAll("#tabs button").forEach(b => b.classList.toggle("active", b === btn));
+  document.querySelectorAll("section[id^=tab-]").forEach(s => s.hidden = s.id !== "tab-" + btn.dataset.tab);
+});
+
+/* ---------- Hilfsfunktionen ---------- */
+const $ = (sel) => document.querySelector(sel);
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fmt1 = (n) => (Math.round(n * 10) / 10).toLocaleString("de-DE");
+const pct = (n) => Math.round(n * 100) + " %";
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+
+/* ---------- Statistik ---------- */
+function istAnarchie(modus) { return modus !== "Revierkampf"; }
+
+function berechneStats(matches) {
+  if (!matches.length) return null;
+  const n = matches.length;
+  const siege = matches.filter(m => m.ergebnis === "S").length;
+  const sum = (f) => matches.reduce((a, m) => a + f(m), 0);
+  const stats = {
+    n, siege, winrate: siege / n,
+    avgSplats: sum(m => m.splats) / n,
+    avgAssists: sum(m => m.assists) / n,
+    avgDeaths: sum(m => m.deaths) / n,
+    avgSpezials: sum(m => m.spezials) / n,
+    kd: sum(m => m.deaths) ? sum(m => m.splats) / sum(m => m.deaths) : sum(m => m.splats),
+    kad: sum(m => m.deaths) ? (sum(m => m.splats) + sum(m => m.assists)) / sum(m => m.deaths) : (sum(m => m.splats) + sum(m => m.assists)),
+    proModus: {}, proWaffe: {},
+  };
+  const turf = matches.filter(m => !istAnarchie(m.modus));
+  const anarchie = matches.filter(m => istAnarchie(m.modus));
+  stats.avgFarbeTurf = turf.length ? turf.reduce((a, m) => a + m.farbe, 0) / turf.length : null;
+  stats.avgFarbeAnarchie = anarchie.length ? anarchie.reduce((a, m) => a + m.farbe, 0) / anarchie.length : null;
+  for (const modus of MODI) {
+    const ms = matches.filter(m => m.modus === modus);
+    if (ms.length) stats.proModus[modus] = { n: ms.length, siege: ms.filter(m => m.ergebnis === "S").length,
+      winrate: ms.filter(m => m.ergebnis === "S").length / ms.length,
+      avgDeaths: ms.reduce((a, m) => a + m.deaths, 0) / ms.length };
+  }
+  for (const m of matches) {
+    (stats.proWaffe[m.waffe] ??= { n: 0, siege: 0 });
+    stats.proWaffe[m.waffe].n++; if (m.ergebnis === "S") stats.proWaffe[m.waffe].siege++;
+  }
+  stats.avgFarbe = sum(m => m.farbe) / n;
+  // Erwartungswerte (echte stat.ink-Durchschnitte) gewichtet nach dem Modus-Mix des Spielers
+  const E = WISSEN.modus_erwartung;
+  stats.erw = { deaths: 0, kills: 0, assists: 0, specials: 0, farbe: 0 };
+  for (const m of matches) {
+    const e = E[m.modus] || E["Herrschaft"];
+    stats.erw.deaths += e.deaths / n; stats.erw.kills += e.kills / n; stats.erw.assists += e.assists / n;
+    stats.erw.specials += e.specials / n; stats.erw.farbe += e.farbe / n;
+  }
+  // Konstanz: Streuung der „Wirkung pro Leben“ über die Matches
+  const wirkungen = matches.map(m => (m.splats + m.assists) / Math.max(1, m.deaths));
+  const wMittel = wirkungen.reduce((a, b) => a + b, 0) / n;
+  const wStd = Math.sqrt(wirkungen.reduce((a, b) => a + (b - wMittel) ** 2, 0) / n);
+  stats.konstanzCV = wMittel > 0 ? wStd / wMittel : 0;
+  // Rollende Winrate (Fenster 10) in chronologischer Reihenfolge
+  const chrono = [...matches].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  stats.rollend = [];
+  for (let i = 0; i < chrono.length; i++) {
+    const fenster = chrono.slice(Math.max(0, i - 9), i + 1);
+    if (fenster.length >= 5) stats.rollend.push({ index: i + 1,
+      winrate: fenster.filter(m => m.ergebnis === "S").length / fenster.length,
+      fensterN: fenster.length });
+  }
+  // Aktuelle Serie
+  let serie = 0;
+  for (let i = chrono.length - 1; i >= 0; i--) {
+    if (i === chrono.length - 1) serie = chrono[i].ergebnis === "S" ? 1 : -1;
+    else if ((serie > 0) === (chrono[i].ergebnis === "S")) serie += Math.sign(serie);
+    else break;
+  }
+  stats.serie = serie;
+  // Letzte 10 vs. 10 davor (für Deltas)
+  stats.delta = null;
+  if (chrono.length >= 20) {
+    const l10 = chrono.slice(-10), v10 = chrono.slice(-20, -10);
+    const wr = (a) => a.filter(m => m.ergebnis === "S").length / a.length;
+    const ad = (a) => a.reduce((x, m) => x + m.deaths, 0) / a.length;
+    stats.delta = { winrate: wr(l10) - wr(v10), deaths: ad(l10) - ad(v10) };
+  }
+  return stats;
+}
+
+/* ---------- Übersicht ---------- */
+function renderUebersicht(stats) {
+  const el = $("#uebersichtInhalt");
+  if (!stats) {
+    el.innerHTML = `<div class="card"><h2>Willkommen!</h2>
+      <p>Noch keine Matches eingetragen. Wechsle zum Tab <strong>Matches</strong> und trage dein erstes Match ein –
+      oder lade dort Beispieldaten, um das Tool auszuprobieren.</p>
+      <p>Im Tab <strong>Selbst-Check</strong> kannst du sofort abhaken, welche Top-Spieler-Gewohnheiten du schon hast,
+      und im Tab <strong>Top-Spieler-Wissen</strong> nachlesen, was X-Rang-Spieler anders machen.</p></div>`;
+    return;
+  }
+  const d = stats.delta;
+  const deltaHtml = (wert, guteRichtung, einheit) => {
+    if (wert === null || wert === undefined) return "";
+    const gut = guteRichtung === "hoch" ? wert >= 0 : wert <= 0;
+    const pfeil = wert >= 0 ? "▲" : "▼";
+    return `<div class="delta ${gut ? "good" : "bad"}">${pfeil} ${einheit === "%" ? Math.abs(Math.round(wert * 100)) + " Pp." : fmt1(Math.abs(wert))} vs. 10 davor</div>`;
+  };
+  el.innerHTML = `
+    <div class="card hero">
+      <div class="label">Winrate gesamt (${stats.n} Matches)</div>
+      <div class="value">${pct(stats.winrate)}</div>
+      ${d ? deltaHtml(d.winrate, "hoch", "%") : ""}
+    </div>
+    <div class="tile-row">
+      <div class="tile"><div class="label">Ø Splats + Unterst.</div><div class="value">${fmt1(stats.avgSplats + stats.avgAssists)}</div></div>
+      <div class="tile"><div class="label">Ø Deaths</div><div class="value">${fmt1(stats.avgDeaths)}</div>${d ? deltaHtml(d.deaths, "runter", "") : ""}</div>
+      <div class="tile"><div class="label">(Splats+U.) / Death</div><div class="value">${fmt1(stats.kad)}</div></div>
+      <div class="tile"><div class="label">Ø Spezialeinsätze</div><div class="value">${fmt1(stats.avgSpezials)}</div></div>
+    </div>
+    <div class="card chart-card" id="modusChartCard">
+      <h2>Winrate pro Modus</h2>
+      <p class="sub">Wo läuft es, wo nicht? Der Coach schaut sich deinen schwächsten Modus genauer an.</p>
+      <div id="modusChart"></div>
+      <details class="tableview"><summary>Als Tabelle anzeigen</summary><div id="modusTabelle"></div></details>
+    </div>
+    <div class="card chart-card" id="trendChartCard">
+      <h2>Formkurve: rollende Winrate (letzte 10 Matches)</h2>
+      <p class="sub">Ab 5 Matches. Zeigt, ob du dich verbesserst – Top-Spieler verfolgen ihre Form genau so.</p>
+      <div id="trendChart"></div>
+      <details class="tableview"><summary>Als Tabelle anzeigen</summary><div id="trendTabelle"></div></details>
+    </div>`;
+  renderModusChart(stats);
+  renderTrendChart(stats);
+}
+
+/* ---------- Balkendiagramm: Winrate pro Modus (eine Serie, direkt beschriftet) ---------- */
+function renderModusChart(stats) {
+  const wrapEl = $("#modusChart"); if (!wrapEl) return;
+  const daten = MODI.filter(m => stats.proModus[m]).map(m => ({ modus: m, ...stats.proModus[m] }));
+  if (!daten.length) { wrapEl.innerHTML = '<p class="empty-hint">Noch keine Daten.</p>'; return; }
+  const W = Math.max(320, wrapEl.clientWidth || 600);
+  const labelW = Math.min(170, Math.max(120, W * 0.25)), rechts = 56, oben = 8, bandH = 34, balkenH = 20;
+  const H = oben + daten.length * bandH + 24;
+  const plotW = W - labelW - rechts;
+  const x = (v) => labelW + v * plotW;
+  const blau = cssVar("--series-1"), gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
+        prim = cssVar("--text-primary"), baseF = cssVar("--baseline");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Winrate pro Modus">`;
+  for (const g of [0, 0.25, 0.5, 0.75, 1]) {
+    s += `<line x1="${x(g)}" y1="${oben}" x2="${x(g)}" y2="${H - 22}" stroke="${gridF}" stroke-width="1"/>`;
+    s += `<text x="${x(g)}" y="${H - 8}" font-size="11" fill="${muted}" text-anchor="middle">${g * 100}</text>`;
+  }
+  daten.forEach((d, i) => {
+    const y = oben + i * bandH + (bandH - balkenH) / 2;
+    const bw = Math.max(2, d.winrate * plotW);
+    const r = Math.min(4, bw / 2);
+    s += `<text x="${labelW - 10}" y="${y + balkenH / 2 + 4}" font-size="12.5" fill="${prim}" text-anchor="end">${esc(d.modus)}</text>`;
+    s += `<path d="M ${labelW} ${y} H ${labelW + bw - r} a ${r} ${r} 0 0 1 ${r} ${r} V ${y + balkenH - r} a ${r} ${r} 0 0 1 ${-r} ${r} H ${labelW} Z" fill="${blau}"/>`;
+    s += `<text x="${labelW + bw + 7}" y="${y + balkenH / 2 + 4}" font-size="12" fill="${prim}" font-weight="600">${Math.round(d.winrate * 100)} %</text>`;
+    s += `<rect data-hover="modus" data-i="${i}" x="0" y="${oben + i * bandH}" width="${W}" height="${bandH}" fill="transparent"/>`;
+  });
+  s += `<line x1="${labelW}" y1="${H - 22}" x2="${W - rechts + 30}" y2="${H - 22}" stroke="${baseF}" stroke-width="1"/></svg>`;
+  wrapEl.innerHTML = s;
+  bindeHover(wrapEl, "modus", (i) => {
+    const d = daten[i];
+    return `<strong>${esc(d.modus)}</strong><br>${d.siege} Siege / ${d.n} Matches (${Math.round(d.winrate * 100)} %)<br>Ø Deaths: ${fmt1(d.avgDeaths)}`;
+  });
+  $("#modusTabelle").innerHTML = `<table class="mini"><tr><th>Modus</th><th>Matches</th><th>Siege</th><th>Winrate</th></tr>` +
+    daten.map(d => `<tr><td>${esc(d.modus)}</td><td>${d.n}</td><td>${d.siege}</td><td>${Math.round(d.winrate * 100)} %</td></tr>`).join("") + "</table>";
+}
+
+/* ---------- Liniendiagramm: rollende Winrate ---------- */
+function renderTrendChart(stats) {
+  const wrapEl = $("#trendChart"); if (!wrapEl) return;
+  const daten = stats.rollend;
+  if (daten.length < 2) { wrapEl.innerHTML = '<p class="empty-hint">Trage mindestens 5 Matches ein, dann erscheint hier deine Formkurve.</p>'; return; }
+  const W = Math.max(320, wrapEl.clientWidth || 600);
+  const links = 44, rechts = 46, oben = 10, unten = 26, H = 220;
+  const plotW = W - links - rechts, plotH = H - oben - unten;
+  const x = (i) => links + (daten.length === 1 ? 0 : (i / (daten.length - 1)) * plotW);
+  const y = (v) => oben + (1 - v) * plotH;
+  const blau = cssVar("--series-1"), gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
+        prim = cssVar("--text-primary"), surf = cssVar("--surface-1"), baseF = cssVar("--baseline"), wash = cssVar("--area-wash");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rollende Winrate">`;
+  for (const g of [0, 0.25, 0.5, 0.75, 1]) {
+    s += `<line x1="${links}" y1="${y(g)}" x2="${W - rechts}" y2="${y(g)}" stroke="${gridF}" stroke-width="1"/>`;
+    s += `<text x="${links - 8}" y="${y(g) + 4}" font-size="11" fill="${muted}" text-anchor="end">${g * 100}</text>`;
+  }
+  const pfad = daten.map((d, i) => `${i ? "L" : "M"} ${x(i)} ${y(d.winrate)}`).join(" ");
+  s += `<path d="${pfad} L ${x(daten.length - 1)} ${y(0)} L ${x(0)} ${y(0)} Z" fill="${wash}"/>`;
+  s += `<path d="${pfad}" fill="none" stroke="${blau}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const letzte = daten[daten.length - 1];
+  s += `<circle cx="${x(daten.length - 1)}" cy="${y(letzte.winrate)}" r="4" fill="${blau}" stroke="${surf}" stroke-width="2"/>`;
+  s += `<text x="${x(daten.length - 1) + 8}" y="${y(letzte.winrate) + 4}" font-size="12" font-weight="600" fill="${prim}">${Math.round(letzte.winrate * 100)} %</text>`;
+  s += `<line x1="${links}" y1="${y(0)}" x2="${W - rechts}" y2="${y(0)}" stroke="${baseF}" stroke-width="1"/>`;
+  s += `<text x="${(links + W - rechts) / 2}" y="${H - 6}" font-size="11" fill="${muted}" text-anchor="middle">Match-Nummer</text>`;
+  s += `<line id="trendCrosshair" x1="0" y1="${oben}" x2="0" y2="${y(0)}" stroke="${baseF}" stroke-width="1" visibility="hidden"/>`;
+  s += `<circle id="trendPunkt" r="4" fill="${blau}" stroke="${surf}" stroke-width="2" visibility="hidden"/>`;
+  s += `<rect id="trendHit" x="${links}" y="${oben}" width="${plotW}" height="${plotH}" fill="transparent"/></svg>`;
+  wrapEl.innerHTML = s;
+
+  const svg = wrapEl.querySelector("svg"), hit = svg.querySelector("#trendHit"),
+        cross = svg.querySelector("#trendCrosshair"), punkt = svg.querySelector("#trendPunkt"), tt = $("#tooltip");
+  function zeige(ev) {
+    const rect = svg.getBoundingClientRect();
+    const relX = (ev.clientX - rect.left) * (W / rect.width);
+    let i = Math.round(((relX - links) / plotW) * (daten.length - 1));
+    i = Math.max(0, Math.min(daten.length - 1, i));
+    const d = daten[i];
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+    punkt.setAttribute("cx", x(i)); punkt.setAttribute("cy", y(d.winrate)); punkt.setAttribute("visibility", "visible");
+    tt.innerHTML = `<strong>Match ${d.index}</strong><br>Winrate letzte ${d.fensterN}: ${Math.round(d.winrate * 100)} %`;
+    positioniereTooltip(ev);
+  }
+  hit.addEventListener("mousemove", zeige);
+  hit.addEventListener("mouseleave", () => { cross.setAttribute("visibility", "hidden"); punkt.setAttribute("visibility", "hidden"); $("#tooltip").style.display = "none"; });
+  $("#trendTabelle").innerHTML = `<table class="mini"><tr><th>Match</th><th>Winrate (Fenster)</th></tr>` +
+    daten.map(d => `<tr><td>${d.index}</td><td>${Math.round(d.winrate * 100)} %</td></tr>`).join("") + "</table>";
+}
+
+/* ---------- Tooltip ---------- */
+function positioniereTooltip(ev) {
+  const tt = $("#tooltip");
+  tt.style.display = "block";
+  const pad = 14;
+  let lx = ev.pageX + pad, ly = ev.pageY - 10;
+  tt.style.left = "0px"; tt.style.top = "0px";
+  const w = tt.offsetWidth;
+  if (lx + w > document.documentElement.clientWidth + scrollX - 8) lx = ev.pageX - w - pad;
+  tt.style.left = lx + "px"; tt.style.top = ly + "px";
+}
+function bindeHover(wrapEl, kind, inhalt) {
+  const tt = $("#tooltip");
+  wrapEl.querySelectorAll(`[data-hover="${kind}"]`).forEach(r => {
+    r.addEventListener("mousemove", (ev) => { tt.innerHTML = inhalt(+r.dataset.i); positioniereTooltip(ev); });
+    r.addEventListener("mouseleave", () => { tt.style.display = "none"; });
+  });
+}
+
+/* ---------- Matches-Tab ---------- */
+function renderMatches() {
+  const chrono = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id);
+  $("#matchCount").textContent = chrono.length ? `${chrono.length} Matches gespeichert.` : "Noch keine Matches – trage oben dein erstes ein oder lade Beispieldaten.";
+  if (!chrono.length) { $("#matchTabelle").innerHTML = ""; return; }
+  const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
+  $("#matchTabelle").innerHTML = `<table class="matches">
+    <tr><th>Datum</th><th>Modus</th><th>Waffe</th><th>Ergebnis</th><th>Splats</th><th>Unterst.</th><th>Deaths</th><th>Spezials</th><th>Farbe</th><th>Notiz</th><th></th></tr>` +
+    chrono.map(m => `<tr>
+      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${esc(m.waffe)}</td>
+      <td><span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span></td>
+      <td class="num">${m.splats}</td><td class="num">${m.assists}</td><td class="num">${m.deaths}</td>
+      <td class="num">${m.spezials}</td><td class="num">${m.farbe}</td><td>${esc(m.notiz || "")}</td>
+      <td><button data-del="${m.id}" title="Match löschen">✕</button></td></tr>`).join("") + "</table>";
+  $("#matchTabelle").querySelectorAll("button[data-del]").forEach(b => b.addEventListener("click", () => {
+    state.matches = state.matches.filter(m => m.id !== +b.dataset.del);
+    if (state.session) state.session.matchIds = state.session.matchIds.filter(id => id !== +b.dataset.del);
+    speichereState(); renderAlles();
+  }));
+}
+
+document.getElementById("matchForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  state.matches.push({
+    id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
+    datum: $("#fDatum").value, modus: $("#fModus").value, waffe: $("#fWaffe").value.trim(),
+    ergebnis: $("#fErgebnis").value,
+    splats: +$("#fSplats").value, assists: +$("#fAssists").value, deaths: +$("#fDeaths").value,
+    spezials: +$("#fSpezials").value, farbe: +$("#fFarbe").value, notiz: $("#fNotiz").value.trim(),
+  });
+  speichereState(); renderAlles();
+  ["fSplats", "fAssists", "fDeaths", "fSpezials", "fFarbe", "fNotiz"].forEach(id => $("#" + id).value = id === "fAssists" ? "0" : "");
+});
+
+document.getElementById("demoBtn").addEventListener("click", () => {
+  if (state.matches.length && !confirm("Beispieldaten zusätzlich zu deinen vorhandenen Matches laden?")) return;
+  const heute = new Date();
+  const tag = (vor) => { const d = new Date(heute); d.setDate(d.getDate() - vor); return d.toISOString().slice(0, 10); };
+  const demo = [];
+  const waffen = ["Kleckser", "Kleckser", "Kleckser", "Doppler", "Roller"];
+  let id = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
+  for (let i = 0; i < 24; i++) {
+    const modus = MODI[i % 5];
+    const sieg = [1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1][i] === 1;
+    demo.push({ id: ++id, datum: tag(24 - i), modus, waffe: waffen[i % 5], ergebnis: sieg ? "S" : "N",
+      splats: 4 + (i * 7) % 6, assists: (i * 3) % 4, deaths: 6 + (i * 5) % 6,
+      spezials: 1 + (i * 2) % 3, farbe: modus === "Revierkampf" ? 750 + (i * 37) % 350 : 550 + (i * 53) % 450,
+      notiz: i === 3 ? "zu oft allein gepusht" : "" });
+  }
+  state.matches.push(...demo);
+  let srId = state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) : 0;
+  const srDemo = [];
+  for (let i = 0; i < 10; i++) {
+    const wellen = [3, 2, 3, 3, 1, 3, 2, 3, 3, 3][i];
+    srDemo.push({ id: ++srId, datum: tag(20 - i * 2), gefahr: 95 + i * 14, wellen,
+      koenig: i === 7 ? "N" : i === 9 ? "S" : "",
+      eier: wellen === 3 ? 12 + (i * 5) % 10 : 5 + (i * 3) % 6,
+      bosse: 6 + (i * 4) % 7, rettungen: (i * 2) % 4, gerettet: 1 + (i * 3) % 4 });
+  }
+  state.srRuns.push(...srDemo);
+  speichereState(); renderAlles();
+});
+
+document.getElementById("exportBtn").addEventListener("click", async () => {
+  const daten = JSON.stringify({ matches: state.matches, srRuns: state.srRuns, habits: state.habits }, null, 2);
+  if (window.claude && window.claude.downloads) {
+    try { await window.claude.downloads.save({ filename: "splatoon3-coach-daten.json", data: daten }); return; }
+    catch (e) { /* abgelehnt oder fehlgeschlagen -> Blob-Fallback */ }
+  }
+  const blob = new Blob([daten], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "splatoon3-coach-daten.json"; a.click();
+  URL.revokeObjectURL(a.href);
+});
+document.getElementById("importBtn").addEventListener("click", () => $("#importFile").click());
+document.getElementById("importFile").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text());
+    if (!Array.isArray(data.matches)) throw new Error("kein matches-Array");
+    state.matches = data.matches; state.srRuns = Array.isArray(data.srRuns) ? data.srRuns : []; state.habits = data.habits || {};
+    state.session = null; state.lastSummary = null; // alte Session passt nicht zu den neuen Daten
+    speichereState(); renderAlles();
+  } catch (err) { alert("Import fehlgeschlagen: " + err.message); }
+  e.target.value = "";
+});
+/* ---------- stat.ink / s3s Import ---------- */
+const RULE_MAP = {
+  nawabari: "Revierkampf", area: "Herrschaft", yagura: "Turm-Kommando", hoko: "Operation Goldfisch", asari: "Muschelchaos",
+  TURF_WAR: "Revierkampf", AREA: "Herrschaft", LOFT: "Turm-Kommando", GOAL: "Operation Goldfisch", CLAM: "Muschelchaos",
+};
+const heuteISO = () => new Date().toISOString().slice(0, 10);
+
+function parseStatInk(objekte) {
+  const battles = [], salmon = []; let uebersprungen = 0;
+  const einzeln = (o) => {
+    if (!o || typeof o !== "object") { uebersprungen++; return; }
+    // Rohformat von s3s (-o): SplatNet-Antwort mit vsHistoryDetail
+    if (o.data && o.data.vsHistoryDetail) {
+      const d = o.data.vsHistoryDetail;
+      const modus = RULE_MAP[d.vsRule && d.vsRule.rule];
+      const ich = (((d.myTeam || {}).players) || []).find(p => p.isMyself);
+      if (!modus || !ich || !ich.result) { uebersprungen++; return; }
+      battles.push({ ext: d.id, datum: (d.playedTime || "").slice(0, 10) || heuteISO(), modus,
+        waffe: String((ich.weapon && ich.weapon.name) || "Unbekannt"),
+        ergebnis: d.judgement === "WIN" ? "S" : "N",
+        splats: +((ich.result.kill || 0) - (ich.result.assist || 0)) || 0, assists: +ich.result.assist || 0,
+        deaths: +ich.result.death || 0, spezials: +ich.result.special || 0,
+        farbe: +ich.paint || 0, notiz: "" });
+      return;
+    }
+    // stat.ink Salmon-Run-Eintrag
+    if (o.danger_rate != null || o.clear_waves != null) {
+      const spieler = o.players || [];
+      const me = spieler.find(p => p && (p.me === true || p.is_me === true)) || spieler[0];
+      if (!me) { uebersprungen++; return; }
+      salmon.push({ ext: o.uuid || o.id,
+        datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(),
+        gefahr: Math.round(+o.danger_rate || 0),
+        wellen: o.clear_waves == null ? 3 : Math.max(0, Math.min(3, +o.clear_waves)),
+        koenig: o.king_salmonid ? (o.clear_extra ? "S" : "N") : "",
+        eier: +(me.golden_eggs ?? me.golden_deliver ?? 0), bosse: +(me.defeat_boss ?? me.boss_kills ?? 0),
+        rettungen: +(me.rescue ?? 0), gerettet: +(me.rescued ?? 0) });
+      return;
+    }
+    // stat.ink Battle-Eintrag (API v3 / JSON-Download)
+    const ruleKey = o.rule && (o.rule.key || o.rule);
+    const modus = RULE_MAP[ruleKey];
+    if (!modus || o.kill == null || o.death == null) { uebersprungen++; return; }
+    let wname = "Unbekannt";
+    if (o.weapon) {
+      if (o.weapon.name) wname = o.weapon.name["de-DE"] || o.weapon.name["de_DE"] || o.weapon.name["en-US"] || o.weapon.name["en_US"] || o.weapon.key || "Unbekannt";
+      else wname = o.weapon.key || String(o.weapon);
+    }
+    battles.push({ ext: o.uuid || o.id,
+      datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(), modus,
+      waffe: String(wname), ergebnis: o.result === "win" ? "S" : "N",
+      splats: +o.kill || 0, assists: +o.assist || 0, deaths: +o.death || 0,
+      spezials: +(o.special ?? 0), farbe: +(o.inked ?? 0), notiz: "" });
+  };
+  for (const o of objekte) {
+    if (Array.isArray(o)) o.forEach(einzeln);
+    else if (o && Array.isArray(o.results)) o.results.forEach(einzeln);
+    else if (o && Array.isArray(o.battles)) o.battles.forEach(einzeln);
+    else if (o && Array.isArray(o.data)) o.data.forEach(einzeln);
+    else einzeln(o);
+  }
+  return { battles, salmon, uebersprungen };
+}
+
+function uebernehmeStatinkObjekte(objekte) {
+  const { battles, salmon, uebersprungen } = parseStatInk(objekte);
+  const bekannteB = new Set(state.matches.map(m => m.ext).filter(Boolean));
+  const bekannteS = new Set(state.srRuns.map(r => r.ext).filter(Boolean));
+  let duplikate = 0;
+  let idB = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
+  for (const b of battles) {
+    if (b.ext && bekannteB.has(b.ext)) { duplikate++; continue; }
+    state.matches.push({ id: ++idB, ...b });
+    if (b.ext) bekannteB.add(b.ext);
+  }
+  let idS = state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) : 0;
+  for (const s of salmon) {
+    if (s.ext && bekannteS.has(s.ext)) { duplikate++; continue; }
+    state.srRuns.push({ id: ++idS, ...s });
+    if (s.ext) bekannteS.add(s.ext);
+  }
+  speichereState();
+  return { battles: battles.length, salmon: salmon.length, duplikate, uebersprungen,
+    neu: battles.length + salmon.length - duplikate };
+}
+
+document.getElementById("statinkBtn").addEventListener("click", () => $("#statinkFile").click());
+document.getElementById("statinkFile").addEventListener("change", async (e) => {
+  const dateien = [...e.target.files]; if (!dateien.length) return;
+  const objekte = []; let leseFehler = 0;
+  for (const f of dateien) {
+    try { objekte.push(JSON.parse(await f.text())); } catch (err) { leseFehler++; }
+  }
+  const erg = uebernehmeStatinkObjekte(objekte);
+  renderAlles();
+  alert(`Import fertig: ${erg.battles} Matches und ${erg.salmon} Salmon-Schichten gefunden – ${erg.neu} neu übernommen, ${erg.duplikate} Duplikate übersprungen, ${erg.uebersprungen} nicht erkannte Einträge${leseFehler ? `, ${leseFehler} Dateien unlesbar` : ""}.`);
+  e.target.value = "";
+});
+
+/* ---------- stat.ink Auto-Sync: holt neue Matches direkt vom Profil ---------- */
+async function statinkWaffenMap() {
+  try {
+    const c = JSON.parse(localStorage.getItem("statink-waffen-de") || "null");
+    if (c && c.zeit && Date.now() - c.zeit < 30 * 86400e3) return c.map;
+  } catch (e) {}
+  try {
+    const r = await fetch("https://stat.ink/api/v3/weapon?full=1");
+    const liste = await r.json();
+    const map = {};
+    for (const w of liste) map[w.key] = (w.name && (w.name.de_DE || w.name["de-DE"])) || null;
+    try { localStorage.setItem("statink-waffen-de", JSON.stringify({ zeit: Date.now(), map })); } catch (e) {}
+    return map;
+  } catch (e) { return {}; }
+}
+
+async function statinkSync(still) {
+  const name = ((state.statink && state.statink.name) || "Henri").trim();
+  const status = document.getElementById("syncStatus");
+  const setze = (t) => { if (status) status.textContent = t; };
+  if (!name) { setze("Kein stat.ink-Profil eingetragen."); return; }
+  setze("Synchronisiere mit stat.ink …");
+  try {
+    const bekannt = new Set(state.matches.map(m => m.ext).filter(Boolean));
+    const waffen = await statinkWaffenMap();
+    const neue = [];
+    for (let seite = 1; seite <= 5; seite++) {
+      const r = await fetch(`https://stat.ink/@${encodeURIComponent(name)}/spl3/index.json?page=${seite}`, { cache: "no-store" });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const liste = await r.json();
+      if (!Array.isArray(liste) || !liste.length) break;
+      let bekanntesDabei = false;
+      for (const b of liste) {
+        const uid = b.uuid || b.id;
+        if (uid && bekannt.has(uid)) { bekanntesDabei = true; continue; }
+        if (uid) bekannt.add(uid);
+        if (b.weapon && b.weapon.key && waffen[b.weapon.key])
+          b.weapon.name = Object.assign({}, b.weapon.name, { "de-DE": waffen[b.weapon.key] });
+        neue.push(b);
+      }
+      if (bekanntesDabei) break; // Anschluss an schon vorhandene Matches gefunden
+    }
+    const erg = uebernehmeStatinkObjekte(neue);
+    state.statink = Object.assign({}, state.statink, { name, letzterSync: new Date().toISOString() });
+    speichereState();
+    if (erg.neu > 0) renderAlles();
+    const uhr = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    setze(erg.neu > 0 ? `✔ ${erg.neu} neue Matches übernommen (${uhr} Uhr)` : `✔ Auf dem neuesten Stand (${uhr} Uhr)`);
+    if (!still) alert(erg.neu > 0 ? erg.neu + " neue Matches von stat.ink übernommen!" : "Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.");
+  } catch (e) {
+    setze("Sync gerade nicht möglich (offline?)");
+    if (!still) alert("stat.ink-Sync fehlgeschlagen: " + e.message + " – Prüfe Internetverbindung und Profilnamen. (In der Web-Version auf claude.ai ist der Sync aus Sicherheitsgründen gesperrt – nutze dort den Datei-Import.)");
+  }
+}
+
+document.getElementById("syncBtn").addEventListener("click", () => statinkSync(false));
+document.getElementById("syncName").value = (state.statink && state.statink.name) || "Henri";
+document.getElementById("syncName").addEventListener("change", () => {
+  state.statink = Object.assign({}, state.statink, { name: $("#syncName").value.trim() });
+  speichereState();
+});
+
+document.getElementById("clearBtn").addEventListener("click", () => {
+  if (!confirm("Wirklich ALLE Matches, Salmon-Run-Schichten und Selbst-Check-Haken löschen?")) return;
+  state.matches = []; state.srRuns = []; state.habits = {}; state.session = null; state.lastSummary = null;
+  speichereState(); renderAlles();
+});
+
+/* ---------- Coach ---------- */
+function coachStatus(wert, top, ok, niedrigerIstBesser) {
+  // Rückgabe: "top" | "ok" | "baustelle"
+  if (niedrigerIstBesser) return wert <= top ? "top" : wert <= ok ? "ok" : "baustelle";
+  return wert >= top ? "top" : wert >= ok ? "ok" : "baustelle";
+}
+
+function renderCoach(stats, sr) {
+  const el = $("#coachInhalt");
+  if (!stats || stats.n < 3) {
+    el.innerHTML = `<div class="card"><h2>Coach</h2><p>Trage mindestens 3 Matches ein, damit der Coach genug Daten hat.
+      Den <strong>Selbst-Check</strong> kannst du aber jetzt schon ausfüllen – er fließt hier mit ein.</p></div>`;
+    return;
+  }
+  const T = WISSEN.coach_schwellen, E = stats.erw;
+  const meterDefs = [
+    { label: "Ø Deaths pro Match", wert: stats.avgDeaths, top: E.deaths * T.deaths_faktor_top, ok: E.deaths * T.deaths_faktor_ok, runter: true, max: Math.max(E.deaths * 1.7, stats.avgDeaths * 1.2), einheit: "", hinweis: `Schnitt deines Modus-Mixes: ${fmt1(E.deaths)}` },
+    { label: "(Splats+Unterst.) / Death", wert: stats.kad, top: T.kad_top, ok: T.kad_ok, runter: false, max: Math.max(2.2, stats.kad * 1.2, T.kad_top * 1.3), einheit: "", hinweis: "Durchschnitt: 1,24–1,38 je Modus" },
+    { label: "Ø Spezialeinsätze", wert: stats.avgSpezials, top: E.specials * T.specials_faktor_top, ok: E.specials * T.specials_faktor_ok, runter: false, max: Math.max(E.specials * 1.8, stats.avgSpezials * 1.2), einheit: "", hinweis: `Schnitt deines Modus-Mixes: ${fmt1(E.specials)}` },
+    { label: "Ø Farbpunkte", wert: stats.avgFarbe, top: E.farbe * T.farbe_faktor_top, ok: E.farbe * T.farbe_faktor_ok, runter: false, max: Math.max(E.farbe * 1.6, stats.avgFarbe * 1.2), einheit: "P", hinweis: `Schnitt deines Modus-Mixes: ${Math.round(E.farbe)} P` },
+  ];
+
+  const meterHtml = meterDefs.map(m => {
+    const status = coachStatus(m.wert, m.top, m.ok, m.runter);
+    const farbe = status === "top" ? "var(--series-1)" : status === "ok" ? "var(--status-warning)" : "var(--status-serious)";
+    const statusText = status === "top" ? `<span class="meter-status sev good">✔ Top-Niveau</span>`
+      : status === "ok" ? `<span class="meter-status sev warning">▲ Solide – Luft nach oben</span>`
+      : `<span class="meter-status sev serious">⚠ Baustelle</span>`;
+    const fillPct = Math.min(100, (m.wert / m.max) * 100);
+    const tickPct = Math.min(100, (m.top / m.max) * 100);
+    return `<div class="meter-row">
+      <div class="mlabel">${esc(m.label)}<br><span class="mvalue">${fmt1(m.wert)}${m.einheit ? " " + m.einheit : ""}</span>${m.hinweis ? `<br><span style="font-size:11.5px;color:var(--text-muted)">${esc(m.hinweis)}</span>` : ""}</div>
+      <div class="meter">
+        <div class="track" style="background: color-mix(in srgb, ${farbe} 16%, var(--surface-1))"></div>
+        <div class="fill" style="width:${fillPct}%; background:${farbe}"></div>
+        <div class="tick" style="left:${tickPct}%"></div>
+        <div class="tick-label" style="left:${tickPct}%">Top: ${m.einheit === "P" ? Math.round(m.top).toLocaleString("de-DE") : fmt1(m.top)}${m.einheit ? " " + m.einheit : ""}${m.runter ? " oder weniger" : ""}</div>
+      </div>
+      <div>${statusText}</div>
+    </div>`;
+  }).join("");
+
+  const tipps = erzeugeTipps(stats);
+  const sevRang = { kritisch: 0, wichtig: 1, tipp: 2, lob: 3 };
+  tipps.sort((a, b) => sevRang[a.sev] - sevRang[b.sev]);
+  const sevMeta = { kritisch: ["‼️", "critical", "Kritisch"], wichtig: ["⚠️", "serious", "Wichtig"], tipp: ["💡", "warning", "Tipp"], lob: ["✅", "good", "Stark"] };
+  const tippsHtml = tipps.length ? tipps.map(t => {
+    const [icon, cls, wort] = sevMeta[t.sev];
+    return `<div class="coach-item"><div class="icon">${icon}</div><div>
+      <span class="sev ${cls}">${wort}</span>
+      <h3>${esc(t.titel)}</h3><p>${esc(t.text)}</p></div></div>`;
+  }).join("") : '<p class="empty-hint">Keine Auffälligkeiten – weiter so!</p>';
+
+  const offeneHabits = (WISSEN.gewohnheiten || []).filter(h => !state.habits[h.id]);
+  const habitsHtml = offeneHabits.length
+    ? offeneHabits.slice(0, 6).map(h => `<div class="coach-item"><div class="icon">🎯</div><div>
+        <h3>${esc(h.titel)}</h3><p>${esc(h.warum)}</p></div></div>`).join("") +
+      (offeneHabits.length > 6 ? `<p class="empty-hint">… und ${offeneHabits.length - 6} weitere im Selbst-Check.</p>` : "")
+    : `<p class="empty-hint">Du hast alle Top-Spieler-Gewohnheiten abgehakt – beeindruckend! Bleib ehrlich mit dir und überprüfe sie regelmäßig.</p>`;
+
+  const spielweise = erzeugeSpielweise(stats, sr);
+  const spielweiseHtml = spielweise ? `
+    <div class="card">
+      <h2>🔍 Deine Spielweise: ${esc(spielweise.typ)}</h2>
+      <p class="sub">Automatische Analyse aus deinen ${stats.n} Matches – im Vergleich zu den echten Durchschnitten deiner Modi.</p>
+      ${spielweise.saetze.map(s => `<p style="margin:8px 0">${esc(s)}</p>`).join("")}
+    </div>` : `
+    <div class="card">
+      <h2>🔍 Deine Spielweise</h2>
+      <p class="sub">Ab 5 Matches analysiert die App hier deinen Spieler-Typ (Kämpfer, Maler, Teamplayer …), dein Risikoprofil und deine Konstanz.</p>
+    </div>`;
+
+  el.innerHTML = `
+    ${spielweiseHtml}
+    <div class="card">
+      <h2>Dein Profil vs. Top-Spieler</h2>
+      <p class="sub">Die Markierung zeigt jeweils den Richtwert von X-Rang-/Top-Spielern. Werte pro Match, gemittelt über alle deine ${stats.n} Matches.</p>
+      ${meterHtml}
+    </div>
+    <div class="card">
+      <h2>Deine Baustellen &amp; Stärken</h2>
+      <p class="sub">Automatisch aus deinen Zahlen abgeleitet, priorisiert nach Wichtigkeit.</p>
+      ${tippsHtml}
+    </div>
+    <div class="card">
+      <h2>Das machen Top-Spieler – du (noch) nicht</h2>
+      <p class="sub">Basierend auf deinem Selbst-Check. Hake dort ab, was du schon tust.</p>
+      ${habitsHtml}
+    </div>`;
+}
+
+/* ---------- Spielweise-Analyse: Was für ein Spieler bist du? ---------- */
+function erzeugeSpielweise(stats, sr) {
+  if (!stats || stats.n < 5) return null;
+  const E = stats.erw;
+  const rKills = stats.avgSplats / E.kills, rDeaths = stats.avgDeaths / E.deaths,
+        rAssists = stats.avgAssists / E.assists, rFarbe = stats.avgFarbe / E.farbe,
+        rSpez = stats.avgSpezials / E.specials;
+  const proz = (r) => `${r >= 1 ? "+" : "−"}${Math.abs(Math.round((r - 1) * 100))} %`;
+  const saetze = [];
+
+  // Spieler-Typ
+  let typ;
+  if (rKills >= 1.1 && rFarbe < 1.0) {
+    typ = "Kämpfer (Slayer)";
+    saetze.push(`Du suchst das Duell: Deine Kills liegen ${proz(rKills)} über dem Schnitt deiner Modi, deine Farbleistung dafür darunter (${proz(rFarbe)}). Das ist ein legitimer Stil – solange die Deaths nicht mitwachsen.`);
+  } else if (rFarbe >= 1.05 && rKills < 1.05) {
+    typ = "Maler / Support";
+    saetze.push(`Du spielst über die Fläche: überdurchschnittlich viel Farbe (${proz(rFarbe)}) bei normalen Kill-Zahlen. Genau daraus entstehen Spezialwaffen und Kartenkontrolle – der Stil, der laut Daten im Revierkampf am stärksten mit Siegen korreliert.`);
+  } else if (rAssists >= 1.1) {
+    typ = "Teamplayer";
+    saetze.push(`Du kämpfst mit dem Team: Deine Unterstützungen liegen ${proz(rAssists)} über dem Schnitt – exakt das Muster, das 2000+-X-Power-Spieler von niedrigeren Rängen unterscheidet.`);
+  } else {
+    typ = "Allrounder";
+    saetze.push(`Deine Werte liegen nah am Schnitt deiner Modi – du legst dich auf keinen Stil fest. Das ist okay; der schnellste Fortschritt kommt aber meist, wenn man EINE Rolle (Kämpfer, Maler oder Teamplayer) bewusst ausbaut.`);
+  }
+
+  // Risikoprofil
+  if (rDeaths >= 1.15) saetze.push(`Du spielst risikofreudig: ${proz(rDeaths)} mehr Deaths als der Schnitt. Das ist deine teuerste Gewohnheit – jeder Death kostet dein Team über 10 Sekunden Unterzahl. Der Coach unten zeigt dir die Hebel.`);
+  else if (rDeaths <= 0.85) saetze.push(`Du stirbst selten (${proz(rDeaths)} gegenüber dem Schnitt) – das wichtigste Top-Spieler-Merkmal überhaupt. Stark.`);
+  else saetze.push(`Dein Risiko-Management ist ausgewogen: Deaths etwa im Modus-Schnitt (${proz(rDeaths)}).`);
+
+  // Solo vs. Team
+  if (rAssists < 0.7 && typ !== "Teamplayer") saetze.push(`Auffällig: Du kämpfst meist allein – Unterstützungen ${proz(rAssists)} unter dem Schnitt. Top-Spieler erzwingen 2-gegen-1-Situationen, statt Solo-Duelle zu suchen.`);
+
+  // Spezial-Disziplin
+  if (rSpez < 0.8) saetze.push(`Deine Spezialwaffe kommt zu selten ins Spiel (${proz(rSpez)}): entweder zu wenig gemalt oder zu oft mit geladener Leiste gestorben.`);
+
+  // Konstanz
+  if (stats.konstanzCV > 0.75) saetze.push(`Deine Leistung schwankt stark von Match zu Match – an guten Tagen top, an schlechten weit darunter. Das spricht für Tagesform/Tilt: feste Warm-up-Routine und Stopp-Regel helfen hier am meisten.`);
+  else if (stats.konstanzCV < 0.45) saetze.push(`Du bist bemerkenswert konstant von Match zu Match – die beste Basis, um gezielt an einzelnen Schwächen zu arbeiten.`);
+
+  // Bester/schwächster Modus
+  const modi = Object.entries(stats.proModus).filter(([, v]) => v.n >= 3);
+  if (modi.length >= 2) {
+    modi.sort((a, b) => b[1].winrate - a[1].winrate);
+    const best = modi[0], schlecht = modi[modi.length - 1];
+    if (best[1].winrate - schlecht[1].winrate >= 0.15)
+      saetze.push(`Deine Modi im Vergleich: In ${best[0]} läuft es am besten (${Math.round(best[1].winrate * 100)} % Winrate), in ${schlecht[0]} am schlechtesten (${Math.round(schlecht[1].winrate * 100)} %).`);
+  }
+
+  // Salmon Run
+  if (sr && sr.n >= 4) {
+    const rEier = sr.avgEier / sr.expEier;
+    if (sr.avgGerettet > 2.2) saetze.push(`Im Salmon Run bist du der Draufgänger im Team: Du fällst überdurchschnittlich oft aus (Ø ${fmt1(sr.avgGerettet)}×) – mehr Korbnähe würde deine Eierbilanz sofort verbessern.`);
+    else if (rEier >= 1.1) saetze.push(`Im Salmon Run bist du ein echter Eier-Läufer: ${proz(rEier)} über dem Schnitt deiner Gefahrenstufe – die wertvollste Rolle im Team.`);
+    else if (sr.avgRettungen > sr.avgGerettet) saetze.push(`Im Salmon Run bist du die Lebensversicherung deines Teams: Du rettest öfter, als du selbst ausfällst.`);
+  }
+
+  return { typ, saetze };
+}
+
+function erzeugeTipps(stats) {
+  const T = WISSEN.coach_schwellen, E = stats.erw, tipps = [];
+  const modusInfo = (name) => (WISSEN.modi || []).find(m => m.modus === name);
+
+  // Deaths – relativ zum echten Durchschnitt des eigenen Modus-Mixes
+  if (stats.avgDeaths > E.deaths * T.deaths_faktor_ok) tipps.push({ sev: "kritisch",
+    titel: `Du stirbst öfter als der Durchschnitt deiner Modi (Ø ${fmt1(stats.avgDeaths)} vs. ${fmt1(E.deaths)})`,
+    text: `Das ist laut Daten der wichtigste Hebel: Auf Top-Niveau korreliert „weniger sterben“ am stärksten mit dem Sieg – mehr Kills fast gar nicht. Jeder Death kostet ~8,5 s Respawn plus Rückweg, also 10+ Sekunden Unterzahl für dein Team, und 40–75 % deiner Spezialleiste. Frag dich nach jedem Death: „Was hat dieses Leben gebracht?“ – wäre die Antwort „nichts“, war der Fight falsch.` });
+  else if (stats.avgDeaths > E.deaths * T.deaths_faktor_top) tipps.push({ sev: "wichtig",
+    titel: `Deaths im Durchschnitt – Top-Spieler liegen ~15 % darunter (du: ${fmt1(stats.avgDeaths)}, Ziel: ≤ ${fmt1(E.deaths * T.deaths_faktor_top)})`,
+    text: `Achte auf „Wirkungs-Deaths“: Stirb nur, wenn du etwas dafür bekommst (Träger/Fahrer gestoppt, 1:1 getauscht, Push aufgehalten). Rückzug ist keine Schande – die 2 Sekunden länger leben entscheiden das nächste Duell.` });
+
+  // Wirkung pro Leben
+  if (stats.kad < T.kad_ok) tipps.push({ sev: "kritisch", titel: `Deine Wirkung pro Leben ist niedrig ((Splats+U.)/Death = ${fmt1(stats.kad)}, Durchschnitt ≈ 1,35)`,
+    text: `Meist ein Positions-, kein Aim-Problem: Kämpfe aus eigener Farbe (nie in gegnerischer), greife an, wenn der Gegner beschäftigt ist, und such dir Duelle mit Vorteil – Höhe, Überraschung, 2-gegen-1. Top-Spieler nehmen nur Kämpfe an, die sie strukturell schon gewonnen haben.` });
+  else if (stats.kad < T.kad_top) tipps.push({ sev: "tipp", titel: `Wirkung pro Leben solide ((Splats+U.)/Death = ${fmt1(stats.kad)}) – Top-Niveau ist ≥ ${fmt1(T.kad_top)}`,
+    text: `Der Weg dahin führt über Teamplay: Erzwinge 2-gegen-1-Situationen und hilf angegriffenen Teamkollegen, statt Solo-Duelle zu suchen.` });
+
+  // Assists – Solo-Spiel-Signal (Top-Marker aus der Recherche)
+  if (stats.n >= 5 && stats.avgAssists < E.assists * T.assists_faktor_ok) tipps.push({ sev: "wichtig",
+    titel: `Wenige Unterstützungen (Ø ${fmt1(stats.avgAssists)}, Schnitt deiner Modi: ${fmt1(E.assists)}) – du kämpfst zu oft allein`,
+    text: `Unterstützungen sind der unterschätzte Skill-Marker: 2000+-X-Power-Spieler haben messbar MEHR Assists als niedrigere Ränge (+7 %) – bei gleichen Kills. Sie kämpfen mit dem Team statt solo. Bleib in Reichweite mindestens eines Teamkollegen und schieße auf dessen Ziele mit.` });
+
+  // Spezialeinsätze
+  if (stats.avgSpezials < E.specials * T.specials_faktor_ok) tipps.push({ sev: "wichtig",
+    titel: `Zu wenige Spezialeinsätze (Ø ${fmt1(stats.avgSpezials)}, Schnitt deiner Modi: ${fmt1(E.specials)})`,
+    text: `Zwei mögliche Ursachen: zu wenig gemalt oder mit geladener Leiste gestorben (kostet seit Patch 2.7.0 je nach Waffe 40–75 % der Ladung). Male aktiv auf dem Weg zum Ziel und setze die Spezialwaffe ein, BEVOR du ins Risiko gehst – am besten gestapelt mit dem Team.` });
+
+  // Farbleistung
+  if (stats.avgFarbe < E.farbe * T.farbe_faktor_ok) tipps.push({ sev: "tipp",
+    titel: `Farbleistung unter dem Modus-Schnitt (Ø ${Math.round(stats.avgFarbe)} P vs. ${Math.round(E.farbe)} P)`,
+    text: `Eigene Farbe = Bewegungsfreiheit + Spezialladung + Verstecke. Male auf dem Weg zum Ziel, besonders Mittelzone und Rückzugswege. (Einordnung: Blaster/Roller malen naturgemäß nur 600–800 P – vergleiche dich mit deiner Waffenklasse.)` });
+
+  // Revierkampf-Priorität: Dort gewinnen Spezials & Farbe, nicht Kills
+  const turf = stats.proModus["Revierkampf"];
+  if (turf && turf.n / stats.n >= 0.4 && (stats.avgSpezials < E.specials || stats.avgFarbe < E.farbe)) tipps.push({ sev: "tipp",
+    titel: "Du spielst viel Revierkampf – dort gewinnen Farbe und Spezials, nicht Kills",
+    text: `Die Daten sind eindeutig: Im Revierkampf korrelieren Spezialeinsätze (r = 0,53) und gefärbte Fläche (r = 0,47) stark mit dem Sieg, Kills kaum (r = 0,17). Sichere zuerst dein Startgebiet, nimm große Flächen und Wände mit und spare Spezials für die letzten 30 Sekunden.` });
+
+  // Schwächster Modus
+  const modi = Object.entries(stats.proModus).filter(([, v]) => v.n >= 3);
+  if (modi.length >= 2) {
+    modi.sort((a, b) => a[1].winrate - b[1].winrate);
+    const [name, v] = modi[0];
+    if (v.winrate < 0.45) {
+      const info = modusInfo(name);
+      const extra = info && info.typische_fehler && info.typische_fehler.length
+        ? ` Häufigster Fehler dort: ${info.typische_fehler[0]} Top-Spieler dagegen: ${info.top_spieler[0]}`
+        : "";
+      tipps.push({ sev: "wichtig", titel: `${name} ist dein schwächster Modus (${Math.round(v.winrate * 100)} % Winrate, ${v.n} Matches)`,
+        text: `Lies den Modus-Guide im Tab „Top-Spieler-Wissen“.${extra}` });
+    }
+  }
+
+  // Winrate-Einordnung
+  if (stats.n >= 15 && stats.winrate < 0.45) tipps.push({ sev: "wichtig",
+    titel: `Winrate ${pct(stats.winrate)} über ${stats.n} Matches`,
+    text: `Das Matchmaking zieht alle Richtung 50 % – dauerhaft darunter heißt meist: aktuell über dem eigenen Level unterwegs oder Waffe/Rolle passt nicht. Kein Grund zur Panik, aber ein Signal, ein paar Sessions auf Grundlagen (weniger Deaths, Teamnähe) statt auf den Rang zu spielen.` });
+
+  // Waffen-Streuung
+  const waffen = Object.entries(stats.proWaffe);
+  if (stats.n >= 10 && waffen.length >= Math.min(6, Math.ceil(stats.n / 2))) {
+    tipps.push({ sev: "wichtig", titel: `Du spielst ${waffen.length} verschiedene Waffen in ${stats.n} Matches`,
+      text: `Fast alle Top-Spieler meistern erst EINE Waffe (plus evtl. eine Zweitwaffe), bevor sie wechseln. Reichweiten-Duelle, Positionen und Spezial-Timings lernst du nur durch Wiederholung – wähle deine Lieblingswaffe und bleib 20+ Matches dabei.` });
+  }
+
+  // Verlustserie
+  if (stats.serie <= -3) tipps.push({ sev: "wichtig", titel: `${-stats.serie} Niederlagen in Folge – Tilt-Gefahr`,
+    text: `Top-Spieler haben feste Stopp-Regeln: Nach 2–3 Niederlagen in Folge Pause, Moduswechsel (Salmon Run!) oder Schluss für heute. Frustriert weiterspielen ist der Ort, an dem Ränge verloren gehen.` });
+
+  // Lob
+  if (stats.delta && stats.delta.winrate > 0.05) tipps.push({ sev: "lob", titel: "Deine Formkurve zeigt nach oben",
+    text: `Die Winrate der letzten 10 Matches ist ${Math.round(stats.delta.winrate * 100)} Prozentpunkte besser als die der 10 davor. Was auch immer du geändert hast – behalte es bei und notiere es dir.` });
+  if (stats.n >= 20 && stats.winrate >= 0.48 && stats.winrate <= 0.56) tipps.push({ sev: "lob",
+    titel: `Winrate ${pct(stats.winrate)} – genau da, wo sie sein soll`,
+    text: `Das Matchmaking gleicht auf ~50 % aus. Verbesserung zeigt sich als steigender Rang/X-Power bei stabiler Winrate – nicht als immer höhere Winrate. Beobachte deinen Rang, nicht nur diese Zahl.` });
+  if (stats.avgDeaths <= E.deaths * T.deaths_faktor_top && stats.kad >= T.kad_top) tipps.push({ sev: "lob", titel: "Deine Duell-Werte sind auf Top-Niveau",
+    text: `Weniger Deaths als der Modus-Schnitt bei hoher Wirkung – genau das Profil der 2000+-Spieler. Dein nächster Hebel ist Makro-Spiel: Spezials mit dem Team stapeln und Überzahl-Fenster (4 gegen 3) konsequent zum Push nutzen.` });
+
+  return tipps;
+}
+
+/* ---------- Salmon Run ---------- */
+function srErwartung(gefahr) {
+  for (const stufe of WISSEN.salmon.erwartung) if (gefahr < stufe.bis) return stufe;
+  return WISSEN.salmon.erwartung[WISSEN.salmon.erwartung.length - 1];
+}
+
+function berechneSrStats(runs) {
+  if (!runs.length) return null;
+  const n = runs.length;
+  const chrono = [...runs].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  const sum = (f) => runs.reduce((a, r) => a + f(r), 0);
+  const voll = runs.filter(r => r.wellen === 3);
+  // Erwartungswerte je nach Gefahrenstufe (bei gescheiterten Schichten anteilig nach Wellen)
+  let expEier = 0, expBosse = 0;
+  for (const r of runs) {
+    const e = srErwartung(r.gefahr);
+    const anteil = r.wellen === 3 ? 1 : (r.wellen + 0.5) / 3;
+    expEier += e.eier * anteil / n; expBosse += e.bosse * anteil / n;
+  }
+  return {
+    expEier, expBosse,
+    n, chrono,
+    erfolgsquote: voll.length / n,
+    avgEier: sum(r => r.eier) / n,
+    avgEierVoll: voll.length ? voll.reduce((a, r) => a + r.eier, 0) / voll.length : null,
+    avgBosse: sum(r => r.bosse) / n,
+    avgRettungen: sum(r => r.rettungen) / n,
+    avgGerettet: sum(r => r.gerettet) / n,
+    maxGefahr: Math.max(...runs.map(r => r.gefahr)),
+    avgGefahr: sum(r => r.gefahr) / n,
+    koenigSiege: runs.filter(r => r.koenig === "S").length,
+    koenigVersuche: runs.filter(r => r.koenig === "S" || r.koenig === "N").length,
+  };
+}
+
+function erzeugeSrTipps(sr) {
+  const S = WISSEN.salmon && WISSEN.salmon.schwellen;
+  if (!S) return [];
+  const tipps = [];
+  if (sr.avgGerettet > S.gerettet_ok) tipps.push({ sev: "kritisch", titel: `Du fällst zu oft aus (Ø ${fmt1(sr.avgGerettet)}× gerettet pro Schicht)`,
+    text: `Das ist der größte Einzelhebel: Der Durchschnitt liegt bei 1,4–2 Ausfällen, 28 % der Top-Schichten (333 %) sind komplett ausfallfrei. Jeder Ausfall kostet Eier-Zeit und bindet einen Kollegen. Bleib in Korbnähe beim Team, halte dir einen gemalten Fluchtweg frei und geh nicht ohne Not an den Kartenrand.` });
+  else if (sr.avgGerettet > S.gerettet_top) tipps.push({ sev: "wichtig", titel: `Ausfälle okay (Ø ${fmt1(sr.avgGerettet)}), Top-Niveau wäre ≤ ${fmt1(S.gerettet_top)}`,
+    text: `Achte besonders auf Flut (früh die Hochfläche beziehen) und Nachtwellen – dort passieren die meisten Ausfälle.` });
+  if (sr.avgEier < sr.expEier * S.eier_faktor_ok) tipps.push({ sev: "wichtig",
+    titel: `Wenig Goldene Eier für deine Gefahrenstufe (Ø ${fmt1(sr.avgEier)}, Schnitt bei deinem Niveau: ${Math.round(sr.expEier)})`,
+    text: `Der größte Hebel: Bosse ZUM KORB locken und erst dort erledigen – die Eier fallen dann neben den Korb statt an den Kartenrand. Zweiter Hebel: Eier WERFEN statt tragen. Und: Selbst Top-Teams sammeln nur ~2/3 der gespawnten Eier ein – schnelleres Eierlaufen bringt mehr als noch mehr Kills.` });
+  else if (sr.avgEier >= sr.expEier * S.eier_faktor_top) tipps.push({ sev: "lob",
+    titel: `Starke Eierleistung (Ø ${fmt1(sr.avgEier)} – deutlich über dem Schnitt deiner Gefahrenstufe von ${Math.round(sr.expEier)})`,
+    text: `Du lieferst auf Overfisher-Kurs. Nächster Schritt: In Welle 1 und 2 gezielt Puffer über die Quote aufbauen und die Gefahrenstufe weiter steigen lassen.` });
+  if (sr.avgBosse < sr.expBosse * S.bosse_faktor_ok) tipps.push({ sev: "wichtig",
+    titel: `Wenige Boss-Kills für deine Gefahrenstufe (Ø ${fmt1(sr.avgBosse)}, Schnitt: ${Math.round(sr.expBosse)})`,
+    text: `Bosse sind die Eierquelle – Top-Teams töten fast alles, was spawnt, schwache Teams lassen ~40 % leben. Priorisiere sofort die Fernkämpfer: Flyfish (Raketenwerfer) und Stinger (Topfturm) beschießen das Team über die halbe Karte, Drizzler flutet die Fläche. Kleine Salmoniden sind fast nie das eigentliche Problem.` });
+  if (sr.avgRettungen < sr.avgGerettet && sr.n >= 4) tipps.push({ sev: "wichtig",
+    titel: `Deine Rettungsbilanz ist negativ (${fmt1(sr.avgRettungen)} gerettet vs. ${fmt1(sr.avgGerettet)} ausgefallen)`,
+    text: `Top-Spieler retten mindestens so oft, wie sie ausfallen. Ein ausgefallener Kollege = 25 % weniger Teamleistung – wirf notfalls ein Ei weg, um sofort zu retten; die Rettung bringt fast immer mehr.` });
+  if (sr.erfolgsquote < 0.4 && sr.n >= 5) tipps.push({ sev: "wichtig", titel: `Niedrige Erfolgsquote (${pct(sr.erfolgsquote)})`,
+    text: `Im 100–200-%-Bereich sind ~50 % normal, dauerhaft unter 40 % heißt: Grundlagen vor Gefahrenstufe. Ein paar Schichten nur auf drei Dinge konzentrieren: zusammenbleiben, Bosse zum Korb locken, sofort wiederbeleben – die Stufe steigt dann von selbst.` });
+  if (sr.erfolgsquote >= 0.75 && sr.n >= 8 && sr.avgGerettet <= S.gerettet_top) tipps.push({ sev: "lob", titel: `Starke Erfolgsquote (${pct(sr.erfolgsquote)}) bei wenigen Ausfällen`,
+    text: `Top-Teams bei 333 % schaffen 75–80 % – du bist auf dem Weg. Du bist bereit für höhere Gefahrenstufen (aktuell Ø ${Math.round(sr.avgGefahr)} %).` });
+  return tipps;
+}
+
+function renderSalmon() {
+  const el = $("#salmonInhalt");
+  const sr = berechneSrStats(state.srRuns);
+  const W = WISSEN.salmon;
+  const kbHtml = W ? `
+    <div class="card"><h2>Benchmarks: Salmon Run</h2>
+      <p class="sub">Richtwerte pro voller Schicht (3 Wellen), aus 13.329 ausgewerteten stat.ink-Schichten (Juli 2026). „Top“ = höchster Rang (engl. „Eggsecutive VP“) bei 333 % Gefahrenstufe.</p>
+      <div class="kb-table-scroll"><table class="kb"><tr><th>Metrik</th><th>Durchschnitt</th><th>Gut</th><th>Top</th><th>Hinweis</th></tr>
+      ${(W.benchmarks || []).map(b => `<tr><td><strong>${esc(b.metrik)}</strong>${b.einheit ? " (" + esc(b.einheit) + ")" : ""}</td><td>${esc(b.durchschnitt)}</td><td>${esc(b.gut)}</td><td>${esc(b.top)}</td><td>${esc(b.hinweis || "")}</td></tr>`).join("")}
+      </table></div></div>
+    <div class="card"><h2>Das machen Top-Salmon-Run-Spieler</h2>
+      <ul>${(W.top_spieler || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <h2 style="margin-top:14px">Typische Fehler</h2>
+      <ul>${(W.typische_fehler || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+      <p class="sub" style="margin-top:10px">Zum Abgucken empfohlen: YouTube-Kanal „Kenshiro SalmonRun (けんしろ)“ – Salmon-Run-Spezialist.
+      Beim Zuschauen auf zwei Dinge achten: Wo steht er relativ zum Korb, und wann liefert er Eier ab vs. wann kämpft er?</p></div>` : "";
+  if (!sr) {
+    el.innerHTML = `<div class="card"><p class="empty-hint">Noch keine Schichten eingetragen. Trage oben deine erste Salmon-Run-Schicht ein –
+      oder lade im Tab „Matches“ Beispieldaten (enthalten auch Salmon-Run-Schichten).</p></div>${kbHtml}`;
+    return;
+  }
+  const tipps = erzeugeSrTipps(sr);
+  const sevMeta = { kritisch: ["‼️", "critical", "Kritisch"], wichtig: ["⚠️", "serious", "Wichtig"], tipp: ["💡", "warning", "Tipp"], lob: ["✅", "good", "Stark"] };
+  const sevRang = { kritisch: 0, wichtig: 1, tipp: 2, lob: 3 };
+  tipps.sort((a, b) => sevRang[a.sev] - sevRang[b.sev]);
+  const tippsHtml = tipps.length ? tipps.map(t => {
+    const [icon, cls, wort] = sevMeta[t.sev];
+    return `<div class="coach-item"><div class="icon">${icon}</div><div>
+      <span class="sev ${cls}">${wort}</span><h3>${esc(t.titel)}</h3><p>${esc(t.text)}</p></div></div>`;
+  }).join("") : (W ? '<p class="empty-hint">Keine Auffälligkeiten – weiter so!</p>' : '<p class="empty-hint">Wissensbasis nicht geladen.</p>');
+  el.innerHTML = `
+    <div class="tile-row">
+      <div class="tile"><div class="label">Erfolgsquote (3 Wellen)</div><div class="value">${pct(sr.erfolgsquote)}</div><div class="delta">${sr.n} Schichten</div></div>
+      <div class="tile"><div class="label">Ø Goldene Eier</div><div class="value">${fmt1(sr.avgEier)}</div>${sr.avgEierVoll !== null ? `<div class="delta">${fmt1(sr.avgEierVoll)} bei vollen Schichten</div>` : ""}</div>
+      <div class="tile"><div class="label">Ø Boss-Kills</div><div class="value">${fmt1(sr.avgBosse)}</div></div>
+      <div class="tile"><div class="label">Rettungsbilanz</div><div class="value">${fmt1(sr.avgRettungen)} : ${fmt1(sr.avgGerettet)}</div><div class="delta">gerettet : ausgefallen</div></div>
+      <div class="tile"><div class="label">Höchste Gefahrenstufe</div><div class="value">${Math.round(sr.maxGefahr)} %</div>${sr.koenigVersuche ? `<div class="delta">König: ${sr.koenigSiege}/${sr.koenigVersuche} besiegt</div>` : ""}</div>
+    </div>
+    <div class="card chart-card">
+      <h2>Goldene Eier pro Schicht</h2>
+      <p class="sub">Deine persönlich abgelieferten Goldenen Eier über die Zeit.</p>
+      <div id="srEierChart"></div>
+      <details class="tableview"><summary>Als Tabelle anzeigen</summary><div id="srEierTabelle"></div></details>
+    </div>
+    <div class="card"><h2>Salmon-Run-Coach</h2>${tippsHtml}</div>
+    <div class="card">
+      <h2>Deine Schichten</h2>
+      <div class="table-scroll" id="srTabelle"></div>
+    </div>
+    ${kbHtml}`;
+  renderSrEierChart(sr);
+  const gut = cssVar("--status-good"), krit = cssVar("--status-critical"), warn = cssVar("--status-warning");
+  $("#srTabelle").innerHTML = `<table class="matches">
+    <tr><th>Datum</th><th>Gefahr</th><th>Wellen</th><th>Xtrawelle</th><th>Eier</th><th>Bosse</th><th>Gerettet</th><th>Ausgefallen</th><th></th></tr>` +
+    [...sr.chrono].reverse().map(r => `<tr>
+      <td>${esc(r.datum)}</td><td class="num">${r.gefahr} %</td>
+      <td><span class="result-chip"><span class="dot" style="background:${r.wellen === 3 ? gut : r.wellen === 2 ? warn : krit}"></span>${r.wellen}/3</span></td>
+      <td>${r.koenig === "S" ? "König besiegt" : r.koenig === "N" ? "König entkommen" : "–"}</td>
+      <td class="num">${r.eier}</td><td class="num">${r.bosse}</td><td class="num">${r.rettungen}</td><td class="num">${r.gerettet}</td>
+      <td><button data-srdel="${r.id}" title="Schicht löschen">✕</button></td></tr>`).join("") + "</table>";
+  $("#srTabelle").querySelectorAll("button[data-srdel]").forEach(b => b.addEventListener("click", () => {
+    state.srRuns = state.srRuns.filter(r => r.id !== +b.dataset.srdel);
+    speichereState(); renderAlles();
+  }));
+}
+
+function renderSrEierChart(sr) {
+  const wrapEl = $("#srEierChart"); if (!wrapEl) return;
+  const daten = sr.chrono;
+  if (daten.length < 2) { wrapEl.innerHTML = '<p class="empty-hint">Ab 2 Schichten erscheint hier dein Verlauf.</p>'; return; }
+  const W = Math.max(320, wrapEl.clientWidth || 600);
+  const links = 40, rechts = 46, oben = 10, unten = 26, H = 200;
+  const plotW = W - links - rechts, plotH = H - oben - unten;
+  const maxE = Math.max(10, ...daten.map(d => d.eier));
+  const yMax = Math.ceil(maxE / 5) * 5;
+  const x = (i) => links + (daten.length === 1 ? 0 : (i / (daten.length - 1)) * plotW);
+  const y = (v) => oben + (1 - v / yMax) * plotH;
+  const blau = cssVar("--series-1"), gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
+        prim = cssVar("--text-primary"), surf = cssVar("--surface-1"), baseF = cssVar("--baseline"), wash = cssVar("--area-wash");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Goldene Eier pro Schicht">`;
+  const schritt = yMax / 5;
+  for (let g = 0; g <= yMax; g += schritt) {
+    s += `<line x1="${links}" y1="${y(g)}" x2="${W - rechts}" y2="${y(g)}" stroke="${gridF}" stroke-width="1"/>`;
+    s += `<text x="${links - 8}" y="${y(g) + 4}" font-size="11" fill="${muted}" text-anchor="end">${g}</text>`;
+  }
+  const pfad = daten.map((d, i) => `${i ? "L" : "M"} ${x(i)} ${y(d.eier)}`).join(" ");
+  s += `<path d="${pfad} L ${x(daten.length - 1)} ${y(0)} L ${x(0)} ${y(0)} Z" fill="${wash}"/>`;
+  s += `<path d="${pfad}" fill="none" stroke="${blau}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  const letzte = daten[daten.length - 1];
+  s += `<circle cx="${x(daten.length - 1)}" cy="${y(letzte.eier)}" r="4" fill="${blau}" stroke="${surf}" stroke-width="2"/>`;
+  s += `<text x="${x(daten.length - 1) + 8}" y="${y(letzte.eier) + 4}" font-size="12" font-weight="600" fill="${prim}">${letzte.eier}</text>`;
+  s += `<line x1="${links}" y1="${y(0)}" x2="${W - rechts}" y2="${y(0)}" stroke="${baseF}" stroke-width="1"/>`;
+  s += `<text x="${(links + W - rechts) / 2}" y="${H - 6}" font-size="11" fill="${muted}" text-anchor="middle">Schicht-Nummer</text>`;
+  s += `<line id="srCrosshair" x1="0" y1="${oben}" x2="0" y2="${y(0)}" stroke="${baseF}" stroke-width="1" visibility="hidden"/>`;
+  s += `<circle id="srPunkt" r="4" fill="${blau}" stroke="${surf}" stroke-width="2" visibility="hidden"/>`;
+  s += `<rect id="srHit" x="${links}" y="${oben}" width="${plotW}" height="${plotH}" fill="transparent"/></svg>`;
+  wrapEl.innerHTML = s;
+  const svg = wrapEl.querySelector("svg"), hit = svg.querySelector("#srHit"),
+        cross = svg.querySelector("#srCrosshair"), punkt = svg.querySelector("#srPunkt"), tt = $("#tooltip");
+  hit.addEventListener("mousemove", (ev) => {
+    const rect = svg.getBoundingClientRect();
+    const relX = (ev.clientX - rect.left) * (W / rect.width);
+    let i = Math.round(((relX - links) / plotW) * (daten.length - 1));
+    i = Math.max(0, Math.min(daten.length - 1, i));
+    const d = daten[i];
+    cross.setAttribute("x1", x(i)); cross.setAttribute("x2", x(i)); cross.setAttribute("visibility", "visible");
+    punkt.setAttribute("cx", x(i)); punkt.setAttribute("cy", y(d.eier)); punkt.setAttribute("visibility", "visible");
+    tt.innerHTML = `<strong>${esc(d.datum)}</strong> · ${d.gefahr} %<br>${d.eier} Goldene Eier, ${d.wellen}/3 Wellen`;
+    positioniereTooltip(ev);
+  });
+  hit.addEventListener("mouseleave", () => { cross.setAttribute("visibility", "hidden"); punkt.setAttribute("visibility", "hidden"); tt.style.display = "none"; });
+  $("#srEierTabelle").innerHTML = `<table class="mini"><tr><th>Datum</th><th>Gefahr</th><th>Eier</th><th>Wellen</th></tr>` +
+    daten.map(d => `<tr><td>${esc(d.datum)}</td><td>${d.gefahr} %</td><td>${d.eier}</td><td>${d.wellen}/3</td></tr>`).join("") + "</table>";
+}
+
+document.getElementById("srForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  state.srRuns.push({
+    id: state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) + 1 : 1,
+    datum: $("#sDatum").value, gefahr: +$("#sGefahr").value, wellen: +$("#sWellen").value,
+    koenig: $("#sKoenig").value,
+    eier: +$("#sEier").value, bosse: +$("#sBosse").value,
+    rettungen: +$("#sRettungen").value, gerettet: +$("#sGerettet").value,
+  });
+  speichereState(); renderAlles();
+  ["sEier", "sBosse", "sRettungen", "sGerettet"].forEach(id => $("#" + id).value = "");
+});
+
+/* ---------- Live-Coach (Session-Begleiter) ---------- */
+const FOKUS_DEFS = [
+  { id: "deaths", label: "Weniger sterben", beschreibung: "Nur Kämpfe mit Fluchtweg – nach jedem Death fragen: Was hat es gebracht?", feld: "deaths", runter: true },
+  { id: "spezial", label: "Spezialwaffe öfter einsetzen", beschreibung: "Aktiv malen, vor dem Risiko zünden, mit dem Team stapeln.", feld: "spezials", runter: false },
+  { id: "assists", label: "Mit dem Team kämpfen", beschreibung: "2-gegen-1 erzwingen, angegriffenen Teamkollegen helfen.", feld: "assists", runter: false },
+  { id: "farbe", label: "Mehr malen", beschreibung: "Auf dem Weg zum Ziel malen – Fläche, Wege, Rückzugsrouten.", feld: "farbe", runter: false },
+  { id: "frei", label: "Einfach spielen (kein Fokus)", beschreibung: "Session ohne Trainingsziel – der Tilt-Wächter läuft trotzdem mit.", feld: null, runter: false },
+];
+
+function fokusEmpfehlung(stats) {
+  if (!stats) return "deaths";
+  const T = WISSEN.coach_schwellen, E = stats.erw;
+  if (stats.avgDeaths > E.deaths * T.deaths_faktor_ok) return "deaths";
+  if (stats.avgSpezials < E.specials * T.specials_faktor_ok) return "spezial";
+  if (stats.n >= 5 && stats.avgAssists < E.assists * T.assists_faktor_ok) return "assists";
+  if (stats.avgFarbe < E.farbe * T.farbe_faktor_ok) return "farbe";
+  return "frei";
+}
+
+function sessionMatches() {
+  const ids = new Set((state.session && state.session.matchIds) || []);
+  return state.matches.filter(m => ids.has(m.id));
+}
+
+function liveHinweis(m) {
+  const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
+  if (m.deaths >= E.deaths + 2) return `Gerade ${m.deaths} Deaths – deutlich über dem ${m.modus}-Schnitt (${fmt1(E.deaths)}). Nächstes Match: nur Kämpfe mit Fluchtweg annehmen, lieber einmal zu früh zurückziehen als einmal zu spät.`;
+  if (m.deaths <= Math.max(1, Math.round(E.deaths - 2))) return `Stark überlebt (nur ${m.deaths === 1 ? "1 Death" : m.deaths + " Deaths"} bei einem Schnitt von ${fmt1(E.deaths)})! Wer lebt, hält Fläche und lädt Spezial – genau so weiter.`;
+  if (m.spezials <= 1) return `${m.spezials === 0 ? "Kein Spezialeinsatz" : "Nur 1 Spezialeinsatz"} in dem Match. Denk dran: Aktiv malen lädt die Leiste – und lieber VOR dem riskanten Kampf zünden als mit voller Leiste sterben.`;
+  if (m.ergebnis === "N") {
+    const info = (WISSEN.modi || []).find(x => x.modus === m.modus);
+    if (info && info.top_spieler.length) {
+      const tipp = info.top_spieler[sessionMatches().length % info.top_spieler.length];
+      return `${m.modus}-Tipp fürs nächste Match: ${tipp}`;
+    }
+  }
+  return "Läuft! Kurzer Reminder für das nächste Match: Lampen-Check bei jedem Push – wer lebt, wessen Spezial ist geladen?";
+}
+
+let liveEingabeVerwerfen = false; // nach dem Speichern eines Matches: Stepper bewusst zurücksetzen
+let letzterQuickSave = 0;         // Doppel-Tipp-Schutz
+
+function renderLive(stats) {
+  const el = $("#liveInhalt");
+  const s = state.session;
+
+  // Laufende Eingaben über Re-Renders (Theme-Wechsel, Resize, Habit-Haken) hinweg erhalten
+  const alteEingabe = {
+    modus: (document.getElementById("qModus") || {}).value,
+    waffe: (document.getElementById("qWaffe") || {}).value,
+    stepper: {}, beruehrt: {},
+    fokus: (document.querySelector('input[name="fokus"]:checked') || {}).value,
+    warmup: ["wu1", "wu2"].map(id => !!(document.getElementById(id) || {}).checked),
+  };
+  for (const id of ["qSplats", "qAssists", "qDeaths", "qSpezials", "qFarbe"]) {
+    const span = document.getElementById(id);
+    if (span) { alteEingabe.stepper[id] = span.textContent; alteEingabe.beruehrt[id] = !span.closest(".stepper").classList.contains("unberuehrt"); }
+  }
+  if (liveEingabeVerwerfen) {
+    alteEingabe.modus = alteEingabe.waffe = undefined;
+    alteEingabe.stepper = {}; alteEingabe.beruehrt = {};
+    liveEingabeVerwerfen = false;
+  }
+
+  if (!s) {
+    const empf = alteEingabe.fokus || fokusEmpfehlung(stats);
+    const optionen = FOKUS_DEFS.map(f => `
+      <label class="fokus-option">
+        <input type="radio" name="fokus" value="${f.id}" ${f.id === empf ? "checked" : ""}>
+        <div><strong>${esc(f.label)}</strong>${f.id === fokusEmpfehlung(stats) ? ' <span class="empf">Empfohlen vom Coach</span>' : ""}
+        <p style="margin:2px 0 0; color:var(--text-secondary); font-size:13px">${esc(f.beschreibung)}</p></div>
+      </label>`).join("");
+    const zusammenfassung = state.lastSummary ? `
+      <div class="card">
+        <h2>Letzte Session</h2>
+        <div class="session-stat-row">
+          <div><span class="gross">${state.lastSummary.siege}:${state.lastSummary.n - state.lastSummary.siege}</span> <span style="color:var(--text-muted)">Siege : Niederlagen</span></div>
+        </div>
+        <p style="color:var(--text-secondary)">${esc(state.lastSummary.text)}</p>
+      </div>` : "";
+    el.innerHTML = `
+      ${zusammenfassung}
+      <div class="card">
+        <h2>🔴 Live-Session starten</h2>
+        <p class="sub">Leg das iPad neben dich. Nach jedem Match trägst du das Ergebnis in ~5 Sekunden ein – der Coach reagiert sofort mit Tipps und passt auf deinen Tilt auf.</p>
+        <h3 style="font-size:14px; margin:12px 0 4px">1. Warm-up (Top-Spieler-Routine)</h3>
+        <label class="habit"><input type="checkbox" id="wu1" ${alteEingabe.warmup[0] ? "checked" : ""}><div><p style="margin:0">3–5 Min bewegliche Dummys im Testareal treffen</p></div></label>
+        <label class="habit"><input type="checkbox" id="wu2" ${alteEingabe.warmup[1] ? "checked" : ""}><div><p style="margin:0">1–2 lockere Matches (Revierkampf) oder eine Runde Salmon Run</p></div></label>
+        <h3 style="font-size:14px; margin:14px 0 4px">2. Dein Fokus für diese Session</h3>
+        ${optionen}
+        <button class="primary" id="sessionStartBtn" style="width:100%; margin-top:10px; padding:14px; font-size:16px">Session starten</button>
+      </div>`;
+    $("#sessionStartBtn").addEventListener("click", () => {
+      const gewaehlt = document.querySelector('input[name="fokus"]:checked');
+      state.session = { start: new Date().toISOString(), fokus: gewaehlt ? gewaehlt.value : "frei", matchIds: [], letzterHinweis: "" };
+      speichereState(); renderAlles();
+    });
+    return;
+  }
+
+  // ---- aktive Session ----
+  // Sehr alte Session (App war lange zu) automatisch abschließen
+  if (s.start && Date.now() - Date.parse(s.start) > 6 * 3600 * 1000) {
+    const alteMatches = sessionMatches();
+    state.lastSummary = { n: alteMatches.length, siege: alteMatches.filter(m => m.ergebnis === "S").length,
+      text: `Die Session vom ${String(s.start).slice(0, 10)} wurde automatisch beendet (${alteMatches.length} Matches). Alle Matches sind gespeichert.` };
+    state.session = null; speichereState();
+    renderLive(stats); return;
+  }
+  const sm = sessionMatches();
+  const siege = sm.filter(m => m.ergebnis === "S").length;
+  let serie = 0;
+  for (let i = sm.length - 1; i >= 0; i--) { if (sm[i].ergebnis === "N") serie++; else break; }
+  const fokus = FOKUS_DEFS.find(f => f.id === s.fokus) || FOKUS_DEFS[FOKUS_DEFS.length - 1];
+
+  let banner = "";
+  if (serie >= 3) banner = `<div class="live-banner kritisch"><span class="icon">🛑</span><div>Stopp-Regel: ${serie} Niederlagen in Folge!
+    <p>Das ist der Moment, in dem Top-Spieler aufhören. Mach 10 Minuten Pause, wechsle zu Salmon Run – oder beende die Session. Frustriert weiterspielen kostet nachweislich Rang.</p></div></div>`;
+  else if (serie === 2) banner = `<div class="live-banner warnung"><span class="icon">⚠️</span><div>2 Niederlagen in Folge – kurz durchatmen.
+    <p>Einmal tief durchatmen, Wasser trinken, Schultern lockern. Nächstes Match bewusst langsamer eröffnen: erst malen, dann kämpfen.</p></div></div>`;
+
+  // Fokus-Verfolgung: Session vs. deine bisherigen Werte (ohne diese Session)
+  let fokusHtml = "";
+  if (fokus.feld && sm.length) {
+    const basisMatches = state.matches.filter(m => !s.matchIds.includes(m.id));
+    const basis = basisMatches.length ? basisMatches.reduce((a, m) => a + m[fokus.feld], 0) / basisMatches.length : null;
+    const heute = sm.reduce((a, m) => a + m[fokus.feld], 0) / sm.length;
+    let bewertung = "";
+    if (basis !== null) {
+      const besser = fokus.runter ? heute < basis : heute > basis;
+      bewertung = Math.abs(heute - basis) < 0.05
+        ? ` <span class="sev good">= genau auf deinem bisherigen Schnitt (${fmt1(basis)})</span>`
+        : besser
+          ? ` <span class="sev good">✔ besser als sonst (${fmt1(basis)})</span>`
+          : ` <span class="sev serious">noch ${fokus.runter ? "über" : "unter"} deinem Schnitt von ${fmt1(basis)}</span>`;
+    }
+    fokusHtml = `<p style="margin:6px 0 0">Fokus „${esc(fokus.label)}“: heute Ø <strong>${fmt1(heute)}</strong>${bewertung}</p>`;
+  }
+
+  const letztes = sm[sm.length - 1];
+  const hinweisHtml = s.letzterHinweis ? `<div class="coach-item" style="border:none; padding-top:10px"><div class="icon">🎙️</div><div>
+    <span class="sev warning">Live-Tipp</span><p style="margin:2px 0 0; color:var(--text-primary)">${esc(s.letzterHinweis)}</p></div></div>` : "";
+  const undoHtml = sm.length ? `<p style="margin:8px 0 0; font-size:12.5px; color:var(--text-muted)">✔ ${sm.length === 1 ? "1 Match" : sm.length + " Matches"} in dieser Session gespeichert ·
+    <a href="#" id="undoLink" style="color:var(--series-1)">Letztes rückgängig machen</a></p>` : "";
+
+  const letzteWaffe = letztes ? letztes.waffe : (state.matches.length ? state.matches[state.matches.length - 1].waffe : "");
+  const letzterModus = letztes ? letztes.modus : "Herrschaft";
+  const farbeVorgabe = Math.round((WISSEN.modus_erwartung[letzterModus] || WISSEN.modus_erwartung["Herrschaft"]).farbe / 50) * 50;
+
+  el.innerHTML = `
+    ${banner}
+    <div class="card">
+      <div style="display:flex; align-items:baseline; gap:12px; flex-wrap:wrap">
+        <h2 style="margin:0">🔴 Session läuft</h2>
+        <div class="session-stat-row"><div><span class="gross">${siege}:${sm.length - siege}</span> <span style="color:var(--text-muted)">Siege : Niederlagen</span></div></div>
+        <div class="spacer" style="flex:1"></div>
+        <button id="sessionEndeBtn">Session beenden</button>
+      </div>
+      ${fokusHtml}
+      ${hinweisHtml}
+      ${undoHtml}
+    </div>
+    <div class="card">
+      <h2>Match eintragen (Schnell-Eingabe)</h2>
+      <div class="quick-grid">
+        <div><label style="font-size:12.5px; color:var(--text-secondary)">Modus</label>
+          <select id="qModus" style="width:100%; font:inherit; font-size:16px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)">
+            ${MODI.map(m => `<option ${m === (alteEingabe.modus || letzterModus) ? "selected" : ""}>${m}</option>`).join("")}
+          </select></div>
+        <div><label style="font-size:12.5px; color:var(--text-secondary)">Waffe</label>
+          <input id="qWaffe" list="waffenListe" value="${esc(alteEingabe.waffe !== undefined ? alteEingabe.waffe : letzteWaffe)}" style="width:100%; font:inherit; font-size:16px; padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)"></div>
+      </div>
+      <div class="quick-grid">
+        ${[["qSplats", "Splats", 5, 1], ["qAssists", "Unterst.", 1, 1], ["qDeaths", "Deaths", 5, 1], ["qSpezials", "Spezials", 3, 1], ["qFarbe", "Farbpunkte", farbeVorgabe, 50]].map(([id, lab, start, schritt]) => `
+          <div class="stepper ${alteEingabe.beruehrt[id] ? "" : "unberuehrt"}" data-schritt="${schritt}">
+            <div class="slabel">${lab}</div>
+            <div class="srow">
+              <button type="button" data-minus="${id}">−</button>
+              <span class="swert" id="${id}">${alteEingabe.stepper[id] !== undefined ? alteEingabe.stepper[id] : start}</span>
+              <button type="button" data-plus="${id}">+</button>
+            </div>
+          </div>`).join("")}
+      </div>
+      <p style="margin:4px 0 8px; font-size:12px; color:var(--text-muted)">Blasse Werte sind Vorschläge – tippe +/−, um sie auf dein Ergebnis einzustellen.</p>
+      <div class="ergebnis-row">
+        <button class="sieg" id="qSieg">✔ Sieg</button>
+        <button class="niederlage" id="qNiederlage">✘ Niederlage</button>
+      </div>
+    </div>`;
+
+  el.querySelectorAll("[data-minus],[data-plus]").forEach(b => b.addEventListener("click", () => {
+    const id = b.dataset.minus || b.dataset.plus;
+    const span = $("#" + id);
+    const schritt = +b.closest(".stepper").dataset.schritt;
+    let wert = +span.textContent + (b.dataset.plus ? schritt : -schritt);
+    span.textContent = Math.max(0, wert);
+    b.closest(".stepper").classList.remove("unberuehrt");
+  }));
+
+  // Farbpunkte-Vorschlag folgt dem Modus, solange er nicht angefasst wurde
+  $("#qModus").addEventListener("change", () => {
+    const st = $("#qFarbe").closest(".stepper");
+    if (st.classList.contains("unberuehrt"))
+      $("#qFarbe").textContent = Math.round((WISSEN.modus_erwartung[$("#qModus").value] || WISSEN.modus_erwartung["Herrschaft"]).farbe / 50) * 50;
+  });
+
+  const undo = $("#undoLink");
+  if (undo) undo.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const letzteId = state.session.matchIds.pop();
+    state.matches = state.matches.filter(m => m.id !== letzteId);
+    state.session.letzterHinweis = "";
+    liveEingabeVerwerfen = true;
+    speichereState(); renderAlles();
+  });
+
+  const speichereQuick = (ergebnis) => {
+    const jetzt = Date.now();
+    if (jetzt - letzterQuickSave < 600) return; // Doppel-Tipp-Schutz (iPad)
+    letzterQuickSave = jetzt;
+    const match = {
+      id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
+      datum: heuteISO(), modus: $("#qModus").value, waffe: $("#qWaffe").value.trim() || "Unbekannt",
+      ergebnis,
+      splats: +$("#qSplats").textContent, assists: +$("#qAssists").textContent,
+      deaths: +$("#qDeaths").textContent, spezials: +$("#qSpezials").textContent,
+      farbe: +$("#qFarbe").textContent, notiz: "",
+    };
+    state.matches.push(match);
+    state.session.matchIds.push(match.id);
+    state.session.letzterHinweis = liveHinweis(match);
+    liveEingabeVerwerfen = true; // Stepper für das nächste Match zurücksetzen
+    monitorNeuesMatch();         // Auto-Death-Zähler für das nächste Match auf 0
+    speichereState(); renderAlles();
+  };
+  $("#qSieg").addEventListener("click", () => speichereQuick("S"));
+  $("#qNiederlage").addEventListener("click", () => speichereQuick("N"));
+
+  $("#sessionEndeBtn").addEventListener("click", () => {
+    if (sm.length && !confirm("Session wirklich beenden?")) return;
+    const n = sm.length, siegeEnd = siege;
+    let text;
+    if (!n) text = "Keine Matches eingetragen – beim nächsten Mal!";
+    else {
+      const teile = [`${n} Matches, ${Math.round((siegeEnd / n) * 100)} % Winrate.`];
+      if (fokus.feld) {
+        const heute = sm.reduce((a, m) => a + m[fokus.feld], 0) / n;
+        teile.push(`Fokus „${fokus.label}“: Ø ${fmt1(heute)}.`);
+      }
+      teile.push(siegeEnd / n >= 0.5 ? "Starke Session – merk dir, was heute funktioniert hat!" : "Zähe Session – das gehört dazu. Schau im Coach-Tab, welche Baustelle als Nächstes dran ist.");
+      text = teile.join(" ");
+    }
+    state.lastSummary = { n, siege: siegeEnd, text };
+    state.session = null;
+    speichereState(); renderAlles();
+  });
+}
+
+/* ---------- Live-Monitor (Capture-Karte, Beta) ----------
+   Zeigt das Spielbild der Capture-Karte in der App und zählt Deaths automatisch:
+   Der Nutzer lernt einmal den Respawn-Bildschirm ein (Farbsignatur eines 4x4-Rasters);
+   taucht dieselbe Signatur wieder auf, zählt der Monitor einen Death. Experimentell. */
+let monitorStream = null, monitorTimer = null, monitorCanvas = null;
+let monitorLetzterTreffer = 0, monitorTrefferSerie = 0, autoDeaths = 0;
+const MON_RASTER = 4;
+
+function monSignatur(video) {
+  if (!monitorCanvas) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = 64; monitorCanvas.height = 36; }
+  const ctx = monitorCanvas.getContext("2d", { willReadFrequently: true });
+  const crop = (state.monitor && state.monitor.crop) || null;
+  const vw = video.videoWidth, vh = video.videoHeight;
+  if (crop && vw && vh) ctx.drawImage(video, crop.x * vw, crop.y * vh, crop.w * vw, crop.h * vh, 0, 0, 64, 36);
+  else ctx.drawImage(video, 0, 0, 64, 36);
+  const d = ctx.getImageData(0, 0, 64, 36).data;
+  const sig = [], zw = 64 / MON_RASTER, zh = 36 / MON_RASTER;
+  for (let gy = 0; gy < MON_RASTER; gy++) for (let gx = 0; gx < MON_RASTER; gx++) {
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let y = Math.floor(gy * zh); y < Math.floor((gy + 1) * zh); y += 2)
+      for (let x = Math.floor(gx * zw); x < Math.floor((gx + 1) * zw); x += 2) {
+        const i = (y * 64 + x) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+      }
+    sig.push(r / n, g / n, b / n);
+  }
+  return sig;
+}
+function monAbstand(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) ** 2; return Math.sqrt(s / a.length); }
+
+function monitorNeuesMatch() {
+  autoDeaths = 0; monitorTrefferSerie = 0;
+  const el = document.getElementById("monDeaths"); if (el) el.textContent = "0";
+}
+
+function initialisiereMonitor() {
+  const halter = $("#monitorHalter");
+  if (!halter) return;
+  const empf = (state.monitor && state.monitor.empfindlichkeit) || 30;
+  halter.innerHTML = `
+    <div class="card">
+      <h2>📺 Live-Monitor (Beta) – Capture-Karte oder iPad-Kamera</h2>
+      <p class="sub">Am PC: Capture-Karte als Quelle wählen. Am iPad: Kamera als Quelle wählen und das iPad so aufstellen, dass es den Fernseher sieht –
+      dann mit „Bildausschnitt“ ein Rechteck genau um das TV-Bild ziehen. Die App zählt deine Deaths automatisch mit.
+      Das Bild bleibt komplett auf deinem Gerät. (In der Chat-Vorschau gesperrt; auf dem iPad braucht es die App-Adresse, nicht den claude.ai-Link.)</p>
+      <div class="form-actions" style="margin-bottom:10px">
+        <select id="monQuelle" style="font:inherit; font-size:16px; padding:8px 12px; border-radius:999px; border:1.5px solid var(--border); background:var(--page); color:var(--text-primary); max-width:280px">
+          <option value="">Quelle: automatisch</option>
+        </select>
+        <button id="monStart" class="primary">Monitor starten</button>
+        <button id="monStop" hidden>Stopp</button>
+      </div>
+      <div id="monFehler" class="empty-hint" style="display:none"></div>
+      <div id="monRahmen" style="position:relative; max-width:560px; display:none">
+        <video id="monVideo" muted playsinline style="width:100%; border-radius:12px; display:block; border:1.5px solid var(--border)"></video>
+        <div id="monCropRect" style="position:absolute; border:2px dashed rgba(255,255,255,0.95); outline:2px dashed var(--series-1); border-radius:4px; display:none; pointer-events:none"></div>
+        <div id="monCropLayer" style="position:absolute; inset:0; display:none; touch-action:none; cursor:crosshair"></div>
+      </div>
+      <div id="monSteuerung" style="display:none; margin-top:12px">
+        <div class="form-actions">
+          <button id="monCropBtn">▭ Bildausschnitt wählen</button>
+          <button id="monCropReset">Ganzes Bild</button>
+        </div>
+        <div class="form-actions" style="margin-top:8px">
+          <button id="monLernen">🎯 Death-Bildschirm einlernen</button>
+          <span id="monLernStatus" style="font-size:13px; color:var(--text-muted)"></span>
+        </div>
+        <p style="margin:10px 0 4px; font-size:14px">Erkannte Deaths in diesem Match:
+          <strong id="monDeaths" style="font-size:22px">0</strong>
+          <button id="monReset" style="margin-left:8px; padding:4px 14px; font-size:13px">Auf 0</button></p>
+        <label style="font-size:12.5px; color:var(--text-secondary); display:block; max-width:340px">Empfindlichkeit (niedrig = strenger):
+          <input type="range" id="monEmpf" min="10" max="60" step="5" value="${empf}" style="width:100%"></label>
+        <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">So lernst du die Erkennung an: Monitor starten → im Spiel einmal sterben →
+        WÄHREND der Respawn-Bildschirm zu sehen ist, „einlernen“ drücken. Ab dann zählt der Monitor mit und trägt die Zahl automatisch
+        in die Schnell-Eingabe ein (du kannst sie dort immer korrigieren). Beta: Bei Fehlzählungen die Empfindlichkeit senken und neu einlernen.</p>
+      </div>
+    </div>`;
+
+  const zeigeFehler = (t) => { const f = $("#monFehler"); f.style.display = "block"; f.textContent = t; };
+
+  async function fuelleQuellen() {
+    try {
+      const geraete = await navigator.mediaDevices.enumerateDevices();
+      const videos = geraete.filter(g => g.kind === "videoinput");
+      if (videos.length) $("#monQuelle").innerHTML = '<option value="">Quelle: automatisch</option>' +
+        videos.map((g, i) => `<option value="${esc(g.deviceId)}">${esc(g.label || "Videoquelle " + (i + 1))}</option>`).join("");
+    } catch (e) { /* Berechtigung fehlt noch – Labels kommen nach dem Start */ }
+  }
+  if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) fuelleQuellen();
+
+  // Bildschirm während der Session wach halten (wichtig auf dem iPad)
+  let wachLock = null;
+  async function halteWach() {
+    try { if ("wakeLock" in navigator) wachLock = await navigator.wakeLock.request("screen"); } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (monitorStream && document.visibilityState === "visible") halteWach();
+  });
+
+  function zeigeCrop() {
+    const crop = state.monitor && state.monitor.crop, r = $("#monCropRect");
+    if (!crop) { r.style.display = "none"; return; }
+    r.style.display = "block";
+    r.style.left = (crop.x * 100) + "%"; r.style.top = (crop.y * 100) + "%";
+    r.style.width = (crop.w * 100) + "%"; r.style.height = (crop.h * 100) + "%";
+  }
+
+  function stoppeMonitor() {
+    if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
+    if (monitorStream) { monitorStream.getTracks().forEach(t => t.stop()); monitorStream = null; }
+    if (wachLock) { try { wachLock.release(); } catch (e) {} wachLock = null; }
+    $("#monRahmen").style.display = "none"; $("#monSteuerung").style.display = "none";
+    $("#monStart").hidden = false; $("#monStop").hidden = true;
+  }
+
+  function starteAnalyse() {
+    const video = $("#monVideo");
+    monitorTimer = setInterval(() => {
+      if (!monitorStream || video.readyState < 2) return;
+      const sigGespeichert = state.monitor && state.monitor.signatur;
+      if (!sigGespeichert) return;
+      const jetzt = Date.now();
+      const abstand = monAbstand(monSignatur(video), sigGespeichert);
+      const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
+      if (abstand < schwelle) {
+        monitorTrefferSerie++;
+        if (monitorTrefferSerie >= 2 && jetzt - monitorLetzterTreffer > 8000) {
+          monitorLetzterTreffer = jetzt;
+          autoDeaths++;
+          const anz = document.getElementById("monDeaths"); if (anz) anz.textContent = String(autoDeaths);
+          // In die Schnell-Eingabe übernehmen (falls Session läuft)
+          const qd = document.getElementById("qDeaths");
+          if (qd) { qd.textContent = String(autoDeaths); qd.closest(".stepper").classList.remove("unberuehrt"); }
+        }
+      } else monitorTrefferSerie = 0;
+    }, 350);
+  }
+
+  $("#monStart").addEventListener("click", async () => {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      zeigeFehler("Diese Umgebung erlaubt keinen Zugriff auf Videoquellen. Nutze die PC-App (GameCoach.exe) oder öffne die Datei direkt im Browser."); return;
+    }
+    try {
+      const id = $("#monQuelle").value;
+      monitorStream = await navigator.mediaDevices.getUserMedia({
+        video: id ? { deviceId: { exact: id }, width: 1280 } : { facingMode: "environment", width: 1280 } });
+      const video = $("#monVideo");
+      video.srcObject = monitorStream; $("#monRahmen").style.display = "block"; await video.play();
+      $("#monSteuerung").style.display = "block"; $("#monStart").hidden = true; $("#monStop").hidden = false;
+      $("#monFehler").style.display = "none";
+      $("#monLernStatus").textContent = state.monitor && state.monitor.signatur ? "Death-Bildschirm ist eingelernt ✓" : "Noch nicht eingelernt";
+      zeigeCrop(); halteWach();
+      fuelleQuellen();
+      starteAnalyse();
+    } catch (e) { zeigeFehler("Zugriff auf die Videoquelle fehlgeschlagen (" + e.name + "). Erlaube den Kamera-/Video-Zugriff oder wähle oben eine andere Quelle – eine Capture-Karte darf nicht von OBS & Co. belegt sein."); }
+  });
+  $("#monStop").addEventListener("click", stoppeMonitor);
+  $("#monLernen").addEventListener("click", () => {
+    const video = $("#monVideo");
+    if (!monitorStream || video.readyState < 2) return;
+    state.monitor = Object.assign({}, state.monitor, { signatur: monSignatur(video), empfindlichkeit: +$("#monEmpf").value });
+    speichereState();
+    $("#monLernStatus").textContent = "Death-Bildschirm ist eingelernt ✓ (gespeichert)";
+  });
+
+  // Bildausschnitt (z. B. nur das TV-Bild im Kamerabild) per Ziehen festlegen
+  let cropStart = null;
+  const cropLayer = $("#monCropLayer"), rahmen = $("#monRahmen");
+  $("#monCropBtn").addEventListener("click", () => {
+    cropLayer.style.display = "block";
+    $("#monLernStatus").textContent = "Ziehe jetzt mit dem Finger/der Maus ein Rechteck um das TV-Bild …";
+  });
+  $("#monCropReset").addEventListener("click", () => {
+    state.monitor = Object.assign({}, state.monitor, { crop: null, signatur: null });
+    speichereState(); zeigeCrop();
+    $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte Death-Bildschirm neu einlernen.";
+  });
+  const cropPunkt = (e) => {
+    const b = rahmen.getBoundingClientRect();
+    return { x: Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)),
+             y: Math.min(1, Math.max(0, (e.clientY - b.top) / b.height)) };
+  };
+  cropLayer.addEventListener("pointerdown", (e) => { cropLayer.setPointerCapture(e.pointerId); cropStart = cropPunkt(e); });
+  cropLayer.addEventListener("pointermove", (e) => {
+    if (!cropStart) return;
+    const p = cropPunkt(e), r = $("#monCropRect");
+    r.style.display = "block";
+    r.style.left = (Math.min(cropStart.x, p.x) * 100) + "%"; r.style.top = (Math.min(cropStart.y, p.y) * 100) + "%";
+    r.style.width = (Math.abs(p.x - cropStart.x) * 100) + "%"; r.style.height = (Math.abs(p.y - cropStart.y) * 100) + "%";
+  });
+  cropLayer.addEventListener("pointerup", (e) => {
+    if (!cropStart) return;
+    const p = cropPunkt(e);
+    const crop = { x: Math.min(cropStart.x, p.x), y: Math.min(cropStart.y, p.y),
+                   w: Math.abs(p.x - cropStart.x), h: Math.abs(p.y - cropStart.y) };
+    cropStart = null; cropLayer.style.display = "none";
+    if (crop.w < 0.05 || crop.h < 0.05) { zeigeCrop(); return; } // zu klein -> verwerfen
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, signatur: null });
+    speichereState(); zeigeCrop();
+    $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte Death-Bildschirm neu einlernen.";
+  });
+  $("#monReset").addEventListener("click", monitorNeuesMatch);
+  $("#monEmpf").addEventListener("change", () => {
+    if (state.monitor) { state.monitor.empfindlichkeit = +$("#monEmpf").value; speichereState(); }
+  });
+}
+
+/* ---------- Selbst-Check ---------- */
+function renderSelbstcheck() {
+  const liste = $("#habitListe"), fortschritt = $("#habitFortschritt");
+  const habits = WISSEN.gewohnheiten || [];
+  if (!habits.length) { liste.innerHTML = '<p class="empty-hint">Wissensbasis nicht geladen.</p>'; return; }
+  const erledigt = habits.filter(h => state.habits[h.id]).length;
+  fortschritt.innerHTML = `<div class="meter-row" style="grid-template-columns: 1fr; gap: 4px; margin-bottom: 8px;">
+    <div class="mlabel">Du machst <strong>${erledigt} von ${habits.length}</strong> Top-Spieler-Gewohnheiten</div>
+    <div class="meter"><div class="track" style="background: var(--series-1-track)"></div>
+    <div class="fill" style="width:${habits.length ? (erledigt / habits.length) * 100 : 0}%; background: var(--series-1)"></div></div></div>`;
+  const kategorien = [...new Set(habits.map(h => h.kategorie))];
+  liste.innerHTML = kategorien.map(kat => `<div class="kat-head">${esc(kat)}</div>` +
+    habits.filter(h => h.kategorie === kat).map(h => `
+      <label class="habit">
+        <input type="checkbox" data-habit="${esc(h.id)}" ${state.habits[h.id] ? "checked" : ""}>
+        <div><h3>${esc(h.titel)}</h3><p>${esc(h.beschreibung)}</p>
+        <p class="warum">Warum: ${esc(h.warum)}</p></div>
+      </label>`).join("")).join("");
+  liste.querySelectorAll("input[data-habit]").forEach(cb => cb.addEventListener("change", () => {
+    state.habits[cb.dataset.habit] = cb.checked; speichereState(); renderAlles();
+  }));
+}
+
+/* ---------- Wissens-Tab ---------- */
+function renderWissen() {
+  const el = $("#wissenInhalt");
+  const W = WISSEN;
+  if (W.PLATZHALTER) { el.innerHTML = '<div class="card"><p class="empty-hint">Wissensbasis nicht geladen.</p></div>'; return; }
+  const benchRows = (W.benchmarks || []).map(b => `<tr><td><strong>${esc(b.metrik)}</strong>${b.einheit ? " (" + esc(b.einheit) + ")" : ""}</td>
+    <td>${esc(b.durchschnitt)}</td><td>${esc(b.gut)}</td><td>${esc(b.top)}</td><td>${esc(b.hinweis || "")}</td></tr>`).join("");
+  const fehlerRows = (W.fehler_vs_top || []).map(f => `<tr><td>❌ ${esc(f.fehler)}</td><td>✅ ${esc(f.stattdessen)}</td></tr>`).join("");
+  const modiHtml = (W.modi || []).map(m => `<details class="mode"><summary>${esc(m.modus)}</summary>
+    <h4>Das machen Top-Spieler</h4><ul>${m.top_spieler.map(t => `<li>${esc(t)}</li>`).join("")}</ul>
+    <h4>Typische Fehler</h4><ul>${m.typische_fehler.map(t => `<li>${esc(t)}</li>`).join("")}</ul></details>`).join("");
+  const trainingHtml = (W.training || []).map(t => `<div class="coach-item"><div class="icon">🏋️</div><div>
+    <h3>${esc(t.titel)}</h3><p>${esc(t.beschreibung)}</p></div></div>`).join("");
+  const quellenHtml = (W.quellen || []).length ? `<div class="card"><h2>Quellen der Recherche</h2>
+    <ul class="quellen">${W.quellen.map(q => `<li>${esc(q)}</li>`).join("")}</ul></div>` : "";
+  el.innerHTML = `
+    <div class="card"><h2>Benchmarks: Wo stehen Top-Spieler?</h2>
+      <p class="sub">Richtwerte pro Match aus Community-Statistiken (u. a. stat.ink). „Top“ = X-Rang/Top-500-Niveau.</p>
+      <div class="kb-table-scroll"><table class="kb"><tr><th>Metrik</th><th>Durchschnitt</th><th>Gut</th><th>Top</th><th>Hinweis</th></tr>${benchRows}</table></div></div>
+    <div class="card"><h2>Typische Fehler vs. Top-Spieler</h2>
+      <div class="kb-table-scroll"><table class="kb"><tr><th>Häufiger Fehler</th><th>Das machen Top-Spieler stattdessen</th></tr>${fehlerRows}</table></div></div>
+    <div class="card"><h2>Modus-Guides</h2><p class="sub">Aufklappen für Details.</p>${modiHtml}</div>
+    <div class="card"><h2>So trainieren Top-Spieler</h2>${trainingHtml}</div>
+    ${quellenHtml}`;
+}
+
+/* ---------- Gesamt-Render ---------- */
+function renderAlles() {
+  const stats = berechneStats(state.matches);
+  const srStats = berechneSrStats(state.srRuns);
+  renderUebersicht(stats);
+  renderMatches();
+  renderCoach(stats, srStats);
+  renderLive(stats);
+  renderSalmon();
+  renderSelbstcheck();
+  renderWissen();
+}
+let resizeTimer;
+addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderAlles, 150); });
+/* ---------- Update-Knopf ---------- */
+const UPDATE_QUELLE = "https://raw.githubusercontent.com/henri136/game-coach/main/splatoon.html";
+document.getElementById("updateBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("updateBtn");
+  btn.disabled = true; btn.textContent = "Suche …";
+  try {
+    const abbruch = new AbortController();
+    const timer = setTimeout(() => abbruch.abort(), 10000);
+    const r = await fetch(UPDATE_QUELLE + "?t=" + Date.now(), { cache: "no-store", signal: abbruch.signal });
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    const html = await r.text();
+    const m = html.match(/APP_VERSION\s*=\s*"([^"]+)"/);
+    if (!m) throw new Error("Versionsnummer nicht gefunden");
+    if (m[1] > APP_VERSION) {
+      localStorage.setItem("splatoon3-coach-update", JSON.stringify({ version: m[1], html }));
+      alert("Update geladen: Version " + m[1] + " (deine bisherige: " + APP_VERSION + "). Die App startet jetzt neu – alle deine Daten bleiben erhalten.");
+      try { window.top.location.reload(); } catch (e2) { location.reload(); }
+    } else {
+      alert("Du hast bereits die neueste Version (" + APP_VERSION + "). 👍");
+    }
+  } catch (e) {
+    alert("Update-Prüfung nicht möglich (" + (e.name === "AbortError" ? "Zeitüberschreitung" : e.message) + "). Der Update-Knopf braucht Internet und ist für die PC-App bzw. die lokale Datei gedacht – die Web-Version auf claude.ai aktualisiert sich von selbst.");
+  }
+  btn.disabled = false; btn.textContent = "⬆ Update";
+});
+
+/* In der PC-App (fester Port 52735): Zurück-zur-Auswahl-Knopf einblenden */
+if (location.port === "52735") document.body.insertAdjacentHTML("beforeend",
+  '<a href="index.html" title="Zur App-Auswahl" style="position:fixed; right:14px; bottom:14px; z-index:99; width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:var(--surface-1); border:1.5px solid var(--border); border-radius:50%; font-size:20px; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,0.15)">⌂</a>');
+
+$("#fDatum").value = new Date().toISOString().slice(0, 10);
+$("#sDatum").value = new Date().toISOString().slice(0, 10);
+renderAlles();
+initialisiereMonitor();
+
+// Offline-Fähigkeit als installierte Web-App (nur auf echtem HTTPS-Host, nicht in der claude.ai-Sandbox)
+if ("serviceWorker" in navigator && location.protocol === "https:" && !window.claude) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+// Automatischer stat.ink-Sync: beim Start und dann alle 30 Minuten (still im Hintergrund).
+// In der Web-Version auf claude.ai ist externer Abruf gesperrt -> dort Hinweis statt Sync.
+if (window.claude) {
+  const st = document.getElementById("syncStatus");
+  if (st) st.textContent = "Auto-Sync gibt es in der PC-App – hier bitte den Datei-Import nutzen.";
+} else {
+  if (navigator.onLine) setTimeout(() => statinkSync(true), 1500);
+  setInterval(() => { if (navigator.onLine) statinkSync(true); }, 30 * 60 * 1000);
+}
+</script>
+</body>
+</html>

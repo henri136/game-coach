@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Game Coach">
+<meta name="theme-color" content="#d21f74">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});</script>
+<title>Game Coach</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #f4f2e9; color: #171310;
+  }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0e0c13; color: #f7f4ff; }
+    .wahl { background: #1b1722 !important; border-color: rgba(247,244,255,0.12) !important; }
+    p.hinweis { color: #948e9f !important; }
+  }
+  main { text-align: center; padding: 24px; position: relative; }
+  main::before {
+    content: ""; position: absolute; left: -10px; top: -30px; width: 170px; height: 130px;
+    background: #d21f74; opacity: 0.16; border-radius: 58% 42% 63% 37% / 55% 48% 52% 45%;
+    transform: rotate(-8deg); z-index: -1;
+  }
+  main::after {
+    content: ""; position: absolute; right: -20px; bottom: -20px; width: 120px; height: 100px;
+    background: #9bd315; opacity: 0.2; border-radius: 44% 56% 38% 62% / 60% 40% 60% 40%;
+    transform: rotate(14deg); z-index: -1;
+  }
+  h1 { font-size: 30px; font-weight: 800; transform: rotate(-1.2deg); margin: 0 0 6px; }
+  p.hinweis { color: #8a847d; margin: 0 0 26px; }
+  .wahl {
+    display: flex; align-items: center; gap: 14px; width: 340px; max-width: 90vw;
+    margin: 12px auto; padding: 18px 20px; text-decoration: none; color: inherit;
+    background: #fffdf7; border: 1.5px solid rgba(23,19,16,0.12); border-radius: 18px;
+    font-size: 18px; font-weight: 700; transition: transform 0.1s;
+  }
+  .wahl:hover { transform: rotate(-1deg) scale(1.02); border-color: #d21f74; }
+  .wahl .emoji { font-size: 30px; }
+  .wahl small { display: block; font-weight: 400; font-size: 13px; opacity: 0.7; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎮 Game Coach</h1>
+  <p class="hinweis">Wähle dein Spiel – deine Daten bleiben auf diesem PC gespeichert.</p>
+  <a class="wahl" href="splatoon.html"><span class="emoji">🦑</span><span>Splatoon 3 Coach<small>Matches, Salmon Run, Live-Coach &amp; Spielweise-Analyse</small></span></a>
+  <a class="wahl" href="mariokart.html"><span class="emoji">🏎️</span><span>Mario Kart Coach<small>MK8 Deluxe &amp; Mario Kart World</small></span></a>
+</main>
+</body>
+</html>
