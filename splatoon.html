@@ -164,6 +164,8 @@
   table.matches th, table.matches td { text-align: left; padding: 6px 10px 6px 0; border-bottom: 1px solid var(--grid); white-space: nowrap; }
   table.matches th { color: var(--text-secondary); font-weight: 600; }
   table.matches td.num { font-variant-numeric: tabular-nums; }
+  table.matches a { color: inherit; text-decoration: underline; text-decoration-color: var(--baseline); text-underline-offset: 2px; }
+  table.matches .karte-fehlt { background: none; border: 1px dashed var(--border); border-radius: 6px; padding: 2px 8px; color: var(--text-muted); cursor: pointer; font: inherit; font-size: 12.5px; }
   .result-chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 600; }
   .result-chip .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
@@ -244,7 +246,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.06"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.07"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1006,10 +1008,20 @@ function renderMatches() {
   $("#matchCount").textContent = chrono.length ? `${chrono.length} Matches gespeichert.` : "Noch keine Matches – trage oben dein erstes ein oder lade Beispieldaten.";
   if (!chrono.length) { $("#matchTabelle").innerHTML = ""; return; }
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
+  // Kartenname verlinkt auf Inkipedia (dort gibt es Bilder der Karte);
+  // fehlt die Karte, kann sie per ✎ direkt in der Tabelle nachgetragen werden
+  const wikiKarte = (de) => { const k = KARTEN_INFO.find(x => x.de === de); return k ? `https://splatoonwiki.org/wiki/${encodeURIComponent(k.en.replace(/ /g, "_"))}` : null; };
+  const karteZelle = (m) => {
+    if (m.karte) {
+      const url = wikiKarte(m.karte);
+      return url ? `<a href="${url}" target="_blank" rel="noopener" title="Karte auf Inkipedia ansehen (mit Bildern)">${esc(m.karte)}</a>` : esc(m.karte);
+    }
+    return `<button class="karte-fehlt" data-karte-edit="${m.id}" title="Karte nachtragen">– ✎</button>`;
+  };
   $("#matchTabelle").innerHTML = `<table class="matches">
     <tr><th>Datum</th><th>Modus</th><th>Karte</th><th>Waffe</th><th>Ergebnis</th><th>Splats</th><th>Unterst.</th><th>Deaths</th><th>Spezials</th><th>Farbe</th><th>Notiz</th><th></th></tr>` +
     chrono.map(m => `<tr>
-      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${esc(m.karte || "–")}</td><td>${esc(m.waffe)}</td>
+      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${karteZelle(m)}</td><td>${esc(m.waffe)}</td>
       <td><span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span></td>
       <td class="num">${m.splats}</td><td class="num">${m.assists}</td><td class="num">${m.deaths}</td>
       <td class="num">${m.spezials}</td><td class="num">${m.farbe}</td><td>${esc(m.notiz || "")}</td>
@@ -1018,6 +1030,21 @@ function renderMatches() {
     state.matches = state.matches.filter(m => m.id !== +b.dataset.del);
     if (state.session) state.session.matchIds = state.session.matchIds.filter(id => id !== +b.dataset.del);
     speichereState(); renderAlles();
+  }));
+  $("#matchTabelle").querySelectorAll("button[data-karte-edit]").forEach(b => b.addEventListener("click", () => {
+    const id = +b.dataset.karteEdit, td = b.closest("td");
+    td.innerHTML = `<input list="kartenListe" placeholder="Karte wählen …" style="min-width:170px; font-size:16px">`;
+    const inp = td.querySelector("input");
+    inp.focus();
+    let erledigt = false; // change + blur feuern beide -> nur einmal speichern
+    const speichern = () => {
+      if (erledigt) return; erledigt = true;
+      const wert = inp.value.trim();
+      if (wert) { const m = state.matches.find(x => x.id === id); if (m) { m.karte = wert; speichereState(); } }
+      renderAlles();
+    };
+    inp.addEventListener("change", speichern);
+    inp.addEventListener("blur", speichern);
   }));
 }
 
