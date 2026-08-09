@@ -335,7 +335,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.33"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.34"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1062,29 +1062,16 @@ function renderUebersicht(stats) {
   let feedbackHtml = "";
   if (neuestes) {
     const m = neuestes;
-    const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
     const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
-    const punkte = [];
-    if (m.unvollst) {
-      punkte.push("ℹ️ Von diesem Match kennt die App nur Modus, Karte und Ergebnis (SplatNet-Import) – die genauen Zahlen kommen später automatisch über stat.ink.");
-    } else {
-    if (m.deaths <= E.deaths - 1) punkte.push(`✅ Nur ${m.deaths} Deaths – besser als der ${esc(m.modus)}-Schnitt (${fmt1(E.deaths)}). Genau das gewinnt Matches!`);
-    else if (m.deaths >= E.deaths + 2) punkte.push(`⚠️ ${m.deaths} Deaths – der ${esc(m.modus)}-Schnitt liegt bei ${fmt1(E.deaths)}. Dein wichtigster Hebel: Kämpfe ohne Fluchtweg gar nicht erst annehmen.`);
-    if (m.splats + m.assists >= E.kills + E.assists + 1) punkte.push(`✅ ${m.splats + m.assists}× ausgeschaltet (Splats + Unterst.) – über dem Schnitt (${fmt1(E.kills + E.assists)}). Starke Wirkung!`);
-    }
     const hinweis = m.unvollst ? "" : liveHinweis(m);
-    if (hinweis) punkte.push("💡 " + esc(hinweis));
-    const kStat = m.karte && stats.proKarte[m.karte];
-    if (kStat && kStat.n >= 3) punkte.push(kStat.winrate >= 0.55
-      ? `🗺️ ${esc(m.karte)} liegt dir: ${Math.round(kStat.winrate * 100)} % Siege in ${kStat.n} Matches.`
-      : kStat.winrate <= 0.45 ? `🗺️ ${esc(m.karte)} ist eine Baustelle: nur ${Math.round(kStat.winrate * 100)} % Siege in ${kStat.n} Matches – schau sie dir in der Karten-Galerie an.` : "");
     feedbackHtml = `
     <div class="card">
       <h2>🤖 Auto-Feedback: Dein letztes Match</h2>
       <p class="sub" style="margin-bottom:8px">${esc(m.datum)} · ${esc(m.modus)}${m.karte ? " · " + esc(m.karte) : ""} · ${esc(m.waffe)}
         · <span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span>
         · ${m.unvollst ? "nur Ergebnis bekannt" : `${m.splats}/${m.assists}/${m.deaths} (Splats/Unterst./Deaths), ${m.spezials} Spezials`}</p>
-      ${punkte.filter(Boolean).map(p => `<p style="margin:6px 0; font-size:13.5px">${p}</p>`).join("") || '<p style="margin:6px 0; font-size:13.5px">Solides Match – keine Auffälligkeiten. Weiter so!</p>'}
+      ${matchBerichtHtml(m, stats)}
+      ${hinweis ? `<p style="margin:8px 0 0; font-size:13.5px">💡 ${esc(hinweis)}</p>` : ""}
       <p style="margin:8px 0 0; font-size:12px; color:var(--text-muted)">Kommt automatisch: Neue Matches landen per stat.ink-Abgleich hier – samt Karte, Modus, Waffe und Ergebnis.</p>
       <div class="form-actions" style="margin-top:10px">
         <button id="claudeBerichtBtn" title="Kopiert deine Daten als Text – füge ihn im Chat mit Claude ein">🧠 Bericht für Claude kopieren</button>
@@ -2332,6 +2319,13 @@ function renderLive(stats) {
   const letztes = sm[sm.length - 1];
   const hinweisHtml = s.letzterHinweis ? `<div class="coach-item" style="border:none; padding-top:10px"><div class="icon">🎙️</div><div>
     <span class="sev warning">Live-Tipp</span><p style="margin:2px 0 0; color:var(--text-primary)">${esc(s.letzterHinweis)}</p></div></div>` : "";
+  const berichtHtml = letztes ? `
+    <div class="card">
+      <h2>📋 Letztes Match: Das war gut, das nicht</h2>
+      <p class="sub" style="margin-bottom:6px">${esc(letztes.modus)} · ${esc(letztes.waffe)} ·
+        <strong style="color:${letztes.ergebnis === "S" ? "var(--status-good)" : "var(--status-critical)"}">${letztes.ergebnis === "S" ? "Sieg" : "Niederlage"}</strong></p>
+      ${matchBerichtHtml(letztes, stats)}
+    </div>` : "";
   const undoHtml = sm.length ? `<p style="margin:8px 0 0; font-size:12.5px; color:var(--text-muted)">✔ ${sm.length === 1 ? "1 Match" : sm.length + " Matches"} in dieser Session gespeichert ·
     <a href="#" id="undoLink" style="color:var(--series-1)">Letztes rückgängig machen</a></p>` : "";
 
@@ -2352,6 +2346,7 @@ function renderLive(stats) {
       ${hinweisHtml}
       ${undoHtml}
     </div>
+    ${berichtHtml}
     <div class="card">
       <h2>Match eintragen (Schnell-Eingabe)</h2>
       <div class="quick-grid">
@@ -2461,7 +2456,7 @@ let monitorDateiUrl = null;
    Reagiert auf die automatisch erkannten Deaths – der Coach redet mit dir,
    ohne dass du aufs iPad schauen musst. ---- */
 let lcDeaths = [], lcLetzterText = "", lcLobZeit = 0;
-const lcAn = () => !(state.monitor && state.monitor.sprachcoach === false);
+const lcAn = () => !!(state.monitor && state.monitor.sprachcoach === true); // Standard: aus – der Bericht nach dem Match reicht
 function lcSage(text) {
   if (!text || text === lcLetzterText) return;
   lcLetzterText = text;
@@ -2544,6 +2539,33 @@ function monKlassifiziere(sig) {
   const minSpiel = B.spiel && B.spiel.length ? Math.min(...B.spiel.map(e => monAbstand(ns, monNormalisiere(e)))) : Infinity;
   const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
   return { death: minDeath < schwelle && minDeath < minSpiel * 0.8, minDeath, minSpiel };
+}
+
+/* Match-Bericht als Tabelle: Was war gut, was war eine Baustelle?
+   Vergleich = Durchschnitt aller Spieler in diesem Modus (stat.ink-Rohdaten). */
+function matchBerichtHtml(m, stats) {
+  if (m.unvollst) return '<p style="margin:6px 0; font-size:13.5px">ℹ️ Von diesem Match kennt die App nur Modus, Karte und Ergebnis (SplatNet-Import) – die genauen Zahlen kommen später automatisch über stat.ink.</p>';
+  const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
+  const wirkung = (m.splats + m.assists) / Math.max(1, m.deaths);
+  const urteil = (s) => s === 1 ? '<span style="color:var(--status-good); font-weight:700">✅ Gut</span>'
+    : s === -1 ? '<span style="color:var(--status-serious); font-weight:700">⚠️ Baustelle</span>'
+    : '<span style="color:var(--text-muted)">➖ Okay</span>';
+  const zeilen = [
+    ["Deaths", m.deaths, "Ø " + fmt1(E.deaths), m.deaths <= E.deaths - 1 ? 1 : m.deaths >= E.deaths + 2 ? -1 : 0],
+    ["Ausgeschaltet (Splats + Unterst.)", m.splats + m.assists, "Ø " + fmt1(E.kills + E.assists),
+      m.splats + m.assists >= E.kills + E.assists + 1 ? 1 : m.splats + m.assists <= E.kills + E.assists - 2 ? -1 : 0],
+    ["Wirkung pro Leben", fmt1(wirkung), "Ziel ≥ 1,35", wirkung >= 1.35 ? 1 : wirkung < 1 ? -1 : 0],
+    ["Spezialeinsätze", m.spezials, "Ø " + fmt1(E.specials), m.spezials >= E.specials * 1.2 ? 1 : m.spezials < E.specials * 0.9 ? -1 : 0],
+  ];
+  if (m.farbe) zeilen.push(["Farbpunkte", m.farbe + " P", "Ø " + Math.round(E.farbe) + " P",
+    m.farbe >= E.farbe * 1.25 ? 1 : m.farbe < E.farbe * 0.85 ? -1 : 0]);
+  const kStat = m.karte && stats && stats.proKarte[m.karte];
+  if (kStat && kStat.n >= 3) zeilen.push(["Karte: " + m.karte, Math.round(kStat.winrate * 100) + " % Siege", kStat.n + " Matches",
+    kStat.winrate >= 0.55 ? 1 : kStat.winrate <= 0.45 ? -1 : 0]);
+  return `<div class="table-scroll"><table class="mini" style="width:100%">
+    <tr><th>Bereich</th><th>Du</th><th>Vergleich</th><th>Bewertung</th></tr>
+    ${zeilen.map(([b, du, v, s]) => `<tr><td>${esc(String(b))}</td><td style="font-weight:700; font-variant-numeric:tabular-nums">${esc(String(du))}</td><td>${esc(String(v))}</td><td>${urteil(s)}</td></tr>`).join("")}
+  </table></div>`;
 }
 
 function monitorNeuesMatch() {
