@@ -278,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.27"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.28"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2420,40 +2420,47 @@ function initialisiereMonitor() {
       <div id="monSteuerung" style="display:none; margin-top:12px">
         <div class="form-actions">
           <button id="monCropBtn">▭ Bildausschnitt wählen</button>
-          <button id="monCropReset">Ganzes Bild</button>
-        </div>
-        <div class="form-actions" style="margin-top:8px">
           <button id="monLernen">☠ Das ist der Death-Bildschirm</button>
           <button id="monLernenSpiel">🎮 Das ist normales Spiel</button>
-          <button id="monBeispieleReset">Neu anfangen</button>
         </div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
         <p id="monLive" style="font-size:13px; margin:4px 0 0; color:var(--text-secondary)"></p>
         <p style="margin:10px 0 4px; font-size:14px">Erkannte Deaths in diesem Match:
           <strong id="monDeaths" style="font-size:22px">0</strong>
-          <button id="monMinus" style="margin-left:8px; padding:4px 14px; font-size:13px" title="Falsch gezählt? Einen abziehen">−1</button>
-          <button id="monReset" style="padding:4px 14px; font-size:13px">Auf 0</button></p>
+          <button id="monMinus" style="margin-left:8px; padding:4px 14px; font-size:13px" title="Falsch gezählt? Einen abziehen">−1</button></p>
+        <p style="font-size:12.5px; color:var(--text-muted); margin:6px 0 0">Kills und Ergebnis musst du hier nicht mitzählen – die kommen nach dem
+        Match exakt per stat.ink-Abgleich. Die Kamera zählt nur Deaths: Der Death-Bildschirm füllt das ganze Bild und ist eindeutig erkennbar,
+        die kleine Kill-Meldung im Spiel ist dafür zu kurz und zu klein.</p>
 
-        <div style="border-top:1px solid var(--grid); margin-top:14px; padding-top:12px">
-          <p style="margin:0 0 4px; font-weight:700">🎬 Vergleichs-Aufnahme (Beta): Zeig der KI, wie andere spielen</p>
-          <p style="margin:0 0 8px; font-size:12.5px; color:var(--text-muted)">Lass ein Profi-Video (z. B. Kenshiro) auf dem aufgenommenen Bildschirm laufen und starte „Profi anschauen“ –
-          die KI zählt mit ihrer Death-Erkennung objektiv mit, wie oft der Profi stirbt. Danach dasselbe mit deinem eigenen Spiel.
-          Wichtig: Gleiches mit Gleichem vergleichen (Salmon Run mit Salmon Run, Ranked mit Ranked) – und die Death-Erkennung muss angelernt sein.</p>
-          <div class="form-actions">
-            <button id="aufProfi">👑 Profi anschauen</button>
-            <button id="aufIch">🎮 Mich anschauen</button>
-            <button id="aufStop" hidden class="primary">⏹ Aufnahme beenden</button>
-            <button id="aufReset" title="Alle Vergleichsdaten löschen">Zurücksetzen</button>
+        <details class="formdetails" style="margin-top:12px">
+          <summary>⚙️ Erweitert <span class="sumhint">(Zurücksetzen · Empfindlichkeit · Vergleichs-Aufnahme)</span></summary>
+          <div class="form-actions" style="margin-top:10px">
+            <button id="monCropReset">Ganzes Bild (Ausschnitt löschen)</button>
+            <button id="monBeispieleReset">Erkennung neu anlernen</button>
+            <button id="monReset">Death-Zähler auf 0</button>
           </div>
-          <p id="aufLive" style="margin:8px 0 0; font-size:13.5px; font-weight:600"></p>
-          <div id="aufVergleich" style="margin-top:8px"></div>
-        </div>
-        <label style="font-size:12.5px; color:var(--text-secondary); display:block; max-width:340px">Empfindlichkeit (niedrig = strenger):
-          <input type="range" id="monEmpf" min="10" max="60" step="5" value="${empf}" style="width:100%"></label>
-        <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">So trainierst du die Erkennung: Während der Respawn-Bildschirm zu sehen ist
-        „☠ Das ist der Death-Bildschirm“ drücken – und zwischendurch im normalen Spiel 3–4× „🎮 Das ist normales Spiel“. Die Erkennung vergleicht dann
-        jedes Bild mit ALLEN deinen Beispielen und entscheidet, was näher dran ist. Zählt sie falsch? Einfach im richtigen Moment das passende Beispiel
-        nachlegen – so wird sie mit jedem Beispiel schlauer. Der Live-Check darunter zeigt dir jederzeit, was sie gerade sieht.</p>
+          <label style="font-size:12.5px; color:var(--text-secondary); display:block; max-width:340px; margin-top:10px">Empfindlichkeit (niedrig = strenger):
+            <input type="range" id="monEmpf" min="10" max="60" step="5" value="${empf}" style="width:100%"></label>
+          <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">So trainierst du die Erkennung: Während der Respawn-Bildschirm zu sehen ist
+          „☠ Das ist der Death-Bildschirm“ drücken – und zwischendurch im normalen Spiel 3–4× „🎮 Das ist normales Spiel“. Die Erkennung vergleicht dann
+          jedes Bild mit ALLEN deinen Beispielen und entscheidet, was näher dran ist. Zählt sie falsch? Einfach im richtigen Moment das passende Beispiel
+          nachlegen – so wird sie mit jedem Beispiel schlauer. Der Live-Check darüber zeigt dir jederzeit, was sie gerade sieht.</p>
+
+          <div style="border-top:1px solid var(--grid); margin-top:14px; padding-top:12px">
+            <p style="margin:0 0 4px; font-weight:700">🎬 Vergleichs-Aufnahme (Beta): Zeig der KI, wie andere spielen</p>
+            <p style="margin:0 0 8px; font-size:12.5px; color:var(--text-muted)">Lass ein Profi-Video (z. B. Kenshiro) auf dem aufgenommenen Bildschirm laufen und starte „Profi anschauen“ –
+            die KI zählt mit ihrer Death-Erkennung objektiv mit, wie oft der Profi stirbt. Danach dasselbe mit deinem eigenen Spiel.
+            Wichtig: Gleiches mit Gleichem vergleichen (Salmon Run mit Salmon Run, Ranked mit Ranked) – und die Death-Erkennung muss angelernt sein.</p>
+            <div class="form-actions">
+              <button id="aufProfi">👑 Profi anschauen</button>
+              <button id="aufIch">🎮 Mich anschauen</button>
+              <button id="aufStop" hidden class="primary">⏹ Aufnahme beenden</button>
+              <button id="aufReset" title="Alle Vergleichsdaten löschen">Zurücksetzen</button>
+            </div>
+            <p id="aufLive" style="margin:8px 0 0; font-size:13.5px; font-weight:600"></p>
+            <div id="aufVergleich" style="margin-top:8px"></div>
+          </div>
+        </details>
       </div>
     </div>`;
 
@@ -2599,7 +2606,8 @@ function initialisiereMonitor() {
     video.srcObject = null; video.src = monitorDateiUrl; video.controls = true;
     $("#monTempo").style.display = "flex";
     zeigeMonitorUi();
-    $("#monLernStatus").textContent = "Video geladen – erst unten bei der Vergleichs-Aufnahme „👑 Profi“ oder „🎮 Ich“ wählen, dann ▶ abspielen. " + lernStatusText();
+    const vgl = document.querySelector("#monSteuerung details.formdetails"); if (vgl) vgl.open = true; // Vergleichs-Aufnahme sichtbar machen
+    $("#monLernStatus").textContent = "Video geladen – unter „⚙️ Erweitert“ bei der Vergleichs-Aufnahme „👑 Profi“ oder „🎮 Ich“ wählen, dann ▶ abspielen. " + lernStatusText();
     e.target.value = "";
   });
   document.querySelectorAll("#monTempo [data-tempo]").forEach(b => b.addEventListener("click", () => {
