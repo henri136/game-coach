@@ -336,7 +336,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.41"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.42"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1982,27 +1982,31 @@ function srErwartung(gefahr) {
 function berechneSrStats(runs) {
   if (!runs.length) return null;
   const n = runs.length;
-  const chrono = [...runs].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
-  const sum = (f) => runs.reduce((a, r) => a + f(r), 0);
-  const voll = runs.filter(r => r.wellen === 3);
+  // Kamera-Schichten (unvollst): nur das Ergebnis ist bekannt -> zählen für die
+  // Erfolgsquote, bleiben aber aus allen Durchschnitten und dem Verlauf draußen
+  const daten = runs.filter(r => !r.unvollst);
+  const nd = daten.length || 1;
+  const chrono = [...daten].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  const sum = (f) => daten.reduce((a, r) => a + f(r), 0);
+  const voll = daten.filter(r => r.wellen === 3);
   // Erwartungswerte je nach Gefahrenstufe (bei gescheiterten Schichten anteilig nach Wellen)
   let expEier = 0, expBosse = 0;
-  for (const r of runs) {
+  for (const r of daten) {
     const e = srErwartung(r.gefahr);
     const anteil = r.wellen === 3 ? 1 : (r.wellen + 0.5) / 3;
-    expEier += e.eier * anteil / n; expBosse += e.bosse * anteil / n;
+    expEier += e.eier * anteil / nd; expBosse += e.bosse * anteil / nd;
   }
   return {
     expEier, expBosse,
     n, chrono,
-    erfolgsquote: voll.length / n,
-    avgEier: sum(r => r.eier) / n,
+    erfolgsquote: runs.filter(r => r.wellen === 3).length / n,
+    avgEier: sum(r => r.eier) / nd,
     avgEierVoll: voll.length ? voll.reduce((a, r) => a + r.eier, 0) / voll.length : null,
-    avgBosse: sum(r => r.bosse) / n,
-    avgRettungen: sum(r => r.rettungen) / n,
-    avgGerettet: sum(r => r.gerettet) / n,
-    maxGefahr: Math.max(...runs.map(r => r.gefahr)),
-    avgGefahr: sum(r => r.gefahr) / n,
+    avgBosse: sum(r => r.bosse) / nd,
+    avgRettungen: sum(r => r.rettungen) / nd,
+    avgGerettet: sum(r => r.gerettet) / nd,
+    maxGefahr: daten.length ? Math.max(...daten.map(r => r.gefahr)) : 0,
+    avgGefahr: sum(r => r.gefahr) / nd,
     koenigSiege: runs.filter(r => r.koenig === "S").length,
     koenigVersuche: runs.filter(r => r.koenig === "S" || r.koenig === "N").length,
   };
@@ -2122,13 +2126,18 @@ function renderSalmon() {
   vtHandler();
   renderSrEierChart(sr);
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical"), warn = cssVar("--status-warning");
+  // Alle Schichten zeigen – auch Kamera-Schichten (📷), von denen nur das Ergebnis bekannt ist
+  const alleRuns = [...state.srRuns].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
   $("#srTabelle").innerHTML = `<table class="matches">
     <tr><th>Datum</th><th>Gefahr</th><th>Wellen</th><th>Extra-Welle</th><th>Eier</th><th>Bosse</th><th>Gerettet</th><th>Ausgefallen</th><th></th></tr>` +
-    [...sr.chrono].reverse().map(r => `<tr>
-      <td>${esc(r.datum)}</td><td class="num">${r.gefahr} %</td>
-      <td><span class="result-chip"><span class="dot" style="background:${r.wellen === 3 ? gut : r.wellen === 2 ? warn : krit}"></span>${r.wellen}/3</span></td>
+    [...alleRuns].reverse().map(r => `<tr>
+      <td>${esc(r.datum)}${r.unvollst ? " 📷" : ""}</td><td class="num">${r.unvollst ? "–" : r.gefahr + " %"}</td>
+      <td>${r.unvollst
+        ? `<span class="result-chip"><span class="dot" style="background:${r.wellen === 3 ? gut : krit}"></span>${r.wellen === 3 ? "geschafft" : "gescheitert"}</span>`
+        : `<span class="result-chip"><span class="dot" style="background:${r.wellen === 3 ? gut : r.wellen === 2 ? warn : krit}"></span>${r.wellen}/3</span>`}</td>
       <td>${r.koenig === "S" ? "König besiegt" : r.koenig === "N" ? "König entkommen" : "–"}</td>
-      <td class="num">${r.eier}</td><td class="num">${r.bosse}</td><td class="num">${r.rettungen}</td><td class="num">${r.gerettet}</td>
+      ${r.unvollst ? '<td class="num">–</td><td class="num">–</td><td class="num">–</td><td class="num">–</td>'
+        : `<td class="num">${r.eier}</td><td class="num">${r.bosse}</td><td class="num">${r.rettungen}</td><td class="num">${r.gerettet}</td>`}
       <td><button data-srdel="${r.id}" title="Schicht löschen">✕</button></td></tr>`).join("") + "</table>";
   $("#srTabelle").querySelectorAll("button[data-srdel]").forEach(b => b.addEventListener("click", () => {
     state.srRuns = state.srRuns.filter(r => r.id !== +b.dataset.srdel);
@@ -2588,7 +2597,9 @@ function monNormalisiere(sig) {
 }
 function monKlassifiziere(sig) {
   const B = state.monitor && state.monitor.beispiele;
-  if (!B || !B.death || !B.death.length) return null;
+  if (!B) return null;
+  const gesamt = ["death", "spiel", "sieg", "niederlage", "srja", "srnein"].reduce((a, k) => a + ((B[k] || []).length), 0);
+  if (!gesamt) return null; // noch gar nichts angelernt
   const proLaenge = { [sig.length]: monNormalisiere(sig) }; // je Beispiel-Raster die passend skalierte Signatur
   const abstand = (e) => {
     if (!proLaenge[e.length]) {
@@ -2606,29 +2617,30 @@ function monKlassifiziere(sig) {
     return monAbstand(eckeN, monNormalisiere(monEcke(e)));
   };
   const alle = [];
-  for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel]])
+  for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel], ["srja", B.srja], ["srnein", B.srnein]])
     for (const e of (liste || [])) alle.push({ k: klasse, d: abstand(e) });
   for (const [klasse, liste] of [["sieg", B.sieg], ["niederlage", B.niederlage]])
     for (const e of (liste || [])) alle.push({ k: klasse, d: abstandEcke(e) });
   alle.sort((a, b) => a.d - b.d);
   const minK = (k) => { const l = alle.filter(x => x.k === k); return l.length ? Math.min(...l.map(x => x.d)) : Infinity; };
-  const minDeath = minK("death"), minSpiel = minK("spiel"), minSieg = minK("sieg"), minNieder = minK("niederlage");
-  const minNichtDeath = Math.min(minSpiel, minSieg, minNieder);
+  const minDeath = minK("death"), minSpiel = minK("spiel");
+  const minNichtDeath = Math.min(minSpiel, minK("sieg"), minK("niederlage"), minK("srja"), minK("srnein"));
   // die 3 ähnlichsten Beispiele stimmen ab, nähere zählen mehr
-  const stimmen = { death: 0, spiel: 0, sieg: 0, niederlage: 0 };
+  const stimmen = { death: 0, spiel: 0, sieg: 0, niederlage: 0, srja: 0, srnein: 0 };
   for (const k of alle.slice(0, 3)) stimmen[k.k] += 1 / (k.d + 1);
   const beste = Object.keys(stimmen).reduce((a, b) => stimmen[a] >= stimmen[b] ? a : b);
   const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
   const death = beste === "death" && minDeath < schwelle && minDeath < minNichtDeath * 0.85;
-  // Ergebnis-Bildschirm am Match-Ende (nur wenn angelernt)
-  let ergebnis = null;
-  if (!death && (beste === "sieg" || beste === "niederlage")) {
-    const minE = beste === "sieg" ? minSieg : minNieder;
-    if (minE < schwelle && minE < Math.min(minSpiel, minDeath) * 0.85) ergebnis = beste === "sieg" ? "S" : "N";
+  // Ergebnis-Bildschirm am Ende: Sieg/Verloren (Ecke) oder Salmon-Schicht geschafft/gescheitert (ganzes Bild)
+  let ereignis = null;
+  if (!death && ["sieg", "niederlage", "srja", "srnein"].includes(beste)) {
+    const minE = minK(beste);
+    if (minE < schwelle && minE < Math.min(minSpiel, minDeath) * 0.85)
+      ereignis = { sieg: "S", niederlage: "N", srja: "SRJ", srnein: "SRX" }[beste];
   }
   const sicher = death ? minDeath * 1.6 < minNichtDeath
                        : minNichtDeath === Infinity ? minDeath >= schwelle * 1.5 : minNichtDeath * 1.6 < minDeath || minDeath >= schwelle * 1.5;
-  return { death, minDeath, minSpiel: minNichtDeath, sicher, ergebnis };
+  return { death, minDeath, minSpiel: minNichtDeath, sicher, ergebnis: ereignis };
 }
 
 /* Match-Bericht als Tabelle: Was war gut, was war eine Baustelle?
@@ -2686,6 +2698,18 @@ function autoMatchSpeichern(erg) {
   monitorNeuesMatch(); // Zähler für das nächste Match auf 0
   speichereState(); renderAlles();
   return match;
+}
+
+/* Salmon-Run-Schichtende von der Kamera erkannt -> Schicht automatisch eintragen.
+   Bekannt ist nur das Ergebnis; Eier & Co. kommen später exakt per stat.ink. */
+function autoSrSpeichern(geschafft) {
+  const run = { id: state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) + 1 : 1,
+    datum: heuteISO(), gefahr: 0, wellen: geschafft ? 3 : 0, koenig: "",
+    eier: 0, bosse: 0, rettungen: 0, gerettet: 0, unvollst: true, auto: true };
+  state.srRuns.push(run);
+  monitorNeuesMatch();
+  speichereState(); renderAlles();
+  return run;
 }
 
 function monitorNeuesMatch() {
@@ -2746,6 +2770,8 @@ function initialisiereMonitor() {
         <div class="form-actions" style="margin-top:8px">
           <button id="monLernenSieg" title="Auf dem ERSTEN Ergebnis-Bildschirm (Karte + „Sieg!“ oben links) drücken – nicht auf der Punkte-Liste">🏆 Das ist der „Sieg!“-Bildschirm</button>
           <button id="monLernenNieder" title="Auf dem ERSTEN Ergebnis-Bildschirm (Karte + „Verloren…“ oben links) drücken – nicht auf der Punkte-Liste">😞 Das ist der „Verloren…“-Bildschirm</button>
+          <button id="monLernenSrJa" title="Am Schicht-Ende drücken, wenn das Geschafft-Ergebnis zu sehen ist">🐟✅ Salmon: Schicht geschafft</button>
+          <button id="monLernenSrNein" title="Am Schicht-Ende drücken, wenn das Gescheitert-Ergebnis zu sehen ist">🐟❌ Salmon: Schicht gescheitert</button>
         </div>
         <div id="liveFeedback" role="status" style="display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--series-1); font-size:16px; font-weight:600"></div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
@@ -2835,11 +2861,15 @@ function initialisiereMonitor() {
 
   function lernStatusText() {
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
-    if (!B.death.length) return "Noch nicht angelernt – zeige mir zuerst einen Death-Bildschirm.";
+    const srZahl = (B.srja || []).length + (B.srnein || []).length;
+    if (!B.death.length && !srZahl) return "Noch nicht angelernt – zeige mir zuerst einen Death-Bildschirm.";
+    if (!B.death.length) return `Salmon Run angelernt (${(B.srja || []).length}× Geschafft, ${(B.srnein || []).length}× Gescheitert). Death-Zählen braucht zusätzlich ☠/🎮-Beispiele.`;
     const ende = ((B.sieg || []).length || (B.niederlage || []).length)
       ? ` Dazu ${(B.sieg || []).length}× Sieg- und ${(B.niederlage || []).length}× Verloren-Bildschirm – am Match-Ende speichere ich automatisch.`
       : " Tipp: Lerne auch den Sieg- und Verloren-Bildschirm an (🏆/😞, auf dem ersten Ergebnis-Bild mit der Karte) – dann speichere ich das Match am Ende von selbst.";
-    return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.` + ende;
+    const sr = ((B.srja || []).length || (B.srnein || []).length)
+      ? ` Salmon Run: ${(B.srja || []).length}× Geschafft-, ${(B.srnein || []).length}× Gescheitert-Bildschirm angelernt.` : "";
+    return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.` + ende + sr;
   }
 
   function starteAnalyse() {
@@ -2883,10 +2913,18 @@ function initialisiereMonitor() {
         else { monErgebnisSerie = 1; monErgebnisLetzteKl = urteil.ergebnis; }
         if (monErgebnisSerie >= 3 && Date.now() - monitorLetztesErgebnis > 90000) {
           monitorLetztesErgebnis = Date.now();
-          const erg = urteil.ergebnis, gespeichert = autoMatchSpeichern(erg);
-          lcSage(erg === "S"
-            ? `🏆 Sieg erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`
-            : `😞 Niederlage erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`);
+          const erg = urteil.ergebnis;
+          if (erg === "SRJ" || erg === "SRX") {
+            autoSrSpeichern(erg === "SRJ");
+            lcSage(erg === "SRJ"
+              ? "🐟 Schicht geschafft – automatisch gespeichert! Eier und Gefahrenstufe kommen später exakt per stat.ink."
+              : "🐟 Schicht gescheitert – automatisch gespeichert. Eier und Gefahrenstufe kommen später exakt per stat.ink.");
+          } else {
+            const gespeichert = autoMatchSpeichern(erg);
+            lcSage(erg === "S"
+              ? `🏆 Sieg erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`
+              : `😞 Niederlage erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`);
+          }
         }
       } else monErgebnisSerie = 0;
     }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
@@ -2981,15 +3019,18 @@ function initialisiereMonitor() {
     if (B[klasse].length > MON_MAX_BEISPIELE) B[klasse].shift();
     state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: B });
     speichereState();
-    const wort = { death: "☠ Death-Beispiel", spiel: "🎮 Spiel-Beispiel", sieg: "🏆 Sieg-Beispiel", niederlage: "😞 Niederlage-Beispiel" }[klasse];
+    const wort = { death: "☠ Death-Beispiel", spiel: "🎮 Spiel-Beispiel", sieg: "🏆 Sieg-Beispiel", niederlage: "😞 Niederlage-Beispiel",
+                   srja: "🐟✅ Geschafft-Beispiel", srnein: "🐟❌ Gescheitert-Beispiel" }[klasse];
     $("#monLernStatus").textContent = wort + " gespeichert ✓ – " + lernStatusText();
   }
   $("#monLernen").addEventListener("click", () => lerneBeispiel("death"));
   $("#monLernenSpiel").addEventListener("click", () => lerneBeispiel("spiel"));
   $("#monLernenSieg").addEventListener("click", () => lerneBeispiel("sieg"));
   $("#monLernenNieder").addEventListener("click", () => lerneBeispiel("niederlage"));
+  $("#monLernenSrJa").addEventListener("click", () => lerneBeispiel("srja"));
+  $("#monLernenSrNein").addEventListener("click", () => lerneBeispiel("srnein"));
   $("#monBeispieleReset").addEventListener("click", () => {
-    state.monitor = Object.assign({}, state.monitor, { beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
+    state.monitor = Object.assign({}, state.monitor, { beispiele: { death: [], spiel: [], sieg: [], niederlage: [], srja: [], srnein: [] } });
     speichereState();
     $("#monLernStatus").textContent = lernStatusText();
   });
@@ -3002,7 +3043,7 @@ function initialisiereMonitor() {
     $("#monLernStatus").textContent = "Ziehe jetzt mit dem Finger/der Maus ein Rechteck um das TV-Bild …";
   });
   $("#monCropReset").addEventListener("click", () => {
-    state.monitor = Object.assign({}, state.monitor, { crop: null, beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
+    state.monitor = Object.assign({}, state.monitor, { crop: null, beispiele: { death: [], spiel: [], sieg: [], niederlage: [], srja: [], srnein: [] } });
     speichereState(); zeigeCrop();
     $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte neu anlernen (Beispiele passen nicht mehr).";
   });
@@ -3029,7 +3070,7 @@ function initialisiereMonitor() {
                    w: Math.abs(p.x - cropStart.x), h: Math.abs(p.y - cropStart.y) };
     cropStart = null; cropLayer.style.display = "none";
     if (crop.w < 0.05 || crop.h < 0.05) { zeigeCrop(); return; } // zu klein -> verwerfen
-    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, beispiele: { death: [], spiel: [], sieg: [], niederlage: [], srja: [], srnein: [] } });
     speichereState(); zeigeCrop();
     $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte neu anlernen (☠ und 🎮 Beispiele zeigen).";
   });
