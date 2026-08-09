@@ -335,7 +335,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.34"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.35"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2445,7 +2445,7 @@ function renderLive(stats) {
 
 /* ---------- Live-Monitor (Capture-Karte, Beta) ----------
    Zeigt das Spielbild der Capture-Karte in der App und zählt Deaths automatisch:
-   Der Nutzer lernt einmal den Respawn-Bildschirm ein (Farbsignatur eines 4x4-Rasters);
+   Der Nutzer lernt einmal den Respawn-Bildschirm ein (Farbsignatur eines 12x12-Rasters, helligkeits- und kontrastnormalisiert);
    taucht dieselbe Signatur wieder auf, zählt der Monitor einen Death. Experimentell. */
 let monitorStream = null, monitorTimer = null, monitorCanvas = null, monitorQuelle = null;
 let monitorLetzterTreffer = -1e12, monitorTrefferSerie = 0, autoDeaths = 0;
@@ -2500,45 +2500,80 @@ function liveCoachDeath() {
                "🖌️ Erst malen, dann kämpfen – bleib am Rand deiner eigenen Farbe."][n % 3];
   lcSage(text);
 }
-const MON_RASTER = 6;
-const MON_MAX_BEISPIELE = 12;
+const MON_RASTER = 6;        // Raster der früher gespeicherten Beispiele (bleiben gültig)
+const MON_RASTER_FEIN = 12;  // neues Seh-Raster: 4× so viele Zellen, doppelte Auflösung
+const MON_MAX_BEISPIELE = 24;
 
 function monSignatur(video) {
-  if (!monitorCanvas) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = 64; monitorCanvas.height = 36; }
+  if (!monitorCanvas || monitorCanvas.width !== 128) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = 128; monitorCanvas.height = 72; }
   const ctx = monitorCanvas.getContext("2d", { willReadFrequently: true });
   const crop = (state.monitor && state.monitor.crop) || null;
   const vw = video.videoWidth, vh = video.videoHeight;
-  if (crop && vw && vh) ctx.drawImage(video, crop.x * vw, crop.y * vh, crop.w * vw, crop.h * vh, 0, 0, 64, 36);
-  else ctx.drawImage(video, 0, 0, 64, 36);
-  const d = ctx.getImageData(0, 0, 64, 36).data;
-  const sig = [], zw = 64 / MON_RASTER, zh = 36 / MON_RASTER;
-  for (let gy = 0; gy < MON_RASTER; gy++) for (let gx = 0; gx < MON_RASTER; gx++) {
+  if (crop && vw && vh) ctx.drawImage(video, crop.x * vw, crop.y * vh, crop.w * vw, crop.h * vh, 0, 0, 128, 72);
+  else ctx.drawImage(video, 0, 0, 128, 72);
+  const d = ctx.getImageData(0, 0, 128, 72).data;
+  const sig = [], zw = 128 / MON_RASTER_FEIN, zh = 72 / MON_RASTER_FEIN;
+  for (let gy = 0; gy < MON_RASTER_FEIN; gy++) for (let gx = 0; gx < MON_RASTER_FEIN; gx++) {
     let r = 0, g = 0, b = 0, n = 0;
-    for (let y = Math.floor(gy * zh); y < Math.floor((gy + 1) * zh); y += 2)
-      for (let x = Math.floor(gx * zw); x < Math.floor((gx + 1) * zw); x += 2) {
-        const i = (y * 64 + x) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+    for (let y = Math.floor(gy * zh); y < Math.floor((gy + 1) * zh); y++)
+      for (let x = Math.floor(gx * zw); x < Math.floor((gx + 1) * zw); x++) {
+        const i = (y * 128 + x) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
       }
-    sig.push(r / n, g / n, b / n);
+    // auf 1 Nachkommastelle gerundet, damit der Speicher klein bleibt
+    sig.push(Math.round(r / n * 10) / 10, Math.round(g / n * 10) / 10, Math.round(b / n * 10) / 10);
   }
   return sig;
 }
+// Feine 12×12-Signatur aufs alte 6×6-Raster eindampfen – so bleiben früher angelernte Beispiele gültig
+function monVergroebere(sig) {
+  const grob = [];
+  for (let gy = 0; gy < MON_RASTER; gy++) for (let gx = 0; gx < MON_RASTER; gx++) {
+    let r = 0, g = 0, b = 0;
+    for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+      const i = ((gy * 2 + dy) * MON_RASTER_FEIN + (gx * 2 + dx)) * 3;
+      r += sig[i]; g += sig[i + 1]; b += sig[i + 2];
+    }
+    grob.push(r / 4, g / 4, b / 4);
+  }
+  return grob;
+}
 function monAbstand(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) ** 2; return Math.sqrt(s / a.length); }
 
-/* Lernende Erkennung (Nächster-Nachbar-Klassifikator):
-   vergleicht das aktuelle Bild mit ALLEN Death- und Spiel-Beispielen.
-   Helligkeits-Normalisierung macht die Erkennung robust gegen Kamera-Autobelichtung. */
+/* Lernende Erkennung, Stufe 2:
+   - doppelt so feines Seh-Raster (12×12 statt 6×6)
+   - Helligkeits- UND Kontrast-Ausgleich (robust gegen Autobelichtung und Raumlicht)
+   - die 3 ähnlichsten Beispiele stimmen ab, statt dass nur das eine nächste entscheidet */
 function monNormalisiere(sig) {
   const mittel = sig.reduce((a, b) => a + b, 0) / sig.length;
-  return sig.map(v => v - mittel);
+  let varsum = 0; for (const v of sig) varsum += (v - mittel) ** 2;
+  const streuung = Math.sqrt(varsum / sig.length) || 1;
+  return sig.map(v => (v - mittel) / streuung * 40); // Skala 40 ≈ typische Bild-Streuung – hält den Empfindlichkeits-Regler gültig
 }
 function monKlassifiziere(sig) {
   const B = state.monitor && state.monitor.beispiele;
   if (!B || !B.death || !B.death.length) return null;
-  const ns = monNormalisiere(sig);
-  const minDeath = Math.min(...B.death.map(e => monAbstand(ns, monNormalisiere(e))));
-  const minSpiel = B.spiel && B.spiel.length ? Math.min(...B.spiel.map(e => monAbstand(ns, monNormalisiere(e)))) : Infinity;
+  const feinN = monNormalisiere(sig);
+  let grobN = null;
+  const abstand = (e) => {
+    if (e.length === sig.length) return monAbstand(feinN, monNormalisiere(e));
+    if (!grobN) grobN = monNormalisiere(monVergroebere(sig)); // altes Beispiel -> im groben Raster vergleichen
+    return monAbstand(grobN, monNormalisiere(e));
+  };
+  const alle = [];
+  for (const e of B.death) alle.push({ death: true, d: abstand(e) });
+  for (const e of (B.spiel || [])) alle.push({ death: false, d: abstand(e) });
+  alle.sort((a, b) => a.d - b.d);
+  const deathD = alle.filter(k => k.death).map(k => k.d);
+  const spielD = alle.filter(k => !k.death).map(k => k.d);
+  const minDeath = Math.min(...deathD);
+  const minSpiel = spielD.length ? Math.min(...spielD) : Infinity;
+  let stimmenDeath = 0, stimmenSpiel = 0;
+  for (const k of alle.slice(0, 3)) { const g = 1 / (k.d + 1); if (k.death) stimmenDeath += g; else stimmenSpiel += g; }
   const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
-  return { death: minDeath < schwelle && minDeath < minSpiel * 0.8, minDeath, minSpiel };
+  const death = stimmenDeath > stimmenSpiel && minDeath < schwelle && minDeath < minSpiel * 0.85;
+  const sicher = death ? minDeath * 1.6 < minSpiel
+                       : minSpiel === Infinity ? minDeath >= schwelle * 1.5 : minSpiel * 1.6 < minDeath || minDeath >= schwelle * 1.5;
+  return { death, minDeath, minSpiel, sicher };
 }
 
 /* Match-Bericht als Tabelle: Was war gut, was war eine Baustelle?
@@ -2722,7 +2757,9 @@ function initialisiereMonitor() {
       const urteil = monKlassifiziere(monSignatur(video));
       const live = document.getElementById("monLive");
       if (!urteil) { if (live) live.textContent = ""; return; }
-      if (live) live.textContent = urteil.death ? "Live-Check: ☠ Death-Bildschirm erkannt!" : "Live-Check: 🎮 normales Spiel";
+      if (live) live.textContent = urteil.death
+        ? `Live-Check: ☠ Death-Bildschirm erkannt${urteil.sicher ? "!" : " (knapp – im richtigen Moment ein Beispiel nachlegen)"}`
+        : `Live-Check: 🎮 normales Spiel${urteil.sicher ? "" : " (knapp – im richtigen Moment ein Beispiel nachlegen)"}`;
       // Im Datei-Modus zählt die VIDEO-Zeit (funktioniert auch bei 2x/4x-Tempo und Spulen)
       const jetzt = monitorQuelle === "datei" ? video.currentTime * 1000 : Date.now();
       if (monitorQuelle === "datei" && jetzt < monitorLetzterTreffer - 1000) monitorLetzterTreffer = -1e12; // zurückgespult
