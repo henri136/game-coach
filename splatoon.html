@@ -336,7 +336,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.38"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.39"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2473,6 +2473,7 @@ function renderLive(stats) {
    taucht dieselbe Signatur wieder auf, zählt der Monitor einen Death. Experimentell. */
 let monitorStream = null, monitorTimer = null, monitorCanvas = null, monitorQuelle = null;
 let monitorLetzterTreffer = -1e12, monitorTrefferSerie = 0, autoDeaths = 0;
+let monErgebnisSerie = 0, monErgebnisLetzteKl = null, monitorLetztesErgebnis = 0;
 let aufnahmeRolle = null, aufnahmeStart = 0, aufnahmeVideoStart = 0, aufnahmeTicker = null;
 let monitorDateiUrl = null;
 
@@ -2585,25 +2586,43 @@ function monKlassifiziere(sig) {
     return monAbstand(proLaenge[e.length], monNormalisiere(e));
   };
   const alle = [];
-  for (const e of B.death) alle.push({ death: true, d: abstand(e) });
-  for (const e of (B.spiel || [])) alle.push({ death: false, d: abstand(e) });
+  for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel], ["sieg", B.sieg], ["niederlage", B.niederlage]])
+    for (const e of (liste || [])) alle.push({ k: klasse, d: abstand(e) });
   alle.sort((a, b) => a.d - b.d);
-  const deathD = alle.filter(k => k.death).map(k => k.d);
-  const spielD = alle.filter(k => !k.death).map(k => k.d);
-  const minDeath = Math.min(...deathD);
-  const minSpiel = spielD.length ? Math.min(...spielD) : Infinity;
-  let stimmenDeath = 0, stimmenSpiel = 0;
-  for (const k of alle.slice(0, 3)) { const g = 1 / (k.d + 1); if (k.death) stimmenDeath += g; else stimmenSpiel += g; }
+  const minK = (k) => { const l = alle.filter(x => x.k === k); return l.length ? Math.min(...l.map(x => x.d)) : Infinity; };
+  const minDeath = minK("death"), minSpiel = minK("spiel"), minSieg = minK("sieg"), minNieder = minK("niederlage");
+  const minNichtDeath = Math.min(minSpiel, minSieg, minNieder);
+  // die 3 ähnlichsten Beispiele stimmen ab, nähere zählen mehr
+  const stimmen = { death: 0, spiel: 0, sieg: 0, niederlage: 0 };
+  for (const k of alle.slice(0, 3)) stimmen[k.k] += 1 / (k.d + 1);
+  const beste = Object.keys(stimmen).reduce((a, b) => stimmen[a] >= stimmen[b] ? a : b);
   const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
-  const death = stimmenDeath > stimmenSpiel && minDeath < schwelle && minDeath < minSpiel * 0.85;
-  const sicher = death ? minDeath * 1.6 < minSpiel
-                       : minSpiel === Infinity ? minDeath >= schwelle * 1.5 : minSpiel * 1.6 < minDeath || minDeath >= schwelle * 1.5;
-  return { death, minDeath, minSpiel, sicher };
+  const death = beste === "death" && minDeath < schwelle && minDeath < minNichtDeath * 0.85;
+  // Ergebnis-Bildschirm am Match-Ende (nur wenn angelernt)
+  let ergebnis = null;
+  if (!death && (beste === "sieg" || beste === "niederlage")) {
+    const minE = beste === "sieg" ? minSieg : minNieder;
+    if (minE < schwelle && minE < Math.min(minSpiel, minDeath) * 0.85) ergebnis = beste === "sieg" ? "S" : "N";
+  }
+  const sicher = death ? minDeath * 1.6 < minNichtDeath
+                       : minNichtDeath === Infinity ? minDeath >= schwelle * 1.5 : minNichtDeath * 1.6 < minDeath || minDeath >= schwelle * 1.5;
+  return { death, minDeath, minSpiel: minNichtDeath, sicher, ergebnis };
 }
 
 /* Match-Bericht als Tabelle: Was war gut, was war eine Baustelle?
    Vergleich = Durchschnitt aller Spieler in diesem Modus (stat.ink-Rohdaten). */
 function matchBerichtHtml(m, stats) {
+  if (m.unvollst && m.auto) {
+    const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
+    const u = m.deaths <= E.deaths - 1 ? '<span style="color:var(--status-good); font-weight:700">✅ Gut</span>'
+      : m.deaths >= E.deaths + 2 ? '<span style="color:var(--status-serious); font-weight:700">⚠️ Baustelle</span>'
+      : '<span style="color:var(--text-muted)">➖ Okay</span>';
+    return `<div class="table-scroll"><table class="mini" style="width:100%">
+      <tr><th>Bereich</th><th>Du</th><th>Vergleich</th><th>Bewertung</th></tr>
+      <tr><td>Deaths (von der Kamera gezählt)</td><td style="font-weight:700">${m.deaths}</td><td>Ø ${fmt1(E.deaths)}</td><td>${u}</td></tr>
+    </table></div>
+    <p style="margin:6px 0 0; font-size:12.5px; color:var(--text-muted)">📷 Automatisch von der Kamera eingetragen – Splats, Unterstützungen und Karte kommen später exakt per stat.ink-Abgleich.</p>`;
+  }
   if (m.unvollst) return '<p style="margin:6px 0; font-size:13.5px">ℹ️ Von diesem Match kennt die App nur Modus, Karte und Ergebnis (SplatNet-Import) – die genauen Zahlen kommen später automatisch über stat.ink.</p>';
   const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
   const wirkung = (m.splats + m.assists) / Math.max(1, m.deaths);
@@ -2628,8 +2647,27 @@ function matchBerichtHtml(m, stats) {
   </table></div>`;
 }
 
+/* Match-Ende von der Kamera erkannt -> Match automatisch eintragen.
+   Bekannt sind Ergebnis + gezählte Deaths; die genauen Zahlen (Splats & Co.)
+   kommen später exakt über den stat.ink-Abgleich, darum unvollst-Markierung. */
+function autoMatchSpeichern(erg) {
+  const modus = (document.getElementById("qModus") || {}).value
+    || (state.matches.length ? state.matches[state.matches.length - 1].modus : "Herrschaft");
+  const waffe = ((document.getElementById("qWaffe") || {}).value || "").trim()
+    || (state.matches.length ? state.matches[state.matches.length - 1].waffe : "Unbekannt");
+  const match = { id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
+    datum: heuteISO(), modus, waffe, ergebnis: erg,
+    splats: 0, assists: 0, deaths: autoDeaths, spezials: 0, farbe: 0, notiz: "",
+    unvollst: true, auto: true };
+  state.matches.push(match);
+  if (state.session) { state.session.matchIds.push(match.id); state.session.letzterHinweis = ""; }
+  monitorNeuesMatch(); // Zähler für das nächste Match auf 0
+  speichereState(); renderAlles();
+  return match;
+}
+
 function monitorNeuesMatch() {
-  autoDeaths = 0; monitorTrefferSerie = 0;
+  autoDeaths = 0; monitorTrefferSerie = 0; monErgebnisSerie = 0;
   lcDeaths = []; lcLetzterText = "";
   const el = document.getElementById("monDeaths"); if (el) el.textContent = "0";
   const f = document.getElementById("liveFeedback"); if (f) f.style.display = "none";
@@ -2682,6 +2720,10 @@ function initialisiereMonitor() {
           <button id="monLernen">☠ Das ist der Death-Bildschirm</button>
           <button id="monLernenSpiel">🎮 Das ist normales Spiel</button>
           <button id="sprachBtn" type="button" title="Der Coach sagt dir Tipps laut an – direkt beim Spielen"></button>
+        </div>
+        <div class="form-actions" style="margin-top:8px">
+          <button id="monLernenSieg" title="Am Match-Ende drücken, während „Sieg!“ zu sehen ist">🏆 Das ist der Sieg-Bildschirm</button>
+          <button id="monLernenNieder" title="Am Match-Ende drücken, während „Niederlage“ zu sehen ist">😞 Das ist der Niederlage-Bildschirm</button>
         </div>
         <div id="liveFeedback" role="status" style="display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--series-1); font-size:16px; font-weight:600"></div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
@@ -2772,7 +2814,10 @@ function initialisiereMonitor() {
   function lernStatusText() {
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
     if (!B.death.length) return "Noch nicht angelernt – zeige mir zuerst einen Death-Bildschirm.";
-    return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.`;
+    const ende = ((B.sieg || []).length || (B.niederlage || []).length)
+      ? ` Dazu ${(B.sieg || []).length}× Sieg- und ${(B.niederlage || []).length}× Niederlage-Bildschirm – am Match-Ende speichere ich automatisch.`
+      : " Tipp: Lerne auch den Sieg- und Niederlage-Bildschirm an (🏆/😞) – dann speichere ich das Match am Ende von selbst.";
+    return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.` + ende;
   }
 
   function starteAnalyse() {
@@ -2810,6 +2855,18 @@ function initialisiereMonitor() {
           }
         }
       } else monitorTrefferSerie = 0;
+      // Ergebnis-Bildschirm am Match-Ende: 3 Treffer in Folge -> Match automatisch speichern (nur live)
+      if (urteil.ergebnis && monitorQuelle !== "datei" && aufnahmeRolle !== "profi") {
+        if (urteil.ergebnis === monErgebnisLetzteKl) monErgebnisSerie++;
+        else { monErgebnisSerie = 1; monErgebnisLetzteKl = urteil.ergebnis; }
+        if (monErgebnisSerie >= 3 && Date.now() - monitorLetztesErgebnis > 90000) {
+          monitorLetztesErgebnis = Date.now();
+          const erg = urteil.ergebnis, gespeichert = autoMatchSpeichern(erg);
+          lcSage(erg === "S"
+            ? `🏆 Sieg erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`
+            : `😞 Niederlage erkannt – Match automatisch gespeichert (${gespeichert.deaths} Deaths). Der Bericht steht bereit.`);
+        }
+      } else monErgebnisSerie = 0;
     }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
   }
 
@@ -2897,16 +2954,20 @@ function initialisiereMonitor() {
       return;
     }
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
+    if (!B[klasse]) B[klasse] = [];
     B[klasse].push(monSignatur(video));
     if (B[klasse].length > MON_MAX_BEISPIELE) B[klasse].shift();
     state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: B });
     speichereState();
-    $("#monLernStatus").textContent = (klasse === "death" ? "☠ Death-Beispiel gespeichert ✓ – " : "🎮 Spiel-Beispiel gespeichert ✓ – ") + lernStatusText();
+    const wort = { death: "☠ Death-Beispiel", spiel: "🎮 Spiel-Beispiel", sieg: "🏆 Sieg-Beispiel", niederlage: "😞 Niederlage-Beispiel" }[klasse];
+    $("#monLernStatus").textContent = wort + " gespeichert ✓ – " + lernStatusText();
   }
   $("#monLernen").addEventListener("click", () => lerneBeispiel("death"));
   $("#monLernenSpiel").addEventListener("click", () => lerneBeispiel("spiel"));
+  $("#monLernenSieg").addEventListener("click", () => lerneBeispiel("sieg"));
+  $("#monLernenNieder").addEventListener("click", () => lerneBeispiel("niederlage"));
   $("#monBeispieleReset").addEventListener("click", () => {
-    state.monitor = Object.assign({}, state.monitor, { beispiele: { death: [], spiel: [] } });
+    state.monitor = Object.assign({}, state.monitor, { beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
     speichereState();
     $("#monLernStatus").textContent = lernStatusText();
   });
@@ -2919,7 +2980,7 @@ function initialisiereMonitor() {
     $("#monLernStatus").textContent = "Ziehe jetzt mit dem Finger/der Maus ein Rechteck um das TV-Bild …";
   });
   $("#monCropReset").addEventListener("click", () => {
-    state.monitor = Object.assign({}, state.monitor, { crop: null, beispiele: { death: [], spiel: [] } });
+    state.monitor = Object.assign({}, state.monitor, { crop: null, beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
     speichereState(); zeigeCrop();
     $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte neu anlernen (Beispiele passen nicht mehr).";
   });
@@ -2946,7 +3007,7 @@ function initialisiereMonitor() {
                    w: Math.abs(p.x - cropStart.x), h: Math.abs(p.y - cropStart.y) };
     cropStart = null; cropLayer.style.display = "none";
     if (crop.w < 0.05 || crop.h < 0.05) { zeigeCrop(); return; } // zu klein -> verwerfen
-    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, beispiele: { death: [], spiel: [] } });
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, beispiele: { death: [], spiel: [], sieg: [], niederlage: [] } });
     speichereState(); zeigeCrop();
     $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte neu anlernen (☠ und 🎮 Beispiele zeigen).";
   });
