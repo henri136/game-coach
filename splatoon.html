@@ -75,7 +75,12 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--page);
+    background-color: var(--page);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23d21f74' fill-opacity='0.08' d='M100 15C140 5 175 35 180 75c5 35 20 50 5 75-20 30-65 15-85 35-20 15-55 0-70-25C10 130 25 110 15 80 5 45 55 25 100 15Z'/%3E%3Ccircle cx='178' cy='22' r='11' fill='%23d21f74' fill-opacity='0.08'/%3E%3Ccircle cx='16' cy='178' r='8' fill='%23d21f74' fill-opacity='0.08'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%239bd315' fill-opacity='0.07' d='M95 10c35-10 60 20 80 45 15 20 15 55-5 75-25 25-45 45-80 40-30-5-60-15-75-45C0 95 15 60 35 40 55 20 70 17 95 10Z'/%3E%3Ccircle cx='185' cy='150' r='9' fill='%239bd315' fill-opacity='0.07'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-position: right -70px top -60px, left -90px bottom 6%;
+    background-size: 360px 360px, 330px 330px;
+    background-attachment: scroll, fixed;
     color: var(--text-primary);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 15px;
@@ -134,6 +139,22 @@
   }
   .hero .value { font-size: 48px; font-weight: 800; line-height: 1.1; transform: rotate(-0.8deg); }
   .hero .label { color: var(--text-secondary); }
+
+  .balken-reihe { display: grid; grid-template-columns: minmax(120px, 200px) 1fr 82px; gap: 10px; align-items: center; padding: 5px 0; }
+  .balken-reihe .bname { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 7px; min-width: 0; }
+  .balken-reihe .bname > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .balken-reihe img.mini { width: 36px; height: 21px; object-fit: cover; border-radius: 4px; flex: none; }
+  .balken { height: 14px; border-radius: 7px; background: var(--series-1-track); position: relative; }
+  .balken .fuellung { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 7px; background: var(--series-1); }
+  .balken .marke50 { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--baseline); }
+  .balken-reihe .bwert { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  details.formdetails summary { cursor: pointer; font-weight: 600; color: var(--text-secondary); font-size: 13.5px; }
+  details.formdetails .sumhint { font-weight: 400; font-size: 12px; color: var(--text-muted); }
+  .formgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end; margin-top: 12px; }
+  .formgrid label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 3px; }
+  .formgrid input, .formgrid select { width: 100%; font: inherit; color: var(--text-primary); background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px; }
+  .formgrid .full { grid-column: 1 / -1; }
 
   .chart-card { position: relative; }
   .chart-card svg { display: block; width: 100%; height: auto; }
@@ -257,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.18"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -280,7 +301,7 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
   <header class="app">
     <div>
       <h1>🦑 Splatoon 3 Coach</h1>
-      <p>Trage deine Matches ein – der Coach vergleicht dich mit Top-Spielern und sagt dir, was sie anders machen.</p>
+      <p>Deine Matches kommen automatisch rein – der Coach vergleicht dich mit den Top-Spielern und zeigt dir, wie du besser wirst.</p>
     </div>
     <div class="spacer"></div>
     <button id="updateBtn" title="Nach neuer Version suchen (braucht Internet)">⬆ Update</button>
@@ -294,7 +315,7 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
     <button data-tab="live">🔴 Live-Coach</button>
     <button data-tab="salmon">Salmon Run</button>
     <button data-tab="selbstcheck">Selbst-Check</button>
-    <button data-tab="wissen">Top-Spieler-Wissen</button>
+    <button data-tab="wissen">📚 Wissen</button>
   </nav>
 
   <!-- ÜBERSICHT -->
@@ -305,9 +326,11 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
   <!-- MATCHES -->
   <section id="tab-matches" hidden>
     <div class="card">
-      <h2>Match eintragen</h2>
-      <p class="sub">Die Zahlen findest du nach jedem Match im Ergebnisbildschirm (Splats = deine Kills inkl. Beteiligungen zählst du bitte getrennt als Splats + Unterstützungen).</p>
-      <form class="match-form" id="matchForm">
+      <h2>Deine Daten</h2>
+      <p class="sub">Alles kommt automatisch per stat.ink-Abgleich – hier kannst du importieren, exportieren oder mal ein Match von Hand nachtragen.</p>
+      <form id="matchForm">
+        <details class="formdetails"><summary>➕ Match von Hand eintragen <span class="sumhint">(selten nötig – der Sync holt alles automatisch)</span></summary>
+        <div class="formgrid">
         <div><label for="fDatum">Datum</label><input type="date" id="fDatum" required></div>
         <div><label for="fModus">Modus</label>
           <select id="fModus" required>
@@ -328,8 +351,9 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
         <div><label for="fSpezials">Spezialwaffen-Einsätze</label><input type="number" id="fSpezials" min="0" max="20" required></div>
         <div><label for="fFarbe">Farbpunkte</label><input type="number" id="fFarbe" min="0" max="4000" step="10" required></div>
         <div class="full"><label for="fNotiz">Notiz (optional, z. B. „zu oft allein gepusht“)</label><input id="fNotiz" maxlength="200"></div>
-        <div class="full form-actions">
-          <button type="submit" class="primary">Match speichern</button>
+        <div class="full"><button type="submit" class="primary">Match speichern</button></div>
+        </div></details>
+        <div class="form-actions" style="margin-top:12px">
           <button type="button" id="demoBtn">Beispieldaten laden</button>
           <button type="button" id="demoWegBtn" title="Entfernt alle Übungs-Matches und -Schichten ohne stat.ink-Herkunft">🧹 Beispieldaten löschen</button>
           <button type="button" id="exportBtn">Export (JSON)</button>
@@ -385,9 +409,11 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
   <!-- SALMON RUN -->
   <section id="tab-salmon" hidden>
     <div class="card">
-      <h2>🐟 Salmon-Run-Schicht eintragen</h2>
-      <p class="sub">Deine Schichten kommen jetzt automatisch per stat.ink-Abgleich in die App – hier musst du nur eintragen, was dort fehlt. Die Zahlen stehen im Ergebnisbildschirm nach der Schicht (deine persönlichen Werte).</p>
-      <form class="match-form" id="srForm">
+      <h2>🐟 Salmon Run</h2>
+      <p class="sub">Deine Schichten kommen automatisch per stat.ink-Abgleich.</p>
+      <form id="srForm">
+        <details class="formdetails"><summary>➕ Schicht von Hand eintragen <span class="sumhint">(nur falls eine fehlt)</span></summary>
+        <div class="formgrid">
         <div><label for="sDatum">Datum</label><input type="date" id="sDatum" required></div>
         <div><label for="sGefahr">Gefahrenstufe (%)</label><input type="number" id="sGefahr" min="0" max="333" required></div>
         <div><label for="sWellen">Geschaffte Wellen</label>
@@ -407,9 +433,8 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
         <div><label for="sBosse">Besiegte Boss-Salmoniden</label><input type="number" id="sBosse" min="0" max="99" required></div>
         <div><label for="sRettungen">Kollegen gerettet</label><input type="number" id="sRettungen" min="0" max="30" required></div>
         <div><label for="sGerettet">Selbst gerettet worden</label><input type="number" id="sGerettet" min="0" max="30" required></div>
-        <div class="full form-actions">
-          <button type="submit" class="primary">Schicht speichern</button>
-        </div>
+        <div class="full"><button type="submit" class="primary">Schicht speichern</button></div>
+        </div></details>
       </form>
     </div>
     <div id="salmonInhalt"></div>
@@ -430,10 +455,7 @@ const APP_VERSION = "2026-08-10.17"; // Zähler ab jetzt immer zweistellig (Stri
     <div id="wissenInhalt"></div>
   </section>
 
-  <p class="footnote">Alle Daten bleiben lokal in deinem Browser (localStorage) – nichts wird hochgeladen.
-  Die Top-Spieler-Benchmarks und Tipps basieren auf einer Recherche zu X-Rang-/Top-500-/Turnierspielern
-  (stat.ink, sendou.ink, Inkipedia, Coaching-Inhalte bekannter Wettkampfspieler). Splatoon ist eine Marke von Nintendo;
-  dieses Fan-Tool steht in keiner Verbindung zu Nintendo.</p>
+  <p class="footnote">Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.</p>
 </div>
 
 <div class="tooltip" id="tooltip"></div>
@@ -731,6 +753,8 @@ const STORAGE_KEY = "splatoon3-coach-v1";
 const MODI = ["Revierkampf", "Herrschaft", "Turm-Kommando", "Operation Goldfisch", "Muschelchaos"];
 
 let state = ladeState();
+// Reparatur alter Beispieldaten: "Doppler"/"Roller" waren keine echten Waffennamen
+state.matches.forEach(m => { if (!m.ext) { if (m.waffe === "Doppler") m.waffe = "Klecks-Doppler"; else if (m.waffe === "Roller") m.waffe = "Klecksroller"; } });
 
 function ladeState() {
   try {
@@ -770,7 +794,7 @@ document.getElementById("tabs").addEventListener("click", (e) => {
 
 /* ---------- Hilfsfunktionen ---------- */
 const $ = (sel) => document.querySelector(sel);
-const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const esc = (s) => s == null ? "" : String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fmt1 = (n) => (Math.round(n * 10) / 10).toLocaleString("de-DE");
 const pct = (n) => Math.round(n * 100) + " %";
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -952,7 +976,6 @@ function renderUebersicht(stats) {
   el.innerHTML = `
     ${vorschauHinweis}
     ${rotationHtml}
-    ${feedbackHtml}
     <div class="card hero">
       <div class="label">Winrate gesamt (${stats.n} Matches)</div>
       <div class="value">${pct(stats.winrate)}</div>
@@ -964,21 +987,27 @@ function renderUebersicht(stats) {
       <div class="tile"><div class="label">(Splats+U.) / Death</div><div class="value">${fmt1(stats.kad)}</div></div>
       <div class="tile"><div class="label">Ø Spezialeinsätze</div><div class="value">${fmt1(stats.avgSpezials)}</div></div>
     </div>
+    ${feedbackHtml}
     <div class="card chart-card" id="modusChartCard">
       <h2>Winrate pro Modus</h2>
       <p class="sub">Wo läuft es, wo nicht? Der Coach schaut sich deinen schwächsten Modus genauer an.</p>
       <div id="modusChart"></div>
       <details class="tableview"><summary>Als Tabelle anzeigen</summary><div id="modusTabelle"></div></details>
     </div>
-    ${Object.keys(stats.proKarte).filter(k => stats.proKarte[k].n >= 2).length >= 2 ? `
-    <div class="card">
-      <h2>Winrate pro Karte</h2>
-      <p class="sub">Karten mit mindestens 2 Matches, schwächste zuerst – die Karte kommt automatisch aus dem stat.ink-Sync.</p>
-      <div class="kb-table-scroll"><table class="kb"><tr><th>Karte</th><th>Matches</th><th>Winrate</th></tr>
-      ${Object.entries(stats.proKarte).filter(([, v]) => v.n >= 2).sort((a, b) => a[1].winrate - b[1].winrate)
-        .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.n}</td><td>${Math.round(v.winrate * 100)} %</td></tr>`).join("")}
-      </table></div>
-    </div>` : ""}
+    ${(() => {
+      const ks = Object.entries(stats.proKarte).filter(([, v]) => v.n >= 2).sort((a, b) => a[1].winrate - b[1].winrate);
+      if (ks.length < 2) return "";
+      const thumb = (name) => { const ki = KARTEN_INFO.find(x => x.de === name); return ki ? `<img class="mini" alt="" src="${bildSrc(ki.bild)}">` : ""; };
+      return `<div class="card">
+      <h2>🗺️ Deine Karten</h2>
+      <p class="sub">Schwächste zuerst, ab 2 Matches. Der Strich ist die 50-%-Marke.</p>
+      ${ks.map(([k, v]) => `<div class="balken-reihe">
+        <span class="bname">${thumb(k)}<span>${esc(k)}</span></span>
+        <div class="balken"><div class="fuellung" style="width:${Math.round(v.winrate * 100)}%; background:${v.winrate >= 0.55 ? "var(--status-good)" : v.winrate <= 0.45 ? "var(--status-critical)" : "var(--series-1)"}"></div><div class="marke50"></div></div>
+        <span class="bwert">${Math.round(v.winrate * 100)} % <span style="color:var(--text-muted); font-weight:400">· ${v.n}×</span></span>
+      </div>`).join("")}
+    </div>`;
+    })()}
     <div class="card chart-card" id="trendChartCard">
       <h2>Formkurve: rollende Winrate (letzte 10 Matches)</h2>
       <p class="sub">Ab 5 Matches. Zeigt, ob du dich verbesserst – Top-Spieler verfolgen ihre Form genau so.</p>
@@ -1142,7 +1171,7 @@ function renderMatches() {
   $("#matchTabelle").innerHTML = `<table class="matches">
     <tr><th>Datum</th><th>Modus</th><th>Karte</th><th>Waffe</th><th>Ergebnis</th><th>Splats</th><th>Unterst.</th><th>Deaths</th><th>Spezials</th><th>Farbe</th><th>Notiz</th><th></th></tr>` +
     chrono.map(m => `<tr>
-      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${karteZelle(m)}</td><td>${wIcon(m.waffe)}${esc(m.waffe)}</td>
+      <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${karteZelle(m)}</td><td>${wIcon(m.waffe)}${esc(m.waffe || "Unbekannt")}</td>
       <td><span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span></td>
       <td class="num">${m.splats}</td><td class="num">${m.assists}</td><td class="num">${m.deaths}</td>
       <td class="num">${m.spezials}</td><td class="num">${m.farbe}</td><td>${esc(m.notiz || "")}</td>
@@ -1186,9 +1215,9 @@ document.getElementById("matchForm").addEventListener("submit", (e) => {
 document.getElementById("demoBtn").addEventListener("click", () => {
   if (state.matches.length && !confirm("Beispieldaten zusätzlich zu deinen vorhandenen Matches laden?")) return;
   const heute = new Date();
-  const tag = (vor) => { const d = new Date(heute); d.setDate(d.getDate() - vor); return d.toISOString().slice(0, 10); };
+  const tag = (vor) => { const d = new Date(heute); d.setDate(d.getDate() - vor); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
   const demo = [];
-  const waffen = ["Kleckser", "Kleckser", "Kleckser", "Doppler", "Roller"];
+  const waffen = ["Kleckser", "Kleckser", "Kleckser", "Klecks-Doppler", "Klecksroller"];
   const demoKarten = ["Sengkluft", "Cetacea-Markt", "Mahi-Mahi-Resort", "Streifenaal-Straße", "Schollensiedlung", "Um'ami-Ruinen", "ROM & RAMen"];
   let id = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
   for (let i = 0; i < 24; i++) {
@@ -1230,18 +1259,37 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   try {
     const data = JSON.parse(await f.text());
     if (!Array.isArray(data.matches)) throw new Error("kein matches-Array");
-    state.matches = data.matches; state.srRuns = Array.isArray(data.srRuns) ? data.srRuns : []; state.habits = data.habits || {};
+    // Jeden Eintrag prüfen und normalisieren – eine kaputte Datei darf die App nicht lahmlegen
+    const z = (v, max) => { const n = +v; return Number.isFinite(n) ? Math.max(0, Math.min(max, Math.round(n))) : 0; };
+    let idM = 0, idS = 0;
+    state.matches = data.matches.map(m => ({
+      id: ++idM, ext: m && m.ext ? m.ext : undefined,
+      datum: String((m && m.datum) || heuteISO()).slice(0, 10),
+      modus: m && MODI.includes(m.modus) ? m.modus : "Herrschaft",
+      waffe: String((m && m.waffe) || "Unbekannt"), karte: m && m.karte ? String(m.karte) : undefined,
+      ergebnis: m && m.ergebnis === "S" ? "S" : "N",
+      splats: z(m && m.splats, 99), assists: z(m && m.assists, 99), deaths: z(m && m.deaths, 99),
+      spezials: z(m && m.spezials, 99), farbe: z(m && m.farbe, 9999),
+      notiz: m && m.notiz ? String(m.notiz).slice(0, 200) : "" }));
+    state.srRuns = (Array.isArray(data.srRuns) ? data.srRuns : []).map(r => ({
+      id: ++idS, ext: r && r.ext ? r.ext : undefined, datum: String((r && r.datum) || heuteISO()).slice(0, 10),
+      gefahr: z(r && r.gefahr, 333), wellen: z(r && r.wellen, 3),
+      koenig: r && r.koenig === "S" ? "S" : r && r.koenig === "N" ? "N" : "",
+      eier: z(r && r.eier, 999), bosse: z(r && r.bosse, 999),
+      rettungen: z(r && r.rettungen, 99), gerettet: z(r && r.gerettet, 99) }));
+    state.habits = (data.habits && typeof data.habits === "object") ? data.habits : {};
     state.session = null; state.lastSummary = null; // alte Session passt nicht zu den neuen Daten
     speichereState(); renderAlles();
   } catch (err) { alert("Import fehlgeschlagen: " + err.message); }
   e.target.value = "";
 });
 /* ---------- stat.ink / s3s Import ---------- */
+const WAFFE_EN_DE = Object.fromEntries(WAFFEN.map(w => [w.e, w.n]));
 const RULE_MAP = {
   nawabari: "Revierkampf", area: "Herrschaft", yagura: "Turm-Kommando", hoko: "Operation Goldfisch", asari: "Muschelchaos",
   TURF_WAR: "Revierkampf", AREA: "Herrschaft", LOFT: "Turm-Kommando", GOAL: "Operation Goldfisch", CLAM: "Muschelchaos",
 };
-const heuteISO = () => new Date().toISOString().slice(0, 10);
+const heuteISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
 function parseStatInk(objekte) {
   const battles = [], salmon = []; let uebersprungen = 0;
@@ -1284,6 +1332,7 @@ function parseStatInk(objekte) {
       if (o.weapon.name) wname = o.weapon.name["de-DE"] || o.weapon.name["de_DE"] || o.weapon.name["en-US"] || o.weapon.name["en_US"] || o.weapon.key || "Unbekannt";
       else wname = o.weapon.key || String(o.weapon);
     }
+    wname = WAFFE_EN_DE[wname] || wname; // englische Namen lokal eindeutschen (Katalog-Ausfall, s3s-Dateien)
     let karte = "";
     if (o.stage) {
       const sn = o.stage.name || {};
@@ -1314,8 +1363,12 @@ function uebernehmeStatinkObjekte(objekte) {
   for (const b of battles) {
     if (b.ext && bekannteB.has(b.ext)) {
       duplikate++;
-      // Fehlende Karten-Info bei bereits vorhandenen Matches nachtragen
-      if (b.karte) { const alt = state.matches.find(m => m.ext === b.ext); if (alt && !alt.karte) alt.karte = b.karte; }
+      // Fehlende Karten-Info / englische Waffennamen bei vorhandenen Matches reparieren
+      const vorhanden = state.matches.find(m => m.ext === b.ext);
+      if (vorhanden) {
+        if (b.karte && !vorhanden.karte) vorhanden.karte = b.karte;
+        if (b.waffe && !WAFFEN_BILD[vorhanden.waffe] && WAFFEN_BILD[b.waffe]) vorhanden.waffe = b.waffe;
+      }
       continue;
     }
     state.matches.push({ id: ++idB, ...b });
@@ -1353,6 +1406,7 @@ async function statinkWaffenMap() {
   } catch (e) {}
   try {
     const r = await fetch("https://stat.ink/api/v3/weapon?full=1");
+    if (!r.ok) throw new Error("HTTP " + r.status);
     const liste = await r.json();
     const map = {};
     for (const w of liste) map[w.key] = (w.name && (w.name.de_DE || w.name["de-DE"])) || null;
@@ -1411,7 +1465,8 @@ async function statinkSync(still) {
     // einmalig über alle Profilseiten auffüllen (läuft nur, solange noch welche fehlen)
     let nachgetragen = 0;
     const fehlend = new Set(state.matches.filter(m => m.ext && !m.karte).map(m => m.ext));
-    if (fehlend.size) {
+    const backfillFaellig = !(state.statink && state.statink.backfillZeit) || Date.now() - state.statink.backfillZeit > 12 * 3600e3;
+    if (fehlend.size && backfillFaellig) try {
       setze(`Trage Karten für ${fehlend.size} ältere Matches nach …`);
       let letzteErste = null;
       for (let seite = 1; seite <= 20 && fehlend.size; seite++) {
@@ -1434,7 +1489,8 @@ async function statinkSync(still) {
           }
         }
       }
-    }
+      state.statink = Object.assign({}, state.statink, { backfillZeit: Date.now() });
+    } catch (e) { state.statink = Object.assign({}, state.statink, { backfillZeit: Date.now() }); }
     state.statink = Object.assign({}, state.statink, { name, letzterSync: new Date().toISOString() });
     speichereState();
     if (erg.neu > 0 || nachgetragen > 0) renderAlles();
@@ -1674,7 +1730,7 @@ function erzeugeTipps(stats) {
         ? ` Häufigster Fehler dort: ${info.typische_fehler[0]} Top-Spieler dagegen: ${info.top_spieler[0]}`
         : "";
       tipps.push({ sev: "wichtig", titel: `${name} ist dein schwächster Modus (${Math.round(v.winrate * 100)} % Winrate, ${v.n} Matches)`,
-        text: `Lies den Modus-Guide im Tab „Top-Spieler-Wissen“.${extra}` });
+        text: `Lies den Modus-Guide im Tab „📚 Wissen“.${extra}` });
     }
   }
 
@@ -1690,7 +1746,7 @@ function erzeugeTipps(stats) {
     const [kname, kv] = karten[0];
     if (kv.winrate < Math.max(0.35, stats.winrate - 0.15)) tipps.push({ sev: "tipp",
       titel: `${kname} ist deine schwächste Karte (${Math.round(kv.winrate * 100)} % Winrate in ${kv.n} Matches)`,
-      text: `Nimm dir 10 Minuten im Erholungsmodus/Testareal nur für diese Karte: Merke dir 2 Wege zur Mitte, die besten Flanken und wo du dich zurückziehen kannst. Karten-Wissen ist der günstigste Winrate-Boost – Details zu jeder Karte findest du im Spiel-Lexikon (Tab „Top-Spieler-Wissen“) mit Link ins Splatoon-Wiki.` });
+      text: `Nimm dir 10 Minuten im Erholungsmodus/Testareal nur für diese Karte: Merke dir 2 Wege zur Mitte, die besten Flanken und wo du dich zurückziehen kannst. Karten-Wissen ist der günstigste Winrate-Boost – Details zu jeder Karte findest du im Spiel-Lexikon (Tab „📚 Wissen“) mit Link ins Splatoon-Wiki.` });
   }
 
   // Waffen-Streuung
@@ -2606,7 +2662,8 @@ function initialisiereMonitor() {
   });
   zeigeAufnahme();
   $("#monEmpf").addEventListener("change", () => {
-    if (state.monitor) { state.monitor.empfindlichkeit = +$("#monEmpf").value; speichereState(); }
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { empfindlichkeit: +$("#monEmpf").value });
+    speichereState();
   });
 }
 
@@ -2721,9 +2778,15 @@ function renderWissen() {
         return `<tr><td>${wIcon(w)}<strong>${esc(w)}</strong> (${e.n}×)</td><td style="color:${diff >= 0 ? "var(--delta-good)" : "var(--status-critical)"}">${Math.round(dwr * 100)} %</td><td>${Math.round(g.wr * 100)} %</td><td>${fmt1(g.d)}</td></tr>`; }).join("")}
       </table></div>` : ""}
       <h3 style="margin:16px 0 4px">Die 15 stärksten Waffen (höchste Winrate)</h3>
+      ${topWr.map(([w, v], i) => `<div class="balken-reihe">
+        <span class="bname">${wIcon(w)}<span>${i + 1}. ${esc(w)}</span></span>
+        <div class="balken"><div class="fuellung" style="width:${Math.round(v.wr * 100)}%"></div><div class="marke50"></div></div>
+        <span class="bwert">${(v.wr * 100).toFixed(1)} %</span>
+      </div>`).join("")}
+      <details class="tableview"><summary>Mit Kills/Deaths als Tabelle anzeigen</summary>
       <div class="kb-table-scroll"><table class="kb"><tr><th>#</th><th>Waffe</th><th>Winrate</th><th>Ø Kills</th><th>Ø Deaths</th><th>Einsätze</th></tr>
       ${topWr.map(([w, v], i) => `<tr><td>${i + 1}</td><td>${wIcon(w)}<strong>${esc(w)}</strong></td><td>${(v.wr * 100).toFixed(1)} %</td><td>${fmt1(v.k)}</td><td>${fmt1(v.d)}</td><td>${v.n.toLocaleString("de-DE")}</td></tr>`).join("")}
-      </table></div>
+      </table></div></details>
       <h3 style="margin:16px 0 4px">Die 10 meistgespielten Waffen</h3>
       <div class="kb-table-scroll"><table class="kb"><tr><th>#</th><th>Waffe</th><th>Einsätze</th><th>Winrate</th></tr>
       ${topN.map(([w, v], i) => `<tr><td>${i + 1}</td><td>${wIcon(w)}<strong>${esc(w)}</strong></td><td>${v.n.toLocaleString("de-DE")}</td><td>${(v.wr * 100).toFixed(1)} %</td></tr>`).join("")}
@@ -2817,8 +2880,8 @@ if (location.port === "52735") document.body.insertAdjacentHTML("beforeend",
 document.getElementById("waffenListe").innerHTML = WAFFEN.map(w => `<option value="${esc(w.n)}">${esc(w.k)}</option>`).join("");
 document.getElementById("kartenListe").innerHTML = KARTEN.map(k => `<option value="${esc(k)}"></option>`).join("");
 
-$("#fDatum").value = new Date().toISOString().slice(0, 10);
-$("#sDatum").value = new Date().toISOString().slice(0, 10);
+$("#fDatum").value = heuteISO();
+$("#sDatum").value = heuteISO();
 renderAlles();
 initialisiereMonitor();
 
