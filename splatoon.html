@@ -254,7 +254,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.08"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.09"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -284,18 +284,11 @@ const APP_VERSION = "2026-08-10.08"; // Zähler ab jetzt immer zweistellig (Stri
     <button id="themeToggle" title="Hell/Dunkel umschalten">🌗 Design</button>
   </header>
 
-  <div class="form-actions" style="margin-top:10px">
-    <span style="font-size:13px; color:var(--text-secondary)">Modus:</span>
-    <button id="modusCoach" class="primary" style="padding:6px 14px">🏆 Besser werden</button>
-    <button id="modusLernen" style="padding:6px 14px">📚 Spiel lernen</button>
-  </div>
-
   <nav class="tabs" id="tabs">
     <button data-tab="uebersicht" class="active">Übersicht</button>
     <button data-tab="matches">Matches</button>
     <button data-tab="coach">Coach</button>
     <button data-tab="live">🔴 Live-Coach</button>
-    <button data-tab="schule">📚 Schule</button>
     <button data-tab="salmon">Salmon Run</button>
     <button data-tab="selbstcheck">Selbst-Check</button>
     <button data-tab="wissen">Top-Spieler-Wissen</button>
@@ -383,11 +376,6 @@ const APP_VERSION = "2026-08-10.08"; // Zähler ab jetzt immer zweistellig (Stri
   <section id="tab-live" hidden>
     <div id="liveInhalt"></div>
     <div id="monitorHalter"></div>
-  </section>
-
-  <!-- SCHULE -->
-  <section id="tab-schule" hidden>
-    <div id="schuleInhalt"></div>
   </section>
 
   <!-- SALMON RUN -->
@@ -652,41 +640,6 @@ const WISSEN = {
 };
 /* =============================================================================== */
 
-/* ================= SPLATOON-SCHULE (Lern-Modus) ================= */
-const SCHULE = [
-  { id: "tinte", titel: "Tinte ist alles", inhalt: "Deine Farbe auf dem Boden ist gleichzeitig Straße, Versteck und Tinten-Tank: In eigener Farbe schwimmst du als Kalmar blitzschnell, lädst deine Tinte nach und bist fast unsichtbar. In gegnerischer Farbe bist du langsam wie in Kaugummi und nimmst sogar Schaden. Deshalb ist Malen nie verschwendete Zeit – es baut dir dein Spielfeld.",
-    quiz: { frage: "Was passiert, wenn du in gegnerischer Tinte stehst?", optionen: ["Nichts Besonderes", "Du wirst schneller", "Du wirst langsam und nimmst Schaden"], richtig: 2, erklaerung: "Genau! Darum gilt: erst malen, dann laufen – und Kämpfe immer von der eigenen Farbe aus." },
-    praxis: "Achte ein ganzes Match nur darauf, möglichst immer auf eigener Farbe zu sein." },
-  { id: "formen", titel: "Kind-Form und Kalmar-Form", inhalt: "Du hast zwei Formen: In der Kind-Form läufst und schießt du. Drückst du ZL, wirst du zum Kalmar: Der schwimmt in eigener Farbe viel schneller, taucht unter (fast unsichtbar!) und lädt dabei deine Tinte wieder auf. Gute Spieler wechseln ständig: schießen → abtauchen → woanders auftauchen.",
-    quiz: { frage: "Wie lädst du deine Tinte wieder auf?", optionen: ["Einfach warten", "Als Kalmar in eigener Farbe abtauchen", "Gegner treffen"], richtig: 1, erklaerung: "Richtig! Abtauchen lädt viel schneller als Warten – und macht dich gleichzeitig unsichtbar." },
-    praxis: "Übe den Rhythmus: 2–3 Schüsse, abtauchen, kurz schwimmen, wieder auftauchen." },
-  { id: "hud", titel: "Die Lampen und die Karte", inhalt: "Ganz oben am Bildschirm siehst du für beide Teams kleine Symbole – die „Lampen“: Sie zeigen, wer gerade lebt (Symbol da) oder tot ist (durchgestrichen) und wessen Spezialwaffe geladen ist (Symbol leuchtet). Mit X öffnest du die Karte: Dort siehst du, wo gemalt ist und wo deine Teamkollegen sind. Wer Lampen und Karte nutzt, weiß immer, ob ein Angriff gerade schlau ist.",
-    quiz: { frage: "Was verraten dir die Lampen oben?", optionen: ["Wer lebt und wessen Spezialwaffe bereit ist", "Nur deinen Punktestand", "Wie viel Zeit noch läuft"], richtig: 0, erklaerung: "Genau – 4 gegen 3? Angreifen! Drei gegnerische Spezials geladen? Lieber vorsichtig sein." },
-    praxis: "Schau in deinem nächsten Match nach jedem Kill oder Death einmal kurz auf die Lampen." },
-  { id: "waffen", titel: "Waffen-Sets verstehen", inhalt: "Jede Waffe ist ein festes Set aus drei Teilen: Hauptwaffe (z. B. Kleckser), Sekundärwaffe (z. B. eine Bombe – kostet viel Tinte!) und Spezialwaffe. Es gibt viele Klassen: Kleckser (Allround), Roller (Nahkampf), Konzentrator (Scharfschütze), Schwapper, Splatling, Doppler und mehr. Für den Anfang ist ein Kleckser perfekt – ausgewogen in allem.",
-    quiz: { frage: "Woraus besteht ein Waffen-Set?", optionen: ["Nur aus der Hauptwaffe", "Aus Haupt-, Sekundär- und Spezialwaffe", "Aus zwei Hauptwaffen"], richtig: 1, erklaerung: "Richtig! Die drei Teile sind fest verbunden – such dir ein Set, dessen Kombination dir liegt." },
-    praxis: "Wirf in deinem nächsten Match bewusst 3 Sekundärwaffen (Bomben) – und achte darauf, wie viel Tinte sie kosten." },
-  { id: "spezial", titel: "Die Spezialwaffe", inhalt: "Deine Spezialleiste (rechts oben) lädt sich durchs MALEN auf – nicht durch Kills. Ist sie voll, hast du eine mächtige Superwaffe. Aber Achtung: Wenn du stirbst, verlierst du einen großen Teil der Ladung! Deshalb machen es gute Spieler so: Spezialwaffe einsetzen BEVOR es gefährlich wird – nicht aufsparen, bis es zu spät ist.",
-    quiz: { frage: "Wie lädst du deine Spezialwaffe auf?", optionen: ["Durch Kills", "Durch Warten", "Durch das Einfärben von Fläche"], richtig: 2, erklaerung: "Genau! Malen lädt die Leiste. Und merk dir: Lieber einmal zu früh zünden als mit voller Leiste sterben." },
-    praxis: "Setze in jedem Match mindestens 2 Spezialwaffen ein – male dafür aktiv Fläche." },
-  { id: "revier", titel: "Revierkampf: So gewinnst du wirklich", inhalt: "3 Minuten, und am Ende gewinnt das Team, das MEHR BODEN gefärbt hat – Kills zählen nicht direkt! Die Wände zählen übrigens auch nicht, nur der Boden. Der wichtigste Moment sind die letzten 30 Sekunden: Da entscheidet sich das Match. Färbe zuerst dein eigenes Startgebiet komplett (sichere Punkte!), dann kämpfe um die Mitte.",
-    quiz: { frage: "Was zählt am Ende im Revierkampf?", optionen: ["Wer die meisten Kills hat", "Welches Team mehr Boden gefärbt hat", "Wer zuerst die Mitte erreicht"], richtig: 1, erklaerung: "Richtig! Deshalb: Am Ende lieber große Flächen malen als Gegnern hinterherjagen." },
-    praxis: "Färbe im nächsten Revierkampf ZUERST dein komplettes Startgebiet, bevor du zur Mitte gehst." },
-  { id: "anarchie", titel: "Die 4 Anarchie-Modi in Kürze", inhalt: "Herrschaft: Halte die markierte Zone mit deiner Farbe – dein Zähler läuft runter, solange sie euch gehört. Turm-Kommando: Stell dich auf den Turm, er fährt Richtung Ziel. Operation Goldfisch: Schnapp dir den Goldfisch (erst seine Barriere zerschießen!) und trage ihn Richtung gegnerisches Podest. Muschelchaos: Sammle Muscheln und wirf sie in den gegnerischen Korb – 8 kleine ergeben eine Power-Muschel, die den Korb öffnet.",
-    quiz: { frage: "Worum geht es bei „Herrschaft“?", optionen: ["Eine Zone mit der eigenen Farbe halten", "Einen Turm fahren", "Muscheln sammeln"], richtig: 0, erklaerung: "Genau! Und ein Profi-Tipp vorweg: Steh nicht IN der Zone herum – verteidige sie von außen." },
-    praxis: "Spiel eine Runde Herrschaft und versuche, nie länger als 2 Sekunden in der eigenen Zone zu stehen." },
-  { id: "respawn", titel: "Warum Sterben so teuer ist", inhalt: "Nach einem Death bist du rund 8,5 Sekunden weg – plus den Rückweg. So lange kämpft dein Team 3 gegen 4! Der Super-Sprung hilft: Karte mit X öffnen, Teamkollegen mit dem Steuerkreuz auswählen und mit A bestätigen – schon springst du direkt zu ihm. Aber Vorsicht: Deine Landung ist für Gegner sichtbar – spring nie mitten ins Getümmel, sondern zu jemandem in Sicherheit.",
-    quiz: { frage: "Warum ist ein Death so schlimm für dein Team?", optionen: ["Man verliert Punkte", "Dein Team ist lange in Unterzahl", "Die Waffe wird schwächer"], richtig: 1, erklaerung: "Richtig! Über 10 Sekunden Unterzahl – darum lieber einmal zu früh zurückziehen als sinnlos sterben." },
-    praxis: "Frag dich nach jedem Death: Was habe ich mit diesem Leben erreicht? Ehrliche Antwort!" },
-  { id: "salmon", titel: "Salmon Run: Die Grundlagen", inhalt: "Im Salmon Run arbeitet ihr zu viert ZUSAMMEN gegen Wellen von Salmoniden. Die großen Boss-Salmoniden lassen beim Besiegen 3 Goldene Eier fallen – die müsst ihr zum Korb bringen, bis die Quote erfüllt ist. 3 Wellen überstehen = geschafft! Die wichtigste Regel: zusammenbleiben. Und der beste Trick: Bosse erst in Korbnähe besiegen, dann sind die Laufwege kurz. Eier kann man übrigens auch werfen!",
-    quiz: { frage: "Woher bekommst du Goldene Eier?", optionen: ["Sie liegen einfach herum", "Aus dem Korb", "Von besiegten Boss-Salmoniden"], richtig: 2, erklaerung: "Genau! Bosse sind die Eierquelle – und wer sie zum Korb lockt, spart sich das weite Tragen." },
-    praxis: "Versuche in deiner nächsten Schicht, 2 Bosse erst in Korbnähe zu besiegen." },
-  { id: "gear", titel: "Klamotten mit Superkräften (Ausrüstung)", inhalt: "Kopfbedeckung, Shirt und Schuhe haben Fähigkeiten: eine Haupt-Fähigkeit und bis zu 3 kleine Neben-Fähigkeiten (die du durch Spielen freischaltest). Beispiele: schneller schwimmen, Tinte sparen, schneller respawnen. Für den Anfang gilt: Zieh an, was dir gefällt! Erst ab höheren Rängen lohnt es sich, gezielt Fähigkeiten zu sammeln.",
-    quiz: { frage: "Was bringen dir deine Klamotten im Spiel?", optionen: ["Fähigkeiten wie schnelleres Schwimmen oder Tintensparen", "Nur einen coolen Look", "Mehr Leben"], richtig: 0, erklaerung: "Richtig! Aber kein Stress am Anfang – Spielverständnis bringt viel mehr als perfekte Ausrüstung." },
-    praxis: "Schau im Ausrüstungs-Menü nach, welche Fähigkeiten deine aktuellen Klamotten haben." },
-];
-/* =============================================================================== */
-
 /* ================= SPIELDATEN: Karten & Waffen (deutsche Namen + englische Wiki-Namen, Quelle: stat.ink-API) ================= */
 const KARTEN_INFO = [{"de": "Aalstahl-Metallwerk", "en": "Mincemeat Metalworks", "bild": "d/d9/S3_Stage_Mincemeat_Metalworks.jpg/480px-S3_Stage_Mincemeat_Metalworks.jpg"}, {"de": "Bahnhof Lemuria", "en": "Lemuria Hub", "bild": "2/22/S3_Stage_Lemuria_Hub.png/480px-S3_Stage_Lemuria_Hub.png"}, {"de": "Blauflossen-Depot", "en": "Bluefin Depot", "bild": "6/69/S3_Stage_Bluefin_Depot.png/480px-S3_Stage_Bluefin_Depot.png"}, {"de": "Buckelwal-Piste", "en": "Humpback Pump Track", "bild": "5/57/S3_Stage_Humpback_Pump_Track.png/480px-S3_Stage_Humpback_Pump_Track.png"}, {"de": "Cetacea-Markt", "en": "MakoMart", "bild": "4/47/S3_Stage_MakoMart.png/480px-S3_Stage_MakoMart.png"}, {"de": "Dekabahnstation", "en": "Urchin Underpass", "bild": "f/fa/S3_Stage_Urchin_Underpass.png/480px-S3_Stage_Urchin_Underpass.png"}, {"de": "Flunder-Funpark", "en": "Wahoo World", "bild": "7/71/S3_Stage_Wahoo_World.png/480px-S3_Stage_Wahoo_World.png"}, {"de": "Frachtschiff Schwerfisch", "en": "Shipshape Cargo Co.", "bild": "8/8b/S3_Stage_Shipshape_Cargo_Co..png/480px-S3_Stage_Shipshape_Cargo_Co..png"}, {"de": "Kusaya-Quellen", "en": "Brinewater Springs", "bild": "f/fc/S3_Stage_Brinewater_Springs.png/480px-S3_Stage_Brinewater_Springs.png"}, {"de": "La Ola Airport", "en": "Marlin Airport", "bild": "b/b6/S3_Stage_Marlin_Airport.png/480px-S3_Stage_Marlin_Airport.png"}, {"de": "Mahi-Mahi-Resort", "en": "Mahi-Mahi Resort", "bild": "6/6b/S3_Stage_Mahi-Mahi_Resort.png/480px-S3_Stage_Mahi-Mahi_Resort.png"}, {"de": "Makrelenbrücke", "en": "Hammerhead Bridge", "bild": "9/94/S3_Stage_Hammerhead_Bridge.png/480px-S3_Stage_Hammerhead_Bridge.png"}, {"de": "Manta Maria", "en": "Manta Maria", "bild": "8/86/S3_Stage_Manta_Maria.png/480px-S3_Stage_Manta_Maria.png"}, {"de": "Perlmutt-Akademie", "en": "Inkblot Art Academy", "bild": "4/45/S3_Stage_Inkblot_Art_Academy.png/480px-S3_Stage_Inkblot_Art_Academy.png"}, {"de": "Pinakoithek", "en": "Museum d'Alfonsino", "bild": "6/6a/S3_Stage_Museum_d%27Alfonsino.png/480px-S3_Stage_Museum_d%27Alfonsino.png"}, {"de": "ROM & RAMen", "en": "Robo ROM-en", "bild": "9/92/S3_Stage_Robo_ROM-en.png/480px-S3_Stage_Robo_ROM-en.png"}, {"de": "Schnapperchen-Basar", "en": "Hagglefish Market", "bild": "a/ad/S3_Stage_Hagglefish_Market.png/480px-S3_Stage_Hagglefish_Market.png"}, {"de": "Schollensiedlung", "en": "Flounder Heights", "bild": "2/23/S3_Stage_Flounder_Heights.png/480px-S3_Stage_Flounder_Heights.png"}, {"de": "Schwertmuschel-Reservoir", "en": "Undertow Spillway", "bild": "3/3a/S3_Stage_Undertow_Spillway.jpg/480px-S3_Stage_Undertow_Spillway.jpg"}, {"de": "Seespinnen-Skyline", "en": "Crableg Capital", "bild": "b/bb/S3_Stage_Crableg_Capital.png/480px-S3_Stage_Crableg_Capital.png"}, {"de": "Sengkluft", "en": "Scorch Gorge", "bild": "1/1c/S3_Stage_Scorch_Gorge.png/480px-S3_Stage_Scorch_Gorge.png"}, {"de": "Splatsville Grand Arena", "en": "Grand Splatlands Bowl", "bild": "4/41/S3_Stage_Grand_Splatlands_Bowl.png/480px-S3_Stage_Grand_Splatlands_Bowl.png"}, {"de": "Streifenaal-Straße", "en": "Eeltail Alley", "bild": "5/57/S3_Stage_Eeltail_Alley.jpg/480px-S3_Stage_Eeltail_Alley.jpg"}, {"de": "Störwerft", "en": "Sturgeon Shipyard", "bild": "4/45/S3_Stage_Sturgeon_Shipyard.png/480px-S3_Stage_Sturgeon_Shipyard.png"}, {"de": "Talerfisch & Pock", "en": "Barnacle & Dime", "bild": "2/2a/S3_Stage_Barnacle_%26_Dime.png/480px-S3_Stage_Barnacle_%26_Dime.png"}, {"de": "Um'ami-Ruinen", "en": "Um'ami Ruins", "bild": "9/95/S3_Stage_Um%27ami_Ruins.png/480px-S3_Stage_Um%27ami_Ruins.png"}];
 const KARTEN = KARTEN_INFO.map(k => k.de);
@@ -702,9 +655,9 @@ let state = ladeState();
 function ladeState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null, videoTraining: s.videoTraining || {}, schule: s.schule || {}, modus: s.modus || "coach", aufnahmen: s.aufnahmen || { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } }; }
+    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null, videoTraining: s.videoTraining || {}, aufnahmen: s.aufnahmen || { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } }; }
   } catch (e) { /* Speicher gesperrt oder defekt -> im Arbeitsspeicher weiterarbeiten */ }
-  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {}, schule: {}, modus: "coach", aufnahmen: { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } };
+  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {}, aufnahmen: { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } };
 }
 function speichereState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -733,34 +686,6 @@ function aktiviereTab(name) {
 document.getElementById("tabs").addEventListener("click", (e) => {
   const btn = e.target.closest("button[data-tab]"); if (!btn) return;
   aktiviereTab(btn.dataset.tab);
-});
-
-/* ---------- Modus: „Besser werden“ (Coach) vs. „Spiel lernen“ (Schule) ---------- */
-const LERN_TABS_AUS = ["coach", "live", "selbstcheck", "wissen"]; // im Lern-Modus ausgeblendet
-function wendeModusAn(wechsel) {
-  const lernen = state.modus === "lernen";
-  // Läuft der Live-Monitor (Kamera!), beim Wechsel in den Lern-Modus sauber stoppen –
-  // sonst liefe die Kamera unsichtbar weiter, ohne erreichbaren Stopp-Knopf.
-  if (lernen && typeof monitorStream !== "undefined" && monitorStream) {
-    const stop = document.getElementById("monStop");
-    if (stop) stop.click();
-  }
-  document.getElementById("modusCoach").className = lernen ? "" : "primary";
-  document.getElementById("modusLernen").className = lernen ? "primary" : "";
-  document.querySelectorAll("#tabs button").forEach(b => {
-    b.style.display = (lernen && LERN_TABS_AUS.includes(b.dataset.tab)) ? "none" : "";
-  });
-  const aktiv = document.querySelector("#tabs button.active");
-  if (wechsel) aktiviereTab(lernen ? "schule" : "uebersicht");
-  else if (aktiv && lernen && LERN_TABS_AUS.includes(aktiv.dataset.tab)) aktiviereTab("schule");
-}
-document.getElementById("modusCoach").addEventListener("click", () => {
-  if (state.modus === "coach") return;
-  state.modus = "coach"; speichereState(); wendeModusAn(true);
-});
-document.getElementById("modusLernen").addEventListener("click", () => {
-  if (state.modus === "lernen") return;
-  state.modus = "lernen"; speichereState(); wendeModusAn(true);
 });
 
 /* ---------- Hilfsfunktionen ---------- */
@@ -1275,11 +1200,40 @@ async function statinkSync(still) {
       if (bekanntesDabei) break; // Anschluss an schon vorhandene Matches gefunden
     }
     const erg = uebernehmeStatinkObjekte(neue);
+    // Karten automatisch nachtragen: ältere stat.ink-Matches ohne gespeicherte Karte
+    // einmalig über alle Profilseiten auffüllen (läuft nur, solange noch welche fehlen)
+    let nachgetragen = 0;
+    const fehlend = new Set(state.matches.filter(m => m.ext && !m.karte).map(m => m.ext));
+    if (fehlend.size) {
+      setze(`Trage Karten für ${fehlend.size} ältere Matches nach …`);
+      let letzteErste = null;
+      for (let seite = 1; seite <= 20 && fehlend.size; seite++) {
+        const r = await fetch(`https://stat.ink/@${encodeURIComponent(name)}/spl3/index.json?page=${seite}`, { cache: "no-store" });
+        if (!r.ok) break;
+        const liste = await r.json();
+        if (!Array.isArray(liste) || !liste.length) break;
+        const erste = liste[0] && (liste[0].uuid || liste[0].id);
+        if (erste && erste === letzteErste) break; // letzte Seite wiederholt sich
+        letzteErste = erste;
+        for (const b of liste) {
+          const uid = b.uuid || b.id;
+          if (!uid || !fehlend.has(uid) || !b.stage) continue;
+          const sn = b.stage.name || {};
+          const karte = sn["de-DE"] || sn["de_DE"] || STAGE_MAP[b.stage.key] || sn["en-US"] || sn["en_US"] || "";
+          if (karte) {
+            const m = state.matches.find(x => x.ext === uid);
+            if (m) { m.karte = String(karte); nachgetragen++; }
+            fehlend.delete(uid);
+          }
+        }
+      }
+    }
     state.statink = Object.assign({}, state.statink, { name, letzterSync: new Date().toISOString() });
     speichereState();
-    if (erg.neu > 0) renderAlles();
+    if (erg.neu > 0 || nachgetragen > 0) renderAlles();
     const uhr = new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
-    setze(erg.neu > 0 ? `✔ ${erg.neu} neue Matches übernommen (${uhr} Uhr)` : `✔ Auf dem neuesten Stand (${uhr} Uhr)`);
+    const extra = nachgetragen ? ` – ${nachgetragen} Karten nachgetragen` : "";
+    setze(erg.neu > 0 ? `✔ ${erg.neu} neue Matches übernommen${extra} (${uhr} Uhr)` : `✔ Auf dem neuesten Stand${extra} (${uhr} Uhr)`);
     if (!still) alert(erg.neu > 0 ? erg.neu + " neue Matches von stat.ink übernommen!" : "Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.");
   } catch (e) {
     setze("Sync gerade nicht möglich (offline?)");
@@ -1456,12 +1410,11 @@ function erzeugeTipps(stats) {
   const T = WISSEN.coach_schwellen, E = stats.erw, tipps = [];
   const modusInfo = (name) => (WISSEN.modi || []).find(m => m.modus === name);
 
-  const schulTipp = (id, nr) => (state.schule && (state.schule[id] || {}).fertig) ? "" : ` (📚 Lektion ${nr} in der Schule erklärt das in Ruhe.)`;
 
   // Deaths – relativ zum echten Durchschnitt des eigenen Modus-Mixes
   if (stats.avgDeaths > E.deaths * T.deaths_faktor_ok) tipps.push({ sev: "kritisch",
     titel: `Du stirbst öfter als der Durchschnitt deiner Modi (Ø ${fmt1(stats.avgDeaths)} vs. ${fmt1(E.deaths)})`,
-    text: `Das ist laut Daten der wichtigste Hebel: Auf Top-Niveau korreliert „weniger sterben“ am stärksten mit dem Sieg – mehr Kills fast gar nicht. Jeder Death kostet ~8,5 s Respawn plus Rückweg, also 10+ Sekunden Unterzahl für dein Team, und 40–75 % deiner Spezialleiste. Frag dich nach jedem Death: „Was hat dieses Leben gebracht?“ – wäre die Antwort „nichts“, war der Fight falsch.${schulTipp("respawn", 8)}` });
+    text: `Das ist laut Daten der wichtigste Hebel: Auf Top-Niveau korreliert „weniger sterben“ am stärksten mit dem Sieg – mehr Kills fast gar nicht. Jeder Death kostet ~8,5 s Respawn plus Rückweg, also 10+ Sekunden Unterzahl für dein Team, und 40–75 % deiner Spezialleiste. Frag dich nach jedem Death: „Was hat dieses Leben gebracht?“ – wäre die Antwort „nichts“, war der Fight falsch.` });
   else if (stats.avgDeaths > E.deaths * T.deaths_faktor_top) tipps.push({ sev: "wichtig",
     titel: `Deaths im Durchschnitt – Top-Spieler liegen ~15 % darunter (du: ${fmt1(stats.avgDeaths)}, Ziel: ≤ ${fmt1(E.deaths * T.deaths_faktor_top)})`,
     text: `Achte auf „Wirkungs-Deaths“: Stirb nur, wenn du etwas dafür bekommst (Träger/Fahrer gestoppt, 1:1 getauscht, Push aufgehalten). Rückzug ist keine Schande – die 2 Sekunden länger leben entscheiden das nächste Duell.` });
@@ -1480,7 +1433,7 @@ function erzeugeTipps(stats) {
   // Spezialeinsätze
   if (stats.avgSpezials < E.specials * T.specials_faktor_ok) tipps.push({ sev: "wichtig",
     titel: `Zu wenige Spezialeinsätze (Ø ${fmt1(stats.avgSpezials)}, Schnitt deiner Modi: ${fmt1(E.specials)})`,
-    text: `Zwei mögliche Ursachen: zu wenig gemalt oder mit geladener Leiste gestorben (kostet seit Patch 2.7.0 je nach Waffe 40–75 % der Ladung). Male aktiv auf dem Weg zum Ziel und setze die Spezialwaffe ein, BEVOR du ins Risiko gehst – am besten gestapelt mit dem Team.${schulTipp("spezial", 5)}` });
+    text: `Zwei mögliche Ursachen: zu wenig gemalt oder mit geladener Leiste gestorben (kostet seit Patch 2.7.0 je nach Waffe 40–75 % der Ladung). Male aktiv auf dem Weg zum Ziel und setze die Spezialwaffe ein, BEVOR du ins Risiko gehst – am besten gestapelt mit dem Team.` });
 
   // Farbleistung
   if (stats.avgFarbe < E.farbe * T.farbe_faktor_ok) tipps.push({ sev: "tipp",
@@ -2440,50 +2393,6 @@ function initialisiereMonitor() {
   });
 }
 
-/* ---------- Splatoon-Schule (Lern-Modus) ---------- */
-let schuleZuletzt = null; // zuletzt beantwortete Lektion offen halten (Feedback sichtbar!)
-function renderSchule() {
-  const el = $("#schuleInhalt");
-  if (!el) return;
-  // Manuell aufgeklappte Lektionen über Re-Renders hinweg offen lassen
-  const offeneIds = new Set([...el.querySelectorAll("details[data-lektion][open]")].map(d => d.dataset.lektion));
-  const fertig = SCHULE.filter(l => (state.schule[l.id] || {}).fertig).length;
-  const naechste = SCHULE.find(l => !(state.schule[l.id] || {}).fertig);
-  el.innerHTML = `
-    <div class="card">
-      <h2>📚 Splatoon-Schule</h2>
-      <p class="sub">Hier lernst du Schritt für Schritt, wie das Spiel funktioniert. Jede Lektion hat eine Quiz-Frage –
-      richtig beantwortet = Lektion geschafft. Dein Fortschritt: <strong>${fertig} von ${SCHULE.length}</strong> Lektionen.</p>
-      <div class="meter" style="margin:6px 0 4px"><div class="track" style="background: var(--series-1-track)"></div>
-        <div class="fill" style="width:${(fertig / SCHULE.length) * 100}%; background: var(--series-1)"></div></div>
-      ${fertig === SCHULE.length ? `<p style="color:var(--delta-good); font-weight:600; margin:10px 0 0">🎓 Schule abgeschlossen! Wechsle oben in den Modus „🏆 Besser werden“ – dort geht dein Training weiter.</p>` : ""}
-    </div>
-    ${SCHULE.map((l, i) => {
-      const st = state.schule[l.id] || {};
-      const naechsteHier = naechste && naechste.id === l.id;
-      const offen = naechsteHier || l.id === schuleZuletzt || offeneIds.has(l.id);
-      return `<details class="card" style="padding:12px 18px" data-lektion="${esc(l.id)}" ${offen ? "open" : ""}>
-        <summary style="cursor:pointer; font-weight:700; font-size:15px">${st.fertig ? "✅" : naechsteHier ? "▶️" : "⚪"} Lektion ${i + 1}: ${esc(l.titel)}${naechsteHier ? ' <span class="empf" style="font-size:11px; color:var(--delta-good); text-transform:uppercase">Hier weitermachen</span>' : ""}</summary>
-        <p style="margin:10px 0">${esc(l.inhalt)}</p>
-        <div style="background:var(--page); border-radius:12px; padding:12px 14px; margin:10px 0">
-          <p style="margin:0 0 8px; font-weight:600">❓ ${esc(l.quiz.frage)}</p>
-          ${st.fertig
-            ? `<p style="margin:0; color:var(--delta-good)">✔ Richtig beantwortet: „${esc(l.quiz.optionen[l.quiz.richtig])}“<br><span style="color:var(--text-secondary)">${esc(l.quiz.erklaerung)}</span></p>`
-            : l.quiz.optionen.map((o, oi) => `<button data-quiz="${esc(l.id)}" data-antwort="${oi}" style="display:block; width:100%; text-align:left; margin:6px 0; padding:10px 14px; border-radius:12px">${esc(o)}</button>`).join("") +
-              (st.falsch ? `<p style="margin:6px 0 0; color:var(--status-critical); font-size:13px">Nicht ganz – lies die Lektion nochmal und probier’s erneut!</p>` : "")}
-        </div>
-        <p style="margin:6px 0 4px; font-size:13.5px; color:var(--text-secondary)">🎮 <strong>Praxis-Aufgabe:</strong> ${esc(l.praxis)}</p>
-      </details>`;
-    }).join("")}`;
-  el.querySelectorAll("button[data-quiz]").forEach(b => b.addEventListener("click", () => {
-    const lektion = SCHULE.find(l => l.id === b.dataset.quiz);
-    const richtig = +b.dataset.antwort === lektion.quiz.richtig;
-    state.schule[lektion.id] = { fertig: richtig, falsch: !richtig };
-    schuleZuletzt = lektion.id; // Feedback (Erklärung bzw. „Nicht ganz“) sichtbar lassen
-    speichereState(); renderSchule();
-  }));
-}
-
 /* ---------- Selbst-Check ---------- */
 function renderSelbstcheck() {
   const liste = $("#habitListe"), fortschritt = $("#habitFortschritt");
@@ -2577,7 +2486,6 @@ function renderAlles() {
   renderMatches();
   renderCoach(stats, srStats);
   renderLive(stats);
-  renderSchule();
   renderSalmon();
   renderSelbstcheck();
   renderWissen();
@@ -2623,7 +2531,6 @@ $("#fDatum").value = new Date().toISOString().slice(0, 10);
 $("#sDatum").value = new Date().toISOString().slice(0, 10);
 renderAlles();
 initialisiereMonitor();
-wendeModusAn(state.modus === "lernen");
 
 // Offline-Fähigkeit als installierte Web-App (nur auf echtem HTTPS-Host, nicht in der claude.ai-Sandbox)
 if ("serviceWorker" in navigator && location.protocol === "https:" && !window.claude) {
