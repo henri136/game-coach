@@ -278,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.18"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.19"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -366,7 +366,7 @@ const APP_VERSION = "2026-08-10.18"; // Zähler ab jetzt immer zweistellig (Stri
         <div class="full form-actions" style="margin-top:2px">
           <button type="button" id="syncBtn">🔄 stat.ink-Sync</button>
           <label style="font-size:12.5px; color:var(--text-secondary)">Profil:
-            <input id="syncName" maxlength="40" style="width:110px; font:inherit; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)"></label>
+            <input id="syncName" maxlength="40" placeholder="dein stat.ink-Name" style="width:110px; font:inherit; padding:4px 10px; border-radius:999px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)"></label>
           <span id="syncStatus" style="font-size:12.5px; color:var(--text-muted)"></span>
         </div>
       </form>
@@ -753,6 +753,9 @@ const STORAGE_KEY = "splatoon3-coach-v1";
 const MODI = ["Revierkampf", "Herrschaft", "Turm-Kommando", "Operation Goldfisch", "Muschelchaos"];
 
 let state = ladeState();
+// Übergang: Wer schon stat.ink-Matches hat, aber nie einen Profilnamen gespeichert hat,
+// lief bisher über den eingebauten Standard "Henri" – einmalig übernehmen, damit der Sync weiterläuft
+if (!(state.statink && state.statink.name) && state.matches.some(m => m.ext)) state.statink = Object.assign({}, state.statink, { name: "Henri" });
 // Reparatur alter Beispieldaten: "Doppler"/"Roller" waren keine echten Waffennamen
 state.matches.forEach(m => { if (!m.ext) { if (m.waffe === "Doppler") m.waffe = "Klecks-Doppler"; else if (m.waffe === "Roller") m.waffe = "Klecksroller"; } });
 
@@ -1416,10 +1419,10 @@ async function statinkWaffenMap() {
 }
 
 async function statinkSync(still) {
-  const name = ((state.statink && state.statink.name) || "Henri").trim();
+  const name = ((state.statink && state.statink.name) || "").trim();
   const status = document.getElementById("syncStatus");
   const setze = (t) => { if (status) status.textContent = t; };
-  if (!name) { setze("Kein stat.ink-Profil eingetragen."); return; }
+  if (!name) { setze("Trage oben deinen stat.ink-Namen ein – dann kommen deine Matches automatisch."); return; }
   setze("Synchronisiere mit stat.ink …");
   try {
     const bekannt = new Set(state.matches.map(m => m.ext).filter(Boolean));
@@ -1505,7 +1508,7 @@ async function statinkSync(still) {
 }
 
 document.getElementById("syncBtn").addEventListener("click", () => statinkSync(false));
-document.getElementById("syncName").value = (state.statink && state.statink.name) || "Henri";
+document.getElementById("syncName").value = (state.statink && state.statink.name) || "";
 document.getElementById("syncName").addEventListener("change", () => {
   state.statink = Object.assign({}, state.statink, { name: $("#syncName").value.trim() });
   speichereState();
