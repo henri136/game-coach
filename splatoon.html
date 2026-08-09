@@ -285,6 +285,13 @@
   .rot-waffen { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; }
   .rot-waffen span { display: inline-flex; align-items: center; }
 
+  #monZoomKnoepfe { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 6px; z-index: 3; }
+  #monZoomKnoepfe button {
+    width: 42px; height: 42px; border-radius: 50%; padding: 0; font-size: 19px; font-weight: 700;
+    background: rgba(10,7,14,0.62); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);
+    touch-action: manipulation; -webkit-user-select: none; user-select: none;
+  }
+
   /* Salmon-Run-Tab im SplatNet-Look: Grizzco-Dunkelrot mit Rogen-Muster,
      Orange als Akzent, Statistik-Kacheln als gelbe Bärenpunkte-Karte.
      Bewusst in beiden Themes gleich – wie bei Nintendo. */
@@ -328,7 +335,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.31"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.32"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2504,6 +2511,7 @@ function initialisiereMonitor() {
       <h2>📺 Live-Monitor – lernende Erkennung (Capture-Karte oder iPad-Kamera)</h2>
       <p class="sub">Am PC: Capture-Karte als Quelle wählen. Am iPad: Kamera als Quelle wählen und das iPad so aufstellen, dass es den Fernseher sieht –
       dann mit „Bildausschnitt“ ein Rechteck genau um das TV-Bild ziehen. Die App zählt deine Deaths automatisch mit.
+      Mit ＋/－ (oder zwei Fingern) zoomst du ins Bild und verschiebst es mit einem Finger – die Erkennung schaut trotzdem aufs ganze Bild.
       Das Bild bleibt komplett auf deinem Gerät. (In der Chat-Vorschau gesperrt; auf dem iPad braucht es die App-Adresse, nicht den claude.ai-Link.)</p>
       <div class="form-actions" style="margin-bottom:10px">
         <select id="monQuelle" style="font:inherit; font-size:16px; padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--page); color:var(--text-primary); max-width:280px">
@@ -2523,10 +2531,17 @@ function initialisiereMonitor() {
         <span style="font-size:12px; color:var(--text-muted)">Tipp: Zum Einlernen auf einen Death-Moment spulen, Pause drücken, dann ☠.</span>
       </div>
       <div id="monFehler" class="empty-hint" style="display:none"></div>
-      <div id="monRahmen" style="position:relative; width:100%; display:none">
-        <video id="monVideo" muted playsinline style="width:100%; border-radius:12px; display:block; border:1.5px solid var(--border)"></video>
-        <div id="monCropRect" style="position:absolute; border:2px dashed rgba(255,255,255,0.95); outline:2px dashed var(--series-1); border-radius:4px; display:none; pointer-events:none"></div>
+      <div id="monRahmen" style="position:relative; width:100%; display:none; overflow:hidden; border-radius:12px; border:1.5px solid var(--border); touch-action:none">
+        <div id="monZoomWrap" style="transform-origin:0 0">
+          <video id="monVideo" muted playsinline style="width:100%; display:block"></video>
+          <div id="monCropRect" style="position:absolute; border:2px dashed rgba(255,255,255,0.95); outline:2px dashed var(--series-1); border-radius:4px; display:none; pointer-events:none"></div>
+        </div>
         <div id="monCropLayer" style="position:absolute; inset:0; display:none; touch-action:none; cursor:crosshair"></div>
+        <div id="monZoomKnoepfe">
+          <button id="zoomPlus" title="Ranzoomen" type="button">＋</button>
+          <button id="zoomMinus" title="Rauszoomen" type="button">－</button>
+          <button id="zoomReset" title="Wieder ganzes Bild" type="button" hidden>1×</button>
+        </div>
       </div>
       <div id="monSteuerung" style="display:none; margin-top:12px">
         <div class="form-actions">
@@ -2613,6 +2628,7 @@ function initialisiereMonitor() {
     video.pause(); video.srcObject = null; video.removeAttribute("src"); video.controls = false;
     if (monitorDateiUrl) { URL.revokeObjectURL(monitorDateiUrl); monitorDateiUrl = null; }
     monitorQuelle = null;
+    monZoom = { z: 1, sx: 0, sy: 0 }; wendeZoomAn();
     $("#monRahmen").style.display = "none"; $("#monSteuerung").style.display = "none"; $("#monTempo").style.display = "none";
     $("#monStart").hidden = false; $("#monBildschirm").hidden = false; $("#monDateiBtn").hidden = false;
     $("#monStop").hidden = true;
@@ -2770,9 +2786,12 @@ function initialisiereMonitor() {
     $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte neu anlernen (Beispiele passen nicht mehr).";
   });
   const cropPunkt = (e) => {
+    // Bildschirm-Position -> Anteil im (evtl. gezoomten) Videobild
     const b = rahmen.getBoundingClientRect();
-    return { x: Math.min(1, Math.max(0, (e.clientX - b.left) / b.width)),
-             y: Math.min(1, Math.max(0, (e.clientY - b.top) / b.height)) };
+    const vx = Math.min(1, Math.max(0, (e.clientX - b.left) / b.width));
+    const vy = Math.min(1, Math.max(0, (e.clientY - b.top) / b.height));
+    return { x: Math.min(1, Math.max(0, monZoom.sx + vx / monZoom.z)),
+             y: Math.min(1, Math.max(0, monZoom.sy + vy / monZoom.z)) };
   };
   cropLayer.addEventListener("pointerdown", (e) => { cropLayer.setPointerCapture(e.pointerId); cropStart = cropPunkt(e); });
   cropLayer.addEventListener("pointermove", (e) => {
@@ -2793,6 +2812,58 @@ function initialisiereMonitor() {
     speichereState(); zeigeCrop();
     $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte neu anlernen (☠ und 🎮 Beispiele zeigen).";
   });
+
+  // ---- Ranzoomen im Monitor-Bild: ＋/－-Knöpfe, Zwei-Finger-Geste, Verschieben mit einem Finger ----
+  // Nur fürs Auge: Die Death-Erkennung schaut weiter auf das ganze Bild bzw. den gewählten Ausschnitt.
+  let monZoom = { z: 1, sx: 0, sy: 0 }; // z = Vergrößerung, sx/sy = linke obere Ecke des sichtbaren Fensters (Anteil 0..1)
+  const zoomWrap = $("#monZoomWrap");
+  function wendeZoomAn() {
+    monZoom.z = Math.min(6, Math.max(1, monZoom.z));
+    const max = 1 - 1 / monZoom.z;
+    monZoom.sx = Math.min(max, Math.max(0, monZoom.sx));
+    monZoom.sy = Math.min(max, Math.max(0, monZoom.sy));
+    zoomWrap.style.transform = monZoom.z === 1 ? "" : `scale(${monZoom.z}) translate(${-monZoom.sx * 100}%, ${-monZoom.sy * 100}%)`;
+    $("#zoomReset").hidden = monZoom.z === 1;
+  }
+  function zoomeAuf(zNeu, fx, fy) { // fx/fy: der Bildpunkt, der beim Zoomen an seinem Platz bleibt
+    const vx = (fx - monZoom.sx) * monZoom.z, vy = (fy - monZoom.sy) * monZoom.z;
+    monZoom.z = Math.min(6, Math.max(1, zNeu));
+    monZoom.sx = fx - vx / monZoom.z; monZoom.sy = fy - vy / monZoom.z;
+    wendeZoomAn();
+  }
+  const zoomMitte = () => ({ fx: monZoom.sx + 0.5 / monZoom.z, fy: monZoom.sy + 0.5 / monZoom.z });
+  $("#zoomPlus").addEventListener("click", () => { const m = zoomMitte(); zoomeAuf(monZoom.z * 1.5, m.fx, m.fy); });
+  $("#zoomMinus").addEventListener("click", () => { const m = zoomMitte(); zoomeAuf(monZoom.z / 1.5, m.fx, m.fy); });
+  $("#zoomReset").addEventListener("click", () => { monZoom = { z: 1, sx: 0, sy: 0 }; wendeZoomAn(); });
+  const zoomZeiger = new Map();
+  rahmen.addEventListener("pointerdown", (e) => {
+    if (cropLayer.style.display === "block") return; // Ausschnitt-Ziehen hat Vorrang
+    if (e.target.closest("#monZoomKnoepfe")) return;
+    zoomZeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  });
+  rahmen.addEventListener("pointermove", (e) => {
+    if (!zoomZeiger.has(e.pointerId)) return;
+    const b = rahmen.getBoundingClientRect();
+    if (zoomZeiger.size === 1 && monZoom.z > 1) {
+      const alt = zoomZeiger.get(e.pointerId);
+      monZoom.sx -= (e.clientX - alt.x) / (b.width * monZoom.z);
+      monZoom.sy -= (e.clientY - alt.y) / (b.height * monZoom.z);
+      wendeZoomAn();
+    } else if (zoomZeiger.size === 2) {
+      const andere = [...zoomZeiger.entries()].find(([id]) => id !== e.pointerId)[1];
+      const alt = zoomZeiger.get(e.pointerId);
+      const dAlt = Math.hypot(alt.x - andere.x, alt.y - andere.y);
+      const dNeu = Math.hypot(e.clientX - andere.x, e.clientY - andere.y);
+      if (dAlt > 4) {
+        const vx = Math.min(1, Math.max(0, ((e.clientX + andere.x) / 2 - b.left) / b.width));
+        const vy = Math.min(1, Math.max(0, ((e.clientY + andere.y) / 2 - b.top) / b.height));
+        zoomeAuf(monZoom.z * (dNeu / dAlt), monZoom.sx + vx / monZoom.z, monZoom.sy + vy / monZoom.z);
+      }
+    }
+    zoomZeiger.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  });
+  for (const ev of ["pointerup", "pointercancel", "pointerleave"])
+    rahmen.addEventListener(ev, (e) => zoomZeiger.delete(e.pointerId));
   $("#monReset").addEventListener("click", monitorNeuesMatch);
   $("#monMinus").addEventListener("click", () => {
     autoDeaths = Math.max(0, autoDeaths - 1);
