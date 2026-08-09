@@ -255,7 +255,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.10"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.11"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -796,7 +796,35 @@ function renderUebersicht(stats) {
     const pfeil = wert >= 0 ? "▲" : "▼";
     return `<div class="delta ${gut ? "good" : "bad"}">${pfeil} ${einheit === "%" ? Math.abs(Math.round(wert * 100)) + " Pp." : fmt1(Math.abs(wert))} vs. 10 davor</div>`;
   };
+  // Auto-Feedback: das neueste Match (kommt per stat.ink-Sync von selbst) sofort bewerten
+  const neuestes = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id)[0];
+  let feedbackHtml = "";
+  if (neuestes) {
+    const m = neuestes;
+    const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
+    const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
+    const punkte = [];
+    if (m.deaths <= E.deaths - 1) punkte.push(`✅ Nur ${m.deaths} Deaths – besser als der ${esc(m.modus)}-Schnitt (${fmt1(E.deaths)}). Genau das gewinnt Matches!`);
+    else if (m.deaths >= E.deaths + 2) punkte.push(`⚠️ ${m.deaths} Deaths – der ${esc(m.modus)}-Schnitt liegt bei ${fmt1(E.deaths)}. Dein wichtigster Hebel: Kämpfe ohne Fluchtweg gar nicht erst annehmen.`);
+    if (m.splats + m.assists >= E.kills + E.assists + 1) punkte.push(`✅ ${m.splats + m.assists}× ausgeschaltet (Splats + Unterst.) – über dem Schnitt (${fmt1(E.kills + E.assists)}). Starke Wirkung!`);
+    const hinweis = liveHinweis(m);
+    if (hinweis) punkte.push("💡 " + esc(hinweis));
+    const kStat = m.karte && stats.proKarte[m.karte];
+    if (kStat && kStat.n >= 3) punkte.push(kStat.winrate >= 0.55
+      ? `🗺️ ${esc(m.karte)} liegt dir: ${Math.round(kStat.winrate * 100)} % Siege in ${kStat.n} Matches.`
+      : kStat.winrate <= 0.45 ? `🗺️ ${esc(m.karte)} ist eine Baustelle: nur ${Math.round(kStat.winrate * 100)} % Siege in ${kStat.n} Matches – schau sie dir in der Karten-Galerie an.` : "");
+    feedbackHtml = `
+    <div class="card">
+      <h2>🤖 Auto-Feedback: Dein letztes Match</h2>
+      <p class="sub" style="margin-bottom:8px">${esc(m.datum)} · ${esc(m.modus)}${m.karte ? " · " + esc(m.karte) : ""} · ${esc(m.waffe)}
+        · <span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span>
+        · ${m.splats}/${m.assists}/${m.deaths} (Splats/Unterst./Deaths), ${m.spezials} Spezials</p>
+      ${punkte.filter(Boolean).map(p => `<p style="margin:6px 0; font-size:13.5px">${p}</p>`).join("") || '<p style="margin:6px 0; font-size:13.5px">Solides Match – keine Auffälligkeiten. Weiter so!</p>'}
+      <p style="margin:8px 0 0; font-size:12px; color:var(--text-muted)">Kommt automatisch: Neue Matches landen per stat.ink-Abgleich hier – samt Karte, Modus, Waffe und Ergebnis.</p>
+    </div>`;
+  }
   el.innerHTML = `
+    ${feedbackHtml}
     <div class="card hero">
       <div class="label">Winrate gesamt (${stats.n} Matches)</div>
       <div class="value">${pct(stats.winrate)}</div>
