@@ -287,7 +287,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.23"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.24"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -818,26 +818,31 @@ function berechneStats(matches) {
   if (!matches.length) return null;
   const n = matches.length;
   const siege = matches.filter(m => m.ergebnis === "S").length;
-  const sum = (f) => matches.reduce((a, m) => a + f(m), 0);
+  // "unvollst"-Matches (z. B. SplatNet-Ferienimport) kennen nur das Ergebnis -
+  // sie zählen für Winrate/Karten/Modi, aber NICHT für Kill/Death-Durchschnitte
+  const voll = matches.filter(m => !m.unvollst);
+  const nv = voll.length || 1;
+  const sum = (f) => voll.reduce((a, m) => a + f(m), 0);
   const stats = {
-    n, siege, winrate: siege / n,
-    avgSplats: sum(m => m.splats) / n,
-    avgAssists: sum(m => m.assists) / n,
-    avgDeaths: sum(m => m.deaths) / n,
-    avgSpezials: sum(m => m.spezials) / n,
+    n, siege, winrate: siege / n, vollN: voll.length,
+    avgSplats: sum(m => m.splats) / nv,
+    avgAssists: sum(m => m.assists) / nv,
+    avgDeaths: sum(m => m.deaths) / nv,
+    avgSpezials: sum(m => m.spezials) / nv,
     kd: sum(m => m.deaths) ? sum(m => m.splats) / sum(m => m.deaths) : sum(m => m.splats),
     kad: sum(m => m.deaths) ? (sum(m => m.splats) + sum(m => m.assists)) / sum(m => m.deaths) : (sum(m => m.splats) + sum(m => m.assists)),
     proModus: {}, proWaffe: {},
   };
-  const turf = matches.filter(m => !istAnarchie(m.modus));
-  const anarchie = matches.filter(m => istAnarchie(m.modus));
+  const turf = voll.filter(m => !istAnarchie(m.modus));
+  const anarchie = voll.filter(m => istAnarchie(m.modus));
   stats.avgFarbeTurf = turf.length ? turf.reduce((a, m) => a + m.farbe, 0) / turf.length : null;
   stats.avgFarbeAnarchie = anarchie.length ? anarchie.reduce((a, m) => a + m.farbe, 0) / anarchie.length : null;
   for (const modus of MODI) {
     const ms = matches.filter(m => m.modus === modus);
+    const msVoll = ms.filter(m => !m.unvollst);
     if (ms.length) stats.proModus[modus] = { n: ms.length, siege: ms.filter(m => m.ergebnis === "S").length,
       winrate: ms.filter(m => m.ergebnis === "S").length / ms.length,
-      avgDeaths: ms.reduce((a, m) => a + m.deaths, 0) / ms.length };
+      avgDeaths: msVoll.length ? msVoll.reduce((a, m) => a + m.deaths, 0) / msVoll.length : 0 };
   }
   for (const m of matches) {
     (stats.proWaffe[m.waffe] ??= { n: 0, siege: 0 });
@@ -850,19 +855,19 @@ function berechneStats(matches) {
     stats.proKarte[m.karte].n++; if (m.ergebnis === "S") stats.proKarte[m.karte].siege++;
   }
   for (const k in stats.proKarte) stats.proKarte[k].winrate = stats.proKarte[k].siege / stats.proKarte[k].n;
-  stats.avgFarbe = sum(m => m.farbe) / n;
+  stats.avgFarbe = sum(m => m.farbe) / nv;
   // Erwartungswerte (echte stat.ink-Durchschnitte) gewichtet nach dem Modus-Mix des Spielers
   const E = WISSEN.modus_erwartung;
   stats.erw = { deaths: 0, kills: 0, assists: 0, specials: 0, farbe: 0 };
-  for (const m of matches) {
+  for (const m of voll) {
     const e = E[m.modus] || E["Herrschaft"];
-    stats.erw.deaths += e.deaths / n; stats.erw.kills += e.kills / n; stats.erw.assists += e.assists / n;
-    stats.erw.specials += e.specials / n; stats.erw.farbe += e.farbe / n;
+    stats.erw.deaths += e.deaths / nv; stats.erw.kills += e.kills / nv; stats.erw.assists += e.assists / nv;
+    stats.erw.specials += e.specials / nv; stats.erw.farbe += e.farbe / nv;
   }
   // Konstanz: Streuung der „Wirkung pro Leben“ über die Matches
-  const wirkungen = matches.map(m => (m.splats + m.assists) / Math.max(1, m.deaths));
-  const wMittel = wirkungen.reduce((a, b) => a + b, 0) / n;
-  const wStd = Math.sqrt(wirkungen.reduce((a, b) => a + (b - wMittel) ** 2, 0) / n);
+  const wirkungen = voll.map(m => (m.splats + m.assists) / Math.max(1, m.deaths));
+  const wMittel = wirkungen.length ? wirkungen.reduce((a, b) => a + b, 0) / wirkungen.length : 0;
+  const wStd = wirkungen.length ? Math.sqrt(wirkungen.reduce((a, b) => a + (b - wMittel) ** 2, 0) / wirkungen.length) : 0;
   stats.konstanzCV = wMittel > 0 ? wStd / wMittel : 0;
   // Rollende Winrate (Fenster 10) in chronologischer Reihenfolge
   const chrono = [...matches].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
@@ -954,10 +959,14 @@ function renderUebersicht(stats) {
     const E = WISSEN.modus_erwartung[m.modus] || WISSEN.modus_erwartung["Herrschaft"];
     const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
     const punkte = [];
+    if (m.unvollst) {
+      punkte.push("ℹ️ Von diesem Match kennt die App nur Modus, Karte und Ergebnis (SplatNet-Import) – die genauen Zahlen kommen später automatisch über stat.ink.");
+    } else {
     if (m.deaths <= E.deaths - 1) punkte.push(`✅ Nur ${m.deaths} Deaths – besser als der ${esc(m.modus)}-Schnitt (${fmt1(E.deaths)}). Genau das gewinnt Matches!`);
     else if (m.deaths >= E.deaths + 2) punkte.push(`⚠️ ${m.deaths} Deaths – der ${esc(m.modus)}-Schnitt liegt bei ${fmt1(E.deaths)}. Dein wichtigster Hebel: Kämpfe ohne Fluchtweg gar nicht erst annehmen.`);
     if (m.splats + m.assists >= E.kills + E.assists + 1) punkte.push(`✅ ${m.splats + m.assists}× ausgeschaltet (Splats + Unterst.) – über dem Schnitt (${fmt1(E.kills + E.assists)}). Starke Wirkung!`);
-    const hinweis = liveHinweis(m);
+    }
+    const hinweis = m.unvollst ? "" : liveHinweis(m);
     if (hinweis) punkte.push("💡 " + esc(hinweis));
     const kStat = m.karte && stats.proKarte[m.karte];
     if (kStat && kStat.n >= 3) punkte.push(kStat.winrate >= 0.55
@@ -968,7 +977,7 @@ function renderUebersicht(stats) {
       <h2>🤖 Auto-Feedback: Dein letztes Match</h2>
       <p class="sub" style="margin-bottom:8px">${esc(m.datum)} · ${esc(m.modus)}${m.karte ? " · " + esc(m.karte) : ""} · ${esc(m.waffe)}
         · <span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span>
-        · ${m.splats}/${m.assists}/${m.deaths} (Splats/Unterst./Deaths), ${m.spezials} Spezials</p>
+        · ${m.unvollst ? "nur Ergebnis bekannt" : `${m.splats}/${m.assists}/${m.deaths} (Splats/Unterst./Deaths), ${m.spezials} Spezials`}</p>
       ${punkte.filter(Boolean).map(p => `<p style="margin:6px 0; font-size:13.5px">${p}</p>`).join("") || '<p style="margin:6px 0; font-size:13.5px">Solides Match – keine Auffälligkeiten. Weiter so!</p>'}
       <p style="margin:8px 0 0; font-size:12px; color:var(--text-muted)">Kommt automatisch: Neue Matches landen per stat.ink-Abgleich hier – samt Karte, Modus, Waffe und Ergebnis.</p>
       <div class="form-actions" style="margin-top:10px">
@@ -1185,8 +1194,8 @@ function renderMatches() {
     chrono.map(m => `<tr>
       <td>${esc(m.datum)}</td><td>${esc(m.modus)}</td><td>${karteZelle(m)}</td><td>${wIcon(m.waffe)}${esc(m.waffe || "Unbekannt")}</td>
       <td><span class="result-chip"><span class="dot" style="background:${m.ergebnis === "S" ? gut : krit}"></span>${m.ergebnis === "S" ? "Sieg" : "Niederlage"}</span></td>
-      <td class="num">${m.splats}</td><td class="num">${m.assists}</td><td class="num">${m.deaths}</td>
-      <td class="num">${m.spezials}</td><td class="num">${m.farbe}</td><td>${esc(m.notiz || "")}</td>
+      <td class="num">${m.unvollst ? "–" : m.splats}</td><td class="num">${m.unvollst ? "–" : m.assists}</td><td class="num">${m.unvollst ? "–" : m.deaths}</td>
+      <td class="num">${m.unvollst ? "–" : m.spezials}</td><td class="num">${m.unvollst ? "–" : m.farbe}</td><td>${esc(m.notiz || "")}</td>
       <td><button data-del="${m.id}" title="Match löschen">✕</button></td></tr>`).join("") + "</table>";
   $("#matchTabelle").querySelectorAll("button[data-del]").forEach(b => b.addEventListener("click", () => {
     state.matches = state.matches.filter(m => m.id !== +b.dataset.del);
@@ -1282,7 +1291,8 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
       ergebnis: m && m.ergebnis === "S" ? "S" : "N",
       splats: z(m && m.splats, 99), assists: z(m && m.assists, 99), deaths: z(m && m.deaths, 99),
       spezials: z(m && m.spezials, 99), farbe: z(m && m.farbe, 9999),
-      notiz: m && m.notiz ? String(m.notiz).slice(0, 200) : "" }));
+      notiz: m && m.notiz ? String(m.notiz).slice(0, 200) : "",
+      unvollst: m && m.unvollst === true ? true : undefined }));
     state.srRuns = (Array.isArray(data.srRuns) ? data.srRuns : []).map(r => ({
       id: ++idS, ext: r && r.ext ? r.ext : undefined, datum: String((r && r.datum) || heuteISO()).slice(0, 10),
       gefahr: z(r && r.gefahr, 333), wellen: z(r && r.wellen, 3),
@@ -1414,7 +1424,8 @@ function parseStatInk(objekte) {
       datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(), modus,
       waffe: String(wname), karte: String(karte), ergebnis: o.result === "win" ? "S" : "N",
       splats: +o.kill || 0, assists: +o.assist || 0, deaths: +o.death || 0,
-      spezials: +(o.special ?? 0), farbe: +(o.inked ?? 0), notiz: "" });
+      spezials: +(o.special ?? 0), farbe: +(o.inked ?? 0), notiz: o.notiz ? String(o.notiz).slice(0, 200) : "",
+      unvollst: o.unvollstaendig === true ? true : undefined });
   };
   for (const o of objekte) {
     if (Array.isArray(o)) o.forEach(einzeln);
@@ -1584,11 +1595,12 @@ document.getElementById("syncName").addEventListener("change", () => {
 });
 
 document.getElementById("demoWegBtn").addEventListener("click", () => {
-  const wegM = state.matches.filter(m => !m.ext).length, wegS = state.srRuns.filter(r => !r.ext).length;
+  const istTemp = (x) => !x.ext || String(x.ext).startsWith("ferien-");
+  const wegM = state.matches.filter(istTemp).length, wegS = state.srRuns.filter(istTemp).length;
   if (!wegM && !wegS) { alert("Keine Beispieldaten gefunden – alle deine Einträge stammen von stat.ink."); return; }
-  if (!confirm(`${wegM} Matches und ${wegS} Salmon-Schichten ohne stat.ink-Herkunft löschen? (Das sind Beispieldaten oder von Hand eingetragene Einträge – deine echten stat.ink-Matches bleiben.)`)) return;
-  state.matches = state.matches.filter(m => m.ext);
-  state.srRuns = state.srRuns.filter(r => r.ext);
+  if (!confirm(`${wegM} Matches und ${wegS} Salmon-Schichten löschen? (Beispieldaten, Ferien-Importe und von Hand eingetragene Einträge – deine echten stat.ink-Matches bleiben.)`)) return;
+  state.matches = state.matches.filter(m => !istTemp(m));
+  state.srRuns = state.srRuns.filter(r => !istTemp(r));
   state.session = null;
   speichereState(); renderAlles();
 });
