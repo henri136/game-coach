@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.02"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.03"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1592,6 +1592,7 @@ function renderSalmon() {
     <div class="card">
       <h2>🎥 Video-Training: Von den Besten abschauen</h2>
       <p class="sub">Öffne ein Video von <a href="https://www.youtube.com/@kenshiro3114" target="_blank" rel="noopener" style="color:var(--series-1)">Kenshiro SalmonRun (けんしろ)</a>
+      oder <a href="https://www.youtube.com/@miyumiyu_chan" target="_blank" rel="noopener" style="color:var(--series-1)">Miyumiyu (みゆみゆー)</a>
       und beantworte beim Zuschauen diese 6 Beobachtungs-Fragen – genau so lernen Profis aus Videos: nicht passiv schauen, sondern gezielt beobachten.
       Fortschritt: ${erledigtVT}/${vt.length}</p>
       ${fokusText ? `<div class="live-banner warnung"><span class="icon">💡</span><div>Dein persönlicher Fokus<p>${esc(fokusText)}</p></div></div>` : ""}
@@ -1611,8 +1612,9 @@ function renderSalmon() {
       <ul>${(W.top_spieler || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
       <h2 style="margin-top:14px">Typische Fehler</h2>
       <ul>${(W.typische_fehler || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
-      <p class="sub" style="margin-top:10px">Zum Abgucken empfohlen: YouTube-Kanal „Kenshiro SalmonRun (けんしろ)“ – Salmon-Run-Spezialist.
-      Beim Zuschauen auf zwei Dinge achten: Wo steht er relativ zum Korb, und wann liefert er Eier ab vs. wann kämpft er?</p></div>` : "";
+      <p class="sub" style="margin-top:10px">Zum Abgucken empfohlen: „Kenshiro SalmonRun (けんしろ)“ und „Miyumiyu (みゆみゆー)“ – beides Salmon-Run-Spezialisten
+      (Miyumiyu spielt u. a. Streams bis zur maximalen Gefahrenstufe mit Profi-Teams). Beim Zuschauen auf zwei Dinge achten:
+      Wo stehen sie relativ zum Korb, und wann liefern sie Eier ab vs. wann kämpfen sie? Beide Kanäle sind im 🎥 Video-Training oben verlinkt.</p></div>` : "";
   const vtHandler = () => {
     el.querySelectorAll("input[data-vt]").forEach(cb => cb.addEventListener("change", () => {
       state.videoTraining[cb.dataset.vt] = cb.checked; speichereState(); renderAlles();
