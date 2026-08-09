@@ -278,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.20"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.21"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -762,9 +762,9 @@ state.matches.forEach(m => { if (!m.ext) { if (m.waffe === "Doppler") m.waffe = 
 function ladeState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null, videoTraining: s.videoTraining || {}, aufnahmen: s.aufnahmen || { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } }; }
+    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null, videoTraining: s.videoTraining || {}, seedHelfer: s.seedHelfer || null, aufnahmen: s.aufnahmen || { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } }; }
   } catch (e) { /* Speicher gesperrt oder defekt -> im Arbeitsspeicher weiterarbeiten */ }
-  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {}, aufnahmen: { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } };
+  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {}, seedHelfer: null, aufnahmen: { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } };
 }
 function speichereState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -1286,6 +1286,66 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
   } catch (err) { alert("Import fehlgeschlagen: " + err.message); }
   e.target.value = "";
 });
+/* ---------- Ausrüstungs-Helfer: Marken-Chancen + Seed-Vorhersage ----------
+   Algorithmus (XORSHIFT32 + Gewichte 10/2/1) wie im Spiel, dokumentiert von der
+   Seed-Checker-Community (leanny.github.io). Marken-Daten: Inkipedia. */
+const FAEHIGKEITEN = [
+  { k: "ink_saver_main", de: "Hauptverbrauch" }, { k: "ink_saver_sub", de: "Sekundärverbrauch" },
+  { k: "ink_recovery_up", de: "Regeneration +" }, { k: "run_speed_up", de: "Lauftempo +" },
+  { k: "swim_speed_up", de: "Schwimmtempo +" }, { k: "special_charge_up", de: "Spezialladezeit +" },
+  { k: "special_saver", de: "Spezialabzug -" }, { k: "special_power_up", de: "Spezialstärke +" },
+  { k: "quick_respawn", de: "Schnelle Rückkehr" }, { k: "quick_super_jump", de: "Supersprung +" },
+  { k: "sub_power_up", de: "Sekundärstärke +" }, { k: "ink_resistance_up", de: "Tintentoleranz +" },
+  { k: "sub_resistance_up", de: "Sekundärschutz +" }, { k: "intensify_action", de: "Action +" },
+];
+const MARKEN = [
+  { m: "Annaki", oft: "ink_saver_sub", selten: "special_saver" },
+  { m: "Barazushi", oft: "intensify_action", selten: "sub_power_up" },
+  { m: "Emberz", oft: "intensify_action", selten: "special_charge_up" },
+  { m: "Enperry", oft: "sub_power_up", selten: "ink_resistance_up" },
+  { m: "Firefin", oft: "ink_saver_sub", selten: "ink_recovery_up" },
+  { m: "Forge", oft: "special_power_up", selten: "ink_saver_sub" },
+  { m: "Inkline", oft: "sub_resistance_up", selten: "intensify_action" },
+  { m: "Krak-On", oft: "swim_speed_up", selten: "sub_resistance_up" },
+  { m: "Rockenberg", oft: "run_speed_up", selten: "swim_speed_up" },
+  { m: "Skalop", oft: "quick_respawn", selten: "special_saver" },
+  { m: "Splash Mob", oft: "ink_saver_main", selten: "run_speed_up" },
+  { m: "SquidForce", oft: "ink_resistance_up", selten: "ink_saver_main" },
+  { m: "Takoroka", oft: "special_charge_up", selten: "special_power_up" },
+  { m: "Tentatek", oft: "ink_recovery_up", selten: "quick_super_jump" },
+  { m: "Toni Kensa", oft: "ink_saver_main", selten: "sub_power_up" },
+  { m: "Z+F", oft: "special_saver", selten: "ink_recovery_up" },
+  { m: "Zekko", oft: "special_saver", selten: "special_charge_up" },
+  { m: "Zink", oft: "quick_super_jump", selten: "quick_respawn" },
+  { m: "amiibo (neutral)", neutral: true }, { m: "Cuttlegear (neutral)", neutral: true }, { m: "Grizzco (neutral)", neutral: true },
+];
+function seedWeiter(x) {
+  x = x >>> 0;
+  x = (x ^ ((x << 13) >>> 0)) >>> 0;
+  x = (x ^ (x >>> 17)) >>> 0;
+  x = (x ^ ((x << 5) >>> 0)) >>> 0;
+  return x;
+}
+function markenGewichte(markenName) {
+  const info = MARKEN.find(x => x.m === markenName);
+  return FAEHIGKEITEN.map(f => (info && !info.neutral) ? (f.k === info.oft ? 10 : f.k === info.selten ? 1 : 2) : 2);
+}
+function rolleFaehigkeit(roll, gewichte) {
+  for (let i = 0; i < gewichte.length; i++) { roll -= gewichte[i]; if (roll < 0) return i; }
+  return gewichte.length - 1;
+}
+function seedVorhersage(seed, markenName, anzahl) {
+  const g = markenGewichte(markenName);
+  const summe = g.reduce((a, b) => a + b, 0);
+  const liste = [];
+  let s = seed >>> 0;
+  for (let i = 0; i < anzahl; i++) {
+    s = seedWeiter(s);
+    liste.push(FAEHIGKEITEN[rolleFaehigkeit(s % summe, g)].de);
+  }
+  return liste;
+}
+
 /* ---------- stat.ink / s3s Import ---------- */
 const WAFFE_EN_DE = Object.fromEntries(WAFFEN.map(w => [w.e, w.n]));
 const RULE_MAP = {
@@ -2743,7 +2803,33 @@ function renderWissen() {
         </details>`;
       }).join("")}
     </div>`;
+  const abkDe = (k) => (FAEHIGKEITEN.find(f => f.k === k) || {}).de || k;
+  const seedGespeichert = state.seedHelfer || {};
+  const helferHtml = `
+    <div class="card"><h2>🔮 Ausrüstungs-Helfer</h2>
+      <p class="sub">Welche Neben-Fähigkeiten deine Kleidung bekommt, hängt von der Marke ab – und vom geheimen Seed deiner Ausrüstung.</p>
+      <details class="mode"><summary>Marken-Chancen: Welche Marke bringt welche Fähigkeit?</summary>
+        <p style="font-size:13px; color:var(--text-secondary); margin:8px 0 4px">„Oft“ kommt mit ~29 % Wahrscheinlichkeit, „Selten“ mit ~3 %, alle anderen mit je ~6 %. Neutrale Marken würfeln alles gleich (~7 %).</p>
+        <div class="kb-table-scroll"><table class="kb"><tr><th>Marke</th><th>Oft (×5)</th><th>Selten (×0,5)</th></tr>
+        ${MARKEN.map(mk => `<tr><td><strong>${esc(mk.m)}</strong></td><td>${mk.neutral ? "– alles gleich –" : esc(abkDe(mk.oft))}</td><td>${mk.neutral ? "–" : esc(abkDe(mk.selten))}</td></tr>`).join("")}
+        </table></div>
+      </details>
+      <details class="mode" ${seedGespeichert.seed ? "open" : ""}><summary>Seed-Vorhersage: die nächsten Fähigkeiten deiner Ausrüstung</summary>
+        <p style="font-size:13px; color:var(--text-secondary); margin:8px 0 8px">Finde einmalig den Seed eines Kleidungsstücks mit dem
+        <a href="https://leanny.github.io/splat3seedchecker/index.html#/" target="_blank" rel="noopener" style="color:var(--series-1)">Seed Checker von Leanny</a> –
+        danach sagt dir deine App hier selbst voraus, was als Nächstes gerollt wird (ohne Getränke-Tickets).</p>
+        <div class="form-actions">
+          <input id="seedEingabe" placeholder="Seed (z. B. 0x1A2B3C4D oder Zahl)" value="${esc(seedGespeichert.seed || "")}" style="font:inherit; padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--page); color:var(--text-primary); width:210px; font-size:16px">
+          <select id="seedMarke" style="font:inherit; padding:7px 10px; border-radius:8px; border:1px solid var(--border); background:var(--page); color:var(--text-primary)">
+            ${MARKEN.map(mk => `<option ${mk.m === seedGespeichert.marke ? "selected" : ""}>${esc(mk.m)}</option>`).join("")}
+          </select>
+          <button id="seedBtn" class="primary" type="button">Vorhersagen</button>
+        </div>
+        <div id="seedErgebnis" style="margin-top:10px"></div>
+      </details>
+    </div>`;
   const werkzeugeHtml = `
+    ${helferHtml}
     <div class="card"><h2>🧰 Nützliche Community-Werkzeuge</h2>
       <p class="sub">Praktische Helfer anderer Splatoon-Fans – öffnen sich im Browser.</p>
       <div class="coach-item"><div class="icon">🔮</div><div>
@@ -2842,6 +2928,18 @@ function renderWissen() {
     ${lexikonHtml}
     ${werkzeugeHtml}
     ${quellenHtml}`;
+  const seedBtn = document.getElementById("seedBtn");
+  if (seedBtn) seedBtn.addEventListener("click", () => {
+    const roh = (document.getElementById("seedEingabe").value || "").trim();
+    const marke = document.getElementById("seedMarke").value;
+    const wert = roh.toLowerCase().startsWith("0x") ? parseInt(roh, 16) : parseInt(roh, 10);
+    const ziel = document.getElementById("seedErgebnis");
+    if (!Number.isFinite(wert)) { ziel.innerHTML = '<p style="color:var(--status-critical); font-size:13px">Bitte einen gültigen Seed eingeben (Zahl oder 0x…-Schreibweise aus dem Seed Checker).</p>'; return; }
+    state.seedHelfer = { seed: roh, marke }; speichereState();
+    const liste = seedVorhersage(wert >>> 0, marke, 15);
+    ziel.innerHTML = `<p style="font-size:13px; margin:0 0 6px"><strong>Die nächsten 15 Fähigkeiten</strong> (Marke ${esc(marke)}, ohne Getränke-Tickets):</p>
+      <ol style="margin:0; padding-left:22px; font-size:13.5px; display:grid; gap:3px">${liste.map(f => `<li>${esc(f)}</li>`).join("")}</ol>`;
+  });
 }
 
 /* ---------- Gesamt-Render ---------- */
