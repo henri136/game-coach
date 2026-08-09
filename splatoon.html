@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-09.9";
+const APP_VERSION = "2026-08-10.01"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -310,13 +310,10 @@ const APP_VERSION = "2026-08-09.9";
           </select></div>
         <div><label for="fWaffe">Waffe</label>
           <input id="fWaffe" list="waffenListe" placeholder="z. B. Kleckser" required>
-          <datalist id="waffenListe">
-            <option>Kleckser</option><option>Junior-Kleckser</option><option>Airbrush MG</option>
-            <option>Blaster</option><option>Roller</option><option>Karbon-Roller</option>
-            <option>Konzentrator</option><option>Schwapper</option><option>Splatling</option>
-            <option>Doppler</option><option>Pluviator</option><option>Pinsel</option>
-            <option>Splatana</option><option>Bogen</option>
-          </datalist></div>
+          <datalist id="waffenListe"></datalist></div>
+        <div><label for="fKarte">Karte (optional)</label>
+          <input id="fKarte" list="kartenListe" placeholder="z. B. Sengkluft">
+          <datalist id="kartenListe"></datalist></div>
         <div><label for="fErgebnis">Ergebnis</label>
           <select id="fErgebnis" required><option value="S">Sieg</option><option value="N">Niederlage</option></select></div>
         <div><label for="fSplats">Splats (Kills)</label><input type="number" id="fSplats" min="0" max="50" required></div>
@@ -648,36 +645,42 @@ const WISSEN = {
 /* ================= SPLATOON-SCHULE (Lern-Modus) ================= */
 const SCHULE = [
   { id: "tinte", titel: "Tinte ist alles", inhalt: "Deine Farbe auf dem Boden ist gleichzeitig Straße, Versteck und Tinten-Tank: In eigener Farbe schwimmst du als Kalmar blitzschnell, lädst deine Tinte nach und bist fast unsichtbar. In gegnerischer Farbe bist du langsam wie in Kaugummi und nimmst sogar Schaden. Deshalb ist Malen nie verschwendete Zeit – es baut dir dein Spielfeld.",
-    quiz: { frage: "Was passiert, wenn du in gegnerischer Tinte stehst?", optionen: ["Nichts Besonderes", "Du wirst langsam und nimmst Schaden", "Du wirst schneller"], richtig: 1, erklaerung: "Genau! Darum gilt: erst malen, dann laufen – und Kämpfe immer von der eigenen Farbe aus." },
+    quiz: { frage: "Was passiert, wenn du in gegnerischer Tinte stehst?", optionen: ["Nichts Besonderes", "Du wirst schneller", "Du wirst langsam und nimmst Schaden"], richtig: 2, erklaerung: "Genau! Darum gilt: erst malen, dann laufen – und Kämpfe immer von der eigenen Farbe aus." },
     praxis: "Achte ein ganzes Match nur darauf, möglichst immer auf eigener Farbe zu sein." },
   { id: "formen", titel: "Kind-Form und Kalmar-Form", inhalt: "Du hast zwei Formen: In der Kind-Form läufst und schießt du. Drückst du ZL, wirst du zum Kalmar: Der schwimmt in eigener Farbe viel schneller, taucht unter (fast unsichtbar!) und lädt dabei deine Tinte wieder auf. Gute Spieler wechseln ständig: schießen → abtauchen → woanders auftauchen.",
     quiz: { frage: "Wie lädst du deine Tinte wieder auf?", optionen: ["Einfach warten", "Als Kalmar in eigener Farbe abtauchen", "Gegner treffen"], richtig: 1, erklaerung: "Richtig! Abtauchen lädt viel schneller als Warten – und macht dich gleichzeitig unsichtbar." },
     praxis: "Übe den Rhythmus: 2–3 Schüsse, abtauchen, kurz schwimmen, wieder auftauchen." },
   { id: "hud", titel: "Die Lampen und die Karte", inhalt: "Ganz oben am Bildschirm siehst du für beide Teams kleine Symbole – die „Lampen“: Sie zeigen, wer gerade lebt (Symbol da) oder tot ist (durchgestrichen) und wessen Spezialwaffe geladen ist (Symbol leuchtet). Mit X öffnest du die Karte: Dort siehst du, wo gemalt ist und wo deine Teamkollegen sind. Wer Lampen und Karte nutzt, weiß immer, ob ein Angriff gerade schlau ist.",
-    quiz: { frage: "Was verraten dir die Lampen oben?", optionen: ["Nur deinen Punktestand", "Wer lebt und wessen Spezialwaffe bereit ist", "Wie viel Zeit noch läuft"], richtig: 1, erklaerung: "Genau – 4 gegen 3? Angreifen! Drei gegnerische Spezials geladen? Lieber vorsichtig sein." },
+    quiz: { frage: "Was verraten dir die Lampen oben?", optionen: ["Wer lebt und wessen Spezialwaffe bereit ist", "Nur deinen Punktestand", "Wie viel Zeit noch läuft"], richtig: 0, erklaerung: "Genau – 4 gegen 3? Angreifen! Drei gegnerische Spezials geladen? Lieber vorsichtig sein." },
     praxis: "Schau in deinem nächsten Match nach jedem Kill oder Death einmal kurz auf die Lampen." },
   { id: "waffen", titel: "Waffen-Sets verstehen", inhalt: "Jede Waffe ist ein festes Set aus drei Teilen: Hauptwaffe (z. B. Kleckser), Sekundärwaffe (z. B. eine Bombe – kostet viel Tinte!) und Spezialwaffe. Es gibt viele Klassen: Kleckser (Allround), Roller (Nahkampf), Konzentrator (Scharfschütze), Schwapper, Splatling, Doppler und mehr. Für den Anfang ist ein Kleckser perfekt – ausgewogen in allem.",
     quiz: { frage: "Woraus besteht ein Waffen-Set?", optionen: ["Nur aus der Hauptwaffe", "Aus Haupt-, Sekundär- und Spezialwaffe", "Aus zwei Hauptwaffen"], richtig: 1, erklaerung: "Richtig! Die drei Teile sind fest verbunden – such dir ein Set, dessen Kombination dir liegt." },
     praxis: "Wirf in deinem nächsten Match bewusst 3 Sekundärwaffen (Bomben) – und achte darauf, wie viel Tinte sie kosten." },
   { id: "spezial", titel: "Die Spezialwaffe", inhalt: "Deine Spezialleiste (rechts oben) lädt sich durchs MALEN auf – nicht durch Kills. Ist sie voll, hast du eine mächtige Superwaffe. Aber Achtung: Wenn du stirbst, verlierst du einen großen Teil der Ladung! Deshalb machen es gute Spieler so: Spezialwaffe einsetzen BEVOR es gefährlich wird – nicht aufsparen, bis es zu spät ist.",
-    quiz: { frage: "Wie lädst du deine Spezialwaffe auf?", optionen: ["Durch Kills", "Durch das Einfärben von Fläche", "Durch Warten"], richtig: 1, erklaerung: "Genau! Malen lädt die Leiste. Und merk dir: Lieber einmal zu früh zünden als mit voller Leiste sterben." },
+    quiz: { frage: "Wie lädst du deine Spezialwaffe auf?", optionen: ["Durch Kills", "Durch Warten", "Durch das Einfärben von Fläche"], richtig: 2, erklaerung: "Genau! Malen lädt die Leiste. Und merk dir: Lieber einmal zu früh zünden als mit voller Leiste sterben." },
     praxis: "Setze in jedem Match mindestens 2 Spezialwaffen ein – male dafür aktiv Fläche." },
   { id: "revier", titel: "Revierkampf: So gewinnst du wirklich", inhalt: "3 Minuten, und am Ende gewinnt das Team, das MEHR BODEN gefärbt hat – Kills zählen nicht direkt! Die Wände zählen übrigens auch nicht, nur der Boden. Der wichtigste Moment sind die letzten 30 Sekunden: Da entscheidet sich das Match. Färbe zuerst dein eigenes Startgebiet komplett (sichere Punkte!), dann kämpfe um die Mitte.",
     quiz: { frage: "Was zählt am Ende im Revierkampf?", optionen: ["Wer die meisten Kills hat", "Welches Team mehr Boden gefärbt hat", "Wer zuerst die Mitte erreicht"], richtig: 1, erklaerung: "Richtig! Deshalb: Am Ende lieber große Flächen malen als Gegnern hinterherjagen." },
     praxis: "Färbe im nächsten Revierkampf ZUERST dein komplettes Startgebiet, bevor du zur Mitte gehst." },
-  { id: "anarchie", titel: "Die 4 Anarchie-Modi in Kürze", inhalt: "Herrschaft: Halte die markierte Zone mit deiner Farbe – dein Zähler läuft runter, solange sie euch gehört. Turm-Kommando: Stell dich auf den Turm, er fährt Richtung Ziel. Operation Goldfisch: Schnapp dir den Goldfisch (erst seine Barriere zerschießen!) und trage ihn Richtung gegnerisches Podest. Muschelchaos: Sammle Muscheln und wirf sie in den gegnerischen Korb – 10 kleine ergeben eine Power-Muschel, die den Korb öffnet.",
-    quiz: { frage: "Worum geht es bei „Herrschaft“?", optionen: ["Einen Turm fahren", "Eine Zone mit der eigenen Farbe halten", "Muscheln sammeln"], richtig: 1, erklaerung: "Genau! Und ein Profi-Tipp vorweg: Steh nicht IN der Zone herum – verteidige sie von außen." },
+  { id: "anarchie", titel: "Die 4 Anarchie-Modi in Kürze", inhalt: "Herrschaft: Halte die markierte Zone mit deiner Farbe – dein Zähler läuft runter, solange sie euch gehört. Turm-Kommando: Stell dich auf den Turm, er fährt Richtung Ziel. Operation Goldfisch: Schnapp dir den Goldfisch (erst seine Barriere zerschießen!) und trage ihn Richtung gegnerisches Podest. Muschelchaos: Sammle Muscheln und wirf sie in den gegnerischen Korb – 8 kleine ergeben eine Power-Muschel, die den Korb öffnet.",
+    quiz: { frage: "Worum geht es bei „Herrschaft“?", optionen: ["Eine Zone mit der eigenen Farbe halten", "Einen Turm fahren", "Muscheln sammeln"], richtig: 0, erklaerung: "Genau! Und ein Profi-Tipp vorweg: Steh nicht IN der Zone herum – verteidige sie von außen." },
     praxis: "Spiel eine Runde Herrschaft und versuche, nie länger als 2 Sekunden in der eigenen Zone zu stehen." },
-  { id: "respawn", titel: "Warum Sterben so teuer ist", inhalt: "Nach einem Death bist du rund 8,5 Sekunden weg – plus den Rückweg. So lange kämpft dein Team 3 gegen 4! Der Super-Sprung hilft: Auf der Karte (X) einen Teamkollegen antippen und du springst direkt zu ihm. Aber Vorsicht: Deine Landung ist für Gegner sichtbar – spring nie mitten ins Getümmel, sondern zu jemandem in Sicherheit.",
+  { id: "respawn", titel: "Warum Sterben so teuer ist", inhalt: "Nach einem Death bist du rund 8,5 Sekunden weg – plus den Rückweg. So lange kämpft dein Team 3 gegen 4! Der Super-Sprung hilft: Karte mit X öffnen, Teamkollegen mit dem Steuerkreuz auswählen und mit A bestätigen – schon springst du direkt zu ihm. Aber Vorsicht: Deine Landung ist für Gegner sichtbar – spring nie mitten ins Getümmel, sondern zu jemandem in Sicherheit.",
     quiz: { frage: "Warum ist ein Death so schlimm für dein Team?", optionen: ["Man verliert Punkte", "Dein Team ist lange in Unterzahl", "Die Waffe wird schwächer"], richtig: 1, erklaerung: "Richtig! Über 10 Sekunden Unterzahl – darum lieber einmal zu früh zurückziehen als sinnlos sterben." },
     praxis: "Frag dich nach jedem Death: Was habe ich mit diesem Leben erreicht? Ehrliche Antwort!" },
   { id: "salmon", titel: "Salmon Run: Die Grundlagen", inhalt: "Im Salmon Run arbeitet ihr zu viert ZUSAMMEN gegen Wellen von Salmoniden. Die großen Boss-Salmoniden lassen beim Besiegen 3 Goldene Eier fallen – die müsst ihr zum Korb bringen, bis die Quote erfüllt ist. 3 Wellen überstehen = geschafft! Die wichtigste Regel: zusammenbleiben. Und der beste Trick: Bosse erst in Korbnähe besiegen, dann sind die Laufwege kurz. Eier kann man übrigens auch werfen!",
-    quiz: { frage: "Woher bekommst du Goldene Eier?", optionen: ["Sie liegen einfach herum", "Von besiegten Boss-Salmoniden", "Aus dem Korb"], richtig: 1, erklaerung: "Genau! Bosse sind die Eierquelle – und wer sie zum Korb lockt, spart sich das weite Tragen." },
+    quiz: { frage: "Woher bekommst du Goldene Eier?", optionen: ["Sie liegen einfach herum", "Aus dem Korb", "Von besiegten Boss-Salmoniden"], richtig: 2, erklaerung: "Genau! Bosse sind die Eierquelle – und wer sie zum Korb lockt, spart sich das weite Tragen." },
     praxis: "Versuche in deiner nächsten Schicht, 2 Bosse erst in Korbnähe zu besiegen." },
   { id: "gear", titel: "Klamotten mit Superkräften (Ausrüstung)", inhalt: "Kopfbedeckung, Shirt und Schuhe haben Fähigkeiten: eine Haupt-Fähigkeit und bis zu 3 kleine Neben-Fähigkeiten (die du durch Spielen freischaltest). Beispiele: schneller schwimmen, Tinte sparen, schneller respawnen. Für den Anfang gilt: Zieh an, was dir gefällt! Erst ab höheren Rängen lohnt es sich, gezielt Fähigkeiten zu sammeln.",
-    quiz: { frage: "Was bringen dir deine Klamotten im Spiel?", optionen: ["Nur einen coolen Look", "Fähigkeiten wie schnelleres Schwimmen oder Tintensparen", "Mehr Leben"], richtig: 1, erklaerung: "Richtig! Aber kein Stress am Anfang – Spielverständnis bringt viel mehr als perfekte Ausrüstung." },
+    quiz: { frage: "Was bringen dir deine Klamotten im Spiel?", optionen: ["Fähigkeiten wie schnelleres Schwimmen oder Tintensparen", "Nur einen coolen Look", "Mehr Leben"], richtig: 0, erklaerung: "Richtig! Aber kein Stress am Anfang – Spielverständnis bringt viel mehr als perfekte Ausrüstung." },
     praxis: "Schau im Ausrüstungs-Menü nach, welche Fähigkeiten deine aktuellen Klamotten haben." },
 ];
+/* =============================================================================== */
+
+/* ================= SPIELDATEN: Karten & Waffen (Quelle: stat.ink-API, deutsche Spielnamen) ================= */
+const KARTEN = ["Aalstahl-Metallwerk", "Bahnhof Lemuria", "Blauflossen-Depot", "Buckelwal-Piste", "Cetacea-Markt", "Dekabahnstation", "Flunder-Funpark", "Frachtschiff Schwerfisch", "Kusaya-Quellen", "La Ola Airport", "Mahi-Mahi-Resort", "Makrelenbrücke", "Manta Maria", "Perlmutt-Akademie", "Pinakoithek", "ROM & RAMen", "Schnapperchen-Basar", "Schollensiedlung", "Schwertmuschel-Reservoir", "Seespinnen-Skyline", "Sengkluft", "Splatsville Grand Arena", "Streifenaal-Straße", "Störwerft", "Talerfisch & Pock", "Um'ami-Ruinen"];
+const STAGE_MAP = {"yunohana": "Sengkluft", "gonzui": "Streifenaal-Straße", "kinmedai": "Pinakoithek", "mategai": "Schwertmuschel-Reservoir", "namero": "Aalstahl-Metallwerk", "yagara": "Schnapperchen-Basar", "masaba": "Makrelenbrücke", "mahimahi": "Mahi-Mahi-Resort", "zatou": "Cetacea-Markt", "chozame": "Störwerft", "amabi": "Perlmutt-Akademie", "sumeshi": "Flunder-Funpark", "hirame": "Schollensiedlung", "kusaya": "Kusaya-Quellen", "manta": "Manta Maria", "nampla": "Um'ami-Ruinen", "taraport": "Talerfisch & Pock", "kombu": "Buckelwal-Piste", "takaashi": "Seespinnen-Skyline", "ohyo": "Frachtschiff Schwerfisch", "negitoro": "Blauflossen-Depot", "baigai": "ROM & RAMen", "kajiki": "La Ola Airport", "ryugu": "Bahnhof Lemuria", "grand_arena": "Splatsville Grand Arena", "decaline": "Dekabahnstation"};
+const WAFFEN = [{"n":"Blaster","k":"Blaster"},{"n":"Blaster GLAM","k":"Blaster"},{"n":"Blaster SE","k":"Blaster"},{"n":"Fern-Blaster","k":"Blaster"},{"n":"Fern-Blaster SE","k":"Blaster"},{"n":"Kontra-Blaster","k":"Blaster"},{"n":"Kontra-Blaster Neo","k":"Blaster"},{"n":"Luna-Blaster","k":"Blaster"},{"n":"Luna-Blaster Neo","k":"Blaster"},{"n":"Ordnung-Blaster Replik","k":"Blaster"},{"n":"S-BLAST91","k":"Blaster"},{"n":"S-BLAST92","k":"Blaster"},{"n":"Turbo-Blaster","k":"Blaster"},{"n":"Turbo-Blaster Deko","k":"Blaster"},{"n":"Turbo-Blaster Plus","k":"Blaster"},{"n":"Turbo-Blaster Plus Deko","k":"Blaster"},{"n":"Turbo-Blaster Plus WNT-R","k":"Blaster"},{"n":"Bast-Pluviator 24-A","k":"Pluviator"},{"n":"Bast-Pluviator 24-B","k":"Pluviator"},{"n":"Camp-Pluviator","k":"Pluviator"},{"n":"Camp-Pluviator CR-MA","k":"Pluviator"},{"n":"Flair-UnderCover","k":"Pluviator"},{"n":"Ordnung-Pluviator Replik","k":"Pluviator"},{"n":"Parapluviator","k":"Pluviator"},{"n":"Sorella-Camp-Pluviator","k":"Pluviator"},{"n":"Sorella-Parapluviator","k":"Pluviator"},{"n":"Sorella-UnderCover","k":"Pluviator"},{"n":"UnderCover","k":"Pluviator"},{"n":"Fächerfärber","k":"Pinsel"},{"n":"Fächerfärber BRN-Z","k":"Pinsel"},{"n":"Fächerfärber Fresco","k":"Pinsel"},{"n":"Kalligraf","k":"Pinsel"},{"n":"Kalligraf Astro","k":"Pinsel"},{"n":"Kalligraf Fresco","k":"Pinsel"},{"n":"Ordnung-Kalligraf Replik","k":"Pinsel"},{"n":"Quasto","k":"Pinsel"},{"n":"Quasto Fresco","k":"Pinsel"},{"n":"E-liter 4K","k":"Konzentrator"},{"n":"E-liter 4K SE","k":"Konzentrator"},{"n":"Klecks-Konzentrator","k":"Konzentrator"},{"n":"Klecks-Konzentrator TAR-N","k":"Konzentrator"},{"n":"Klotzer 14-A","k":"Konzentrator"},{"n":"Klotzer 14-B","k":"Konzentrator"},{"n":"Ordnung-Konzentrator Replik","k":"Konzentrator"},{"n":"R-BLR/5B","k":"Konzentrator"},{"n":"R-BLR/5H","k":"Konzentrator"},{"n":"Sepiator α","k":"Konzentrator"},{"n":"Sepiator β","k":"Konzentrator"},{"n":"T-Tuber","k":"Konzentrator"},{"n":"T-Tuber SE","k":"Konzentrator"},{"n":"Zekkori-Klecks-Konzentrator","k":"Konzentrator"},{"n":"Zekkori-Ziel-Konzentrator","k":"Konzentrator"},{"n":"Ziel-E-liter 4K","k":"Konzentrator"},{"n":"Ziel-E-liter 4K SE","k":"Konzentrator"},{"n":"Ziel-Konzentrator","k":"Konzentrator"},{"n":"Ziel-Konzentrator TAR-N","k":"Konzentrator"},{"n":"Dual-Platscher","k":"Doppler"},{"n":"Dual-Platscher SE","k":"Doppler"},{"n":"Dual-Platscher ZBR","k":"Doppler"},{"n":"Enperry-Klecks-Doppler","k":"Doppler"},{"n":"Glitz-Klecks-Doppler","k":"Doppler"},{"n":"Kelvin 525","k":"Doppler"},{"n":"Kelvin 525 Deko","k":"Doppler"},{"n":"Klecks-Doppler","k":"Doppler"},{"n":"Lösch-Doppler FW","k":"Doppler"},{"n":"Lösch-Doppler FW SE","k":"Doppler"},{"n":"Ordnung-Doppler Replik","k":"Doppler"},{"n":"Quadhopper Blanc","k":"Doppler"},{"n":"Quadhopper Noir","k":"Doppler"},{"n":"Sprenkler","k":"Doppler"},{"n":"Sprenkler Fresco","k":"Doppler"},{"n":"Sprenkler U-HU","k":"Doppler"},{"n":"L3 Tintenwerfer","k":"Punkter"},{"n":"L3 Tintenwerfer D","k":"Punkter"},{"n":"L3 Tintenwerfer Oro","k":"Punkter"},{"n":"S3 Tintenwerfer","k":"Punkter"},{"n":"S3 Tintenwerfer D","k":"Punkter"},{"n":"S3 Tintenwerfer VIP-R","k":"Punkter"},{"n":"Breitroller","k":"Roller"},{"n":"Breitroller Express","k":"Roller"},{"n":"Breitroller Exzell","k":"Roller"},{"n":"Dynaroller","k":"Roller"},{"n":"Dynaroller Galaxa","k":"Roller"},{"n":"Dynaroller Tesla","k":"Roller"},{"n":"Flex-Roller","k":"Roller"},{"n":"Flex-Roller Fol","k":"Roller"},{"n":"Karbonroller","k":"Roller"},{"n":"Karbonroller ANG-LR","k":"Roller"},{"n":"Karbonroller Deko","k":"Roller"},{"n":"Klecksroller","k":"Roller"},{"n":"Medusa-Klecksroller","k":"Roller"},{"n":"Ordnung-Roller Replik","k":"Roller"},{"n":".52 Gallon","k":"Kleckser"},{"n":".52 Gallon Deko","k":"Kleckser"},{"n":".96 Gallon","k":"Kleckser"},{"n":".96 Gallon Deko","k":"Kleckser"},{"n":".96 Gallon Leo","k":"Kleckser"},{"n":"Airbrush MG","k":"Kleckser"},{"n":"Airbrush RG","k":"Kleckser"},{"n":"Airbrush RGB","k":"Kleckser"},{"n":"Annaki-Kosmo-Kleckser","k":"Kleckser"},{"n":"Chroma-Kleckser","k":"Kleckser"},{"n":"Disperser","k":"Kleckser"},{"n":"Disperser Neo","k":"Kleckser"},{"n":"Fein-Disperser","k":"Kleckser"},{"n":"Fein-Disperser GK-KO","k":"Kleckser"},{"n":"Fein-Disperser Neo","k":"Kleckser"},{"n":"Focus-Profi-Kleckser","k":"Kleckser"},{"n":"Heldenwaffe Replik","k":"Kleckser"},{"n":"Junior-Kleckser","k":"Kleckser"},{"n":"Junior-Kleckser Plus","k":"Kleckser"},{"n":"Kleckser","k":"Kleckser"},{"n":"Kosmo-Kleckser","k":"Kleckser"},{"n":"N-ZAP85","k":"Kleckser"},{"n":"N-ZAP89","k":"Kleckser"},{"n":"Okto-Kleckser Replik","k":"Kleckser"},{"n":"Ordnung-Kleckser Replik","k":"Kleckser"},{"n":"Platscher","k":"Kleckser"},{"n":"Platscher KB-RA","k":"Kleckser"},{"n":"Platscher SE","k":"Kleckser"},{"n":"Profi-Kleckser","k":"Kleckser"},{"n":"Profi-Kleckser CH-LL","k":"Kleckser"},{"n":"Quetscher","k":"Kleckser"},{"n":"Quetscher Fol","k":"Kleckser"},{"n":"Tentatek-Kleckser","k":"Kleckser"},{"n":"3R-Schwapper","k":"Schwapper"},{"n":"3R-Schwapper Fresco","k":"Schwapper"},{"n":"3R-Schwapper OX-D","k":"Schwapper"},{"n":"Knall-Schwapper","k":"Schwapper"},{"n":"Knall-Schwapper SE","k":"Schwapper"},{"n":"Ordnung-Schwapper Replik","k":"Schwapper"},{"n":"Schwapper","k":"Schwapper"},{"n":"Schwapper Deko","k":"Schwapper"},{"n":"Schwappwascher","k":"Schwapper"},{"n":"Schwappwascher D","k":"Schwapper"},{"n":"Schwappwascher Horn","k":"Schwapper"},{"n":"Trommel-Schwapper","k":"Schwapper"},{"n":"Trommel-Schwapper Neo","k":"Schwapper"},{"n":"Wannen-Schwapper","k":"Schwapper"},{"n":"Wannen-Schwapper Deko","k":"Schwapper"},{"n":"Carbo-Prophylator","k":"Splatana"},{"n":"Minz-Prophylator","k":"Splatana"},{"n":"Ordnung-Splatana Replik","k":"Splatana"},{"n":"Stempel-Splatana","k":"Splatana"},{"n":"Stempel-Splatana Fresco","k":"Splatana"},{"n":"Stempel-Splatana Sticker","k":"Splatana"},{"n":"Wischer-Splatana","k":"Splatana"},{"n":"Wischer-Splatana Deko","k":"Splatana"},{"n":"Wischer-Splatana RST-G","k":"Splatana"},{"n":"Hydrant","k":"Splatling"},{"n":"Hydrant ATÜ","k":"Splatling"},{"n":"Hydrant SE","k":"Splatling"},{"n":"Kartuschierer","k":"Splatling"},{"n":"Kartuschierer Fresco","k":"Splatling"},{"n":"Klecks-Splatling","k":"Splatling"},{"n":"Klecks-Splatling KLP-R","k":"Splatling"},{"n":"Kuli-Splatling","k":"Splatling"},{"n":"Kuli-Splatling Fresco","k":"Splatling"},{"n":"Nautilus 47","k":"Splatling"},{"n":"Nautilus 79","k":"Splatling"},{"n":"Ordnung-Splatling Replik","k":"Splatling"},{"n":"Sagitron-Klecks-Splatling","k":"Splatling"},{"n":"Splatling","k":"Splatling"},{"n":"Splatling Deko","k":"Splatling"},{"n":"Alpomar-Tri-Stringer","k":"Bogen"},{"n":"LACT-450","k":"Bogen"},{"n":"LACT-450 Deko","k":"Bogen"},{"n":"LACT-450 Q-MLCH","k":"Bogen"},{"n":"Ordnung-Stringer Replik","k":"Bogen"},{"n":"Penta-Pumper","k":"Bogen"},{"n":"Penta-Pumper SE","k":"Bogen"},{"n":"Prisma-Tri-Stringer","k":"Bogen"},{"n":"Tri-Stringer","k":"Bogen"}];
 /* =============================================================================== */
 
 const STORAGE_KEY = "splatoon3-coach-v1";
@@ -725,6 +728,12 @@ document.getElementById("tabs").addEventListener("click", (e) => {
 const LERN_TABS_AUS = ["coach", "live", "selbstcheck", "wissen"]; // im Lern-Modus ausgeblendet
 function wendeModusAn(wechsel) {
   const lernen = state.modus === "lernen";
+  // Läuft der Live-Monitor (Kamera!), beim Wechsel in den Lern-Modus sauber stoppen –
+  // sonst liefe die Kamera unsichtbar weiter, ohne erreichbaren Stopp-Knopf.
+  if (lernen && typeof monitorStream !== "undefined" && monitorStream) {
+    const stop = document.getElementById("monStop");
+    if (stop) stop.click();
+  }
   document.getElementById("modusCoach").className = lernen ? "" : "primary";
   document.getElementById("modusLernen").className = lernen ? "primary" : "";
   document.querySelectorAll("#tabs button").forEach(b => {
@@ -734,8 +743,14 @@ function wendeModusAn(wechsel) {
   if (wechsel) aktiviereTab(lernen ? "schule" : "uebersicht");
   else if (aktiv && lernen && LERN_TABS_AUS.includes(aktiv.dataset.tab)) aktiviereTab("schule");
 }
-document.getElementById("modusCoach").addEventListener("click", () => { state.modus = "coach"; speichereState(); wendeModusAn(true); });
-document.getElementById("modusLernen").addEventListener("click", () => { state.modus = "lernen"; speichereState(); wendeModusAn(true); });
+document.getElementById("modusCoach").addEventListener("click", () => {
+  if (state.modus === "coach") return;
+  state.modus = "coach"; speichereState(); wendeModusAn(true);
+});
+document.getElementById("modusLernen").addEventListener("click", () => {
+  if (state.modus === "lernen") return;
+  state.modus = "lernen"; speichereState(); wendeModusAn(true);
+});
 
 /* ---------- Hilfsfunktionen ---------- */
 const $ = (sel) => document.querySelector(sel);
@@ -776,6 +791,13 @@ function berechneStats(matches) {
     (stats.proWaffe[m.waffe] ??= { n: 0, siege: 0 });
     stats.proWaffe[m.waffe].n++; if (m.ergebnis === "S") stats.proWaffe[m.waffe].siege++;
   }
+  stats.proKarte = {};
+  for (const m of matches) {
+    if (!m.karte) continue;
+    (stats.proKarte[m.karte] ??= { n: 0, siege: 0 });
+    stats.proKarte[m.karte].n++; if (m.ergebnis === "S") stats.proKarte[m.karte].siege++;
+  }
+  for (const k in stats.proKarte) stats.proKarte[k].winrate = stats.proKarte[k].siege / stats.proKarte[k].n;
   stats.avgFarbe = sum(m => m.farbe) / n;
   // Erwartungswerte (echte stat.ink-Durchschnitte) gewichtet nach dem Modus-Mix des Spielers
   const E = WISSEN.modus_erwartung;
@@ -854,6 +876,15 @@ function renderUebersicht(stats) {
       <div id="modusChart"></div>
       <details class="tableview"><summary>Als Tabelle anzeigen</summary><div id="modusTabelle"></div></details>
     </div>
+    ${Object.keys(stats.proKarte).filter(k => stats.proKarte[k].n >= 2).length >= 2 ? `
+    <div class="card">
+      <h2>Winrate pro Karte</h2>
+      <p class="sub">Karten mit mindestens 2 Matches, schwächste zuerst – die Karte kommt automatisch aus dem stat.ink-Sync.</p>
+      <div class="kb-table-scroll"><table class="kb"><tr><th>Karte</th><th>Matches</th><th>Winrate</th></tr>
+      ${Object.entries(stats.proKarte).filter(([, v]) => v.n >= 2).sort((a, b) => a[1].winrate - b[1].winrate)
+        .map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v.n}</td><td>${Math.round(v.winrate * 100)} %</td></tr>`).join("")}
+      </table></div>
+    </div>` : ""}
     <div class="card chart-card" id="trendChartCard">
       <h2>Formkurve: rollende Winrate (letzte 10 Matches)</h2>
       <p class="sub">Ab 5 Matches. Zeigt, ob du dich verbesserst – Top-Spieler verfolgen ihre Form genau so.</p>
@@ -994,6 +1025,7 @@ document.getElementById("matchForm").addEventListener("submit", (e) => {
   state.matches.push({
     id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
     datum: $("#fDatum").value, modus: $("#fModus").value, waffe: $("#fWaffe").value.trim(),
+    karte: $("#fKarte").value.trim(),
     ergebnis: $("#fErgebnis").value,
     splats: +$("#fSplats").value, assists: +$("#fAssists").value, deaths: +$("#fDeaths").value,
     spezials: +$("#fSpezials").value, farbe: +$("#fFarbe").value, notiz: $("#fNotiz").value.trim(),
@@ -1102,9 +1134,14 @@ function parseStatInk(objekte) {
       if (o.weapon.name) wname = o.weapon.name["de-DE"] || o.weapon.name["de_DE"] || o.weapon.name["en-US"] || o.weapon.name["en_US"] || o.weapon.key || "Unbekannt";
       else wname = o.weapon.key || String(o.weapon);
     }
+    let karte = "";
+    if (o.stage) {
+      const sn = o.stage.name || {};
+      karte = sn["de-DE"] || sn["de_DE"] || STAGE_MAP[o.stage.key] || sn["en-US"] || sn["en_US"] || "";
+    }
     battles.push({ ext: o.uuid || o.id,
       datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(), modus,
-      waffe: String(wname), ergebnis: o.result === "win" ? "S" : "N",
+      waffe: String(wname), karte: String(karte), ergebnis: o.result === "win" ? "S" : "N",
       splats: +o.kill || 0, assists: +o.assist || 0, deaths: +o.death || 0,
       spezials: +(o.special ?? 0), farbe: +(o.inked ?? 0), notiz: "" });
   };
@@ -1125,7 +1162,12 @@ function uebernehmeStatinkObjekte(objekte) {
   let duplikate = 0;
   let idB = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
   for (const b of battles) {
-    if (b.ext && bekannteB.has(b.ext)) { duplikate++; continue; }
+    if (b.ext && bekannteB.has(b.ext)) {
+      duplikate++;
+      // Fehlende Karten-Info bei bereits vorhandenen Matches nachtragen
+      if (b.karte) { const alt = state.matches.find(m => m.ext === b.ext); if (alt && !alt.karte) alt.karte = b.karte; }
+      continue;
+    }
     state.matches.push({ id: ++idB, ...b });
     if (b.ext) bekannteB.add(b.ext);
   }
@@ -1433,6 +1475,16 @@ function erzeugeTipps(stats) {
   if (stats.n >= 15 && stats.winrate < 0.45) tipps.push({ sev: "wichtig",
     titel: `Winrate ${pct(stats.winrate)} über ${stats.n} Matches`,
     text: `Das Matchmaking zieht alle Richtung 50 % – dauerhaft darunter heißt meist: aktuell über dem eigenen Level unterwegs oder Waffe/Rolle passt nicht. Kein Grund zur Panik, aber ein Signal, ein paar Sessions auf Grundlagen (weniger Deaths, Teamnähe) statt auf den Rang zu spielen.` });
+
+  // Schwächste Karte
+  const karten = Object.entries(stats.proKarte || {}).filter(([, v]) => v.n >= 4);
+  if (karten.length >= 3) {
+    karten.sort((a, b) => a[1].winrate - b[1].winrate);
+    const [kname, kv] = karten[0];
+    if (kv.winrate < Math.max(0.35, stats.winrate - 0.15)) tipps.push({ sev: "tipp",
+      titel: `${kname} ist deine schwächste Karte (${Math.round(kv.winrate * 100)} % Winrate in ${kv.n} Matches)`,
+      text: `Nimm dir 10 Minuten im Erholungsmodus/Testareal nur für diese Karte: Merke dir 2 Wege zur Mitte, die besten Flanken und wo du dich zurückziehen kannst. Karten-Wissen ist der günstigste Winrate-Boost – Details zu jeder Karte findest du im deutschen Splatoon-Wiki (Link im Tab „Top-Spieler-Wissen“).` });
+  }
 
   // Waffen-Streuung
   const waffen = Object.entries(stats.proWaffe);
@@ -2272,9 +2324,12 @@ function initialisiereMonitor() {
 }
 
 /* ---------- Splatoon-Schule (Lern-Modus) ---------- */
+let schuleZuletzt = null; // zuletzt beantwortete Lektion offen halten (Feedback sichtbar!)
 function renderSchule() {
   const el = $("#schuleInhalt");
   if (!el) return;
+  // Manuell aufgeklappte Lektionen über Re-Renders hinweg offen lassen
+  const offeneIds = new Set([...el.querySelectorAll("details[data-lektion][open]")].map(d => d.dataset.lektion));
   const fertig = SCHULE.filter(l => (state.schule[l.id] || {}).fertig).length;
   const naechste = SCHULE.find(l => !(state.schule[l.id] || {}).fertig);
   el.innerHTML = `
@@ -2288,9 +2343,10 @@ function renderSchule() {
     </div>
     ${SCHULE.map((l, i) => {
       const st = state.schule[l.id] || {};
-      const offen = naechste && naechste.id === l.id;
-      return `<details class="card" style="padding:12px 18px" ${offen ? "open" : ""}>
-        <summary style="cursor:pointer; font-weight:700; font-size:15px">${st.fertig ? "✅" : offen ? "▶️" : "🔒"} Lektion ${i + 1}: ${esc(l.titel)}${offen ? ' <span class="empf" style="font-size:11px; color:var(--delta-good); text-transform:uppercase">Hier weitermachen</span>' : ""}</summary>
+      const naechsteHier = naechste && naechste.id === l.id;
+      const offen = naechsteHier || l.id === schuleZuletzt || offeneIds.has(l.id);
+      return `<details class="card" style="padding:12px 18px" data-lektion="${esc(l.id)}" ${offen ? "open" : ""}>
+        <summary style="cursor:pointer; font-weight:700; font-size:15px">${st.fertig ? "✅" : naechsteHier ? "▶️" : "⚪"} Lektion ${i + 1}: ${esc(l.titel)}${naechsteHier ? ' <span class="empf" style="font-size:11px; color:var(--delta-good); text-transform:uppercase">Hier weitermachen</span>' : ""}</summary>
         <p style="margin:10px 0">${esc(l.inhalt)}</p>
         <div style="background:var(--page); border-radius:12px; padding:12px 14px; margin:10px 0">
           <p style="margin:0 0 8px; font-weight:600">❓ ${esc(l.quiz.frage)}</p>
@@ -2306,6 +2362,7 @@ function renderSchule() {
     const lektion = SCHULE.find(l => l.id === b.dataset.quiz);
     const richtig = +b.dataset.antwort === lektion.quiz.richtig;
     state.schule[lektion.id] = { fertig: richtig, falsch: !richtig };
+    schuleZuletzt = lektion.id; // Feedback (Erklärung bzw. „Nicht ganz“) sichtbar lassen
     speichereState(); renderSchule();
   }));
 }
@@ -2346,6 +2403,22 @@ function renderWissen() {
     <h4>Typische Fehler</h4><ul>${m.typische_fehler.map(t => `<li>${esc(t)}</li>`).join("")}</ul></details>`).join("");
   const trainingHtml = (W.training || []).map(t => `<div class="coach-item"><div class="icon">🏋️</div><div>
     <h3>${esc(t.titel)}</h3><p>${esc(t.beschreibung)}</p></div></div>`).join("");
+  const wiki = (name) => `https://splatoon.fandom.com/de/wiki/Special:Search?query=${encodeURIComponent(name)}`;
+  const klassen = [...new Set(WAFFEN.map(w => w.k))];
+  const lexikonHtml = `
+    <div class="card"><h2>📖 Spiel-Lexikon: Karten &amp; Waffen</h2>
+      <p class="sub">Alle ${KARTEN.length} Karten und ${WAFFEN.length} Waffen des Spiels – jeder Eintrag verlinkt ins
+      <a href="https://splatoon.fandom.com/de/wiki/Splatoon_Wiki" target="_blank" rel="noopener" style="color:var(--series-1)">deutsche Splatoon-Wiki</a> zum Nachlesen.</p>
+      <details class="mode"><summary>🗺️ Alle Karten (${KARTEN.length})</summary>
+        <ul>${KARTEN.map(k => `<li><a href="${wiki(k)}" target="_blank" rel="noopener" style="color:var(--series-1)">${esc(k)}</a></li>`).join("")}</ul>
+      </details>
+      ${klassen.map(kl => {
+        const liste = WAFFEN.filter(w => w.k === kl);
+        return `<details class="mode"><summary>${esc(kl)} (${liste.length} Waffen)</summary>
+          <ul>${liste.map(w => `<li><a href="${wiki(w.n)}" target="_blank" rel="noopener" style="color:var(--series-1)">${esc(w.n)}</a></li>`).join("")}</ul>
+        </details>`;
+      }).join("")}
+    </div>`;
   const quellenHtml = (W.quellen || []).length ? `<div class="card"><h2>Quellen der Recherche</h2>
     <ul class="quellen">${W.quellen.map(q => `<li>${esc(q)}</li>`).join("")}</ul></div>` : "";
   el.innerHTML = `
@@ -2356,6 +2429,7 @@ function renderWissen() {
       <div class="kb-table-scroll"><table class="kb"><tr><th>Häufiger Fehler</th><th>Das machen Top-Spieler stattdessen</th></tr>${fehlerRows}</table></div></div>
     <div class="card"><h2>Modus-Guides</h2><p class="sub">Aufklappen für Details.</p>${modiHtml}</div>
     <div class="card"><h2>So trainieren Top-Spieler</h2>${trainingHtml}</div>
+    ${lexikonHtml}
     ${quellenHtml}`;
 }
 
@@ -2404,6 +2478,10 @@ document.getElementById("updateBtn").addEventListener("click", async () => {
 /* In der PC-App (fester Port 52735): Zurück-zur-Auswahl-Knopf einblenden */
 if (location.port === "52735") document.body.insertAdjacentHTML("beforeend",
   '<a href="index.html" title="Zur App-Auswahl" style="position:fixed; right:14px; bottom:14px; z-index:99; width:44px; height:44px; display:flex; align-items:center; justify-content:center; background:var(--surface-1); border:1.5px solid var(--border); border-radius:50%; font-size:20px; text-decoration:none; box-shadow:0 2px 10px rgba(0,0,0,0.15)">⌂</a>');
+
+// Waffen- und Kartenlisten für die Eingabefelder befüllen
+document.getElementById("waffenListe").innerHTML = WAFFEN.map(w => `<option value="${esc(w.n)}">${esc(w.k)}</option>`).join("");
+document.getElementById("kartenListe").innerHTML = KARTEN.map(k => `<option value="${esc(k)}"></option>`).join("");
 
 $("#fDatum").value = new Date().toISOString().slice(0, 10);
 $("#sDatum").value = new Date().toISOString().slice(0, 10);
