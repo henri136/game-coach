@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-09.5";
+const APP_VERSION = "2026-08-09.6";
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1835,7 +1835,8 @@ function renderLive(stats) {
    taucht dieselbe Signatur wieder auf, zählt der Monitor einen Death. Experimentell. */
 let monitorStream = null, monitorTimer = null, monitorCanvas = null;
 let monitorLetzterTreffer = 0, monitorTrefferSerie = 0, autoDeaths = 0;
-const MON_RASTER = 4;
+const MON_RASTER = 6;
+const MON_MAX_BEISPIELE = 12;
 
 function monSignatur(video) {
   if (!monitorCanvas) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = 64; monitorCanvas.height = 36; }
@@ -1858,6 +1859,23 @@ function monSignatur(video) {
 }
 function monAbstand(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) ** 2; return Math.sqrt(s / a.length); }
 
+/* Lernende Erkennung (Nächster-Nachbar-Klassifikator):
+   vergleicht das aktuelle Bild mit ALLEN Death- und Spiel-Beispielen.
+   Helligkeits-Normalisierung macht die Erkennung robust gegen Kamera-Autobelichtung. */
+function monNormalisiere(sig) {
+  const mittel = sig.reduce((a, b) => a + b, 0) / sig.length;
+  return sig.map(v => v - mittel);
+}
+function monKlassifiziere(sig) {
+  const B = state.monitor && state.monitor.beispiele;
+  if (!B || !B.death || !B.death.length) return null;
+  const ns = monNormalisiere(sig);
+  const minDeath = Math.min(...B.death.map(e => monAbstand(ns, monNormalisiere(e))));
+  const minSpiel = B.spiel && B.spiel.length ? Math.min(...B.spiel.map(e => monAbstand(ns, monNormalisiere(e)))) : Infinity;
+  const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
+  return { death: minDeath < schwelle && minDeath < minSpiel * 0.8, minDeath, minSpiel };
+}
+
 function monitorNeuesMatch() {
   autoDeaths = 0; monitorTrefferSerie = 0;
   const el = document.getElementById("monDeaths"); if (el) el.textContent = "0";
@@ -1869,7 +1887,7 @@ function initialisiereMonitor() {
   const empf = (state.monitor && state.monitor.empfindlichkeit) || 30;
   halter.innerHTML = `
     <div class="card">
-      <h2>📺 Live-Monitor (Beta) – Capture-Karte oder iPad-Kamera</h2>
+      <h2>📺 Live-Monitor – lernende Erkennung (Capture-Karte oder iPad-Kamera)</h2>
       <p class="sub">Am PC: Capture-Karte als Quelle wählen. Am iPad: Kamera als Quelle wählen und das iPad so aufstellen, dass es den Fernseher sieht –
       dann mit „Bildausschnitt“ ein Rechteck genau um das TV-Bild ziehen. Die App zählt deine Deaths automatisch mit.
       Das Bild bleibt komplett auf deinem Gerät. (In der Chat-Vorschau gesperrt; auf dem iPad braucht es die App-Adresse, nicht den claude.ai-Link.)</p>
@@ -1892,17 +1910,22 @@ function initialisiereMonitor() {
           <button id="monCropReset">Ganzes Bild</button>
         </div>
         <div class="form-actions" style="margin-top:8px">
-          <button id="monLernen">🎯 Death-Bildschirm einlernen</button>
-          <span id="monLernStatus" style="font-size:13px; color:var(--text-muted)"></span>
+          <button id="monLernen">☠ Das ist der Death-Bildschirm</button>
+          <button id="monLernenSpiel">🎮 Das ist normales Spiel</button>
+          <button id="monBeispieleReset">Neu anfangen</button>
         </div>
+        <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
+        <p id="monLive" style="font-size:13px; margin:4px 0 0; color:var(--text-secondary)"></p>
         <p style="margin:10px 0 4px; font-size:14px">Erkannte Deaths in diesem Match:
           <strong id="monDeaths" style="font-size:22px">0</strong>
-          <button id="monReset" style="margin-left:8px; padding:4px 14px; font-size:13px">Auf 0</button></p>
+          <button id="monMinus" style="margin-left:8px; padding:4px 14px; font-size:13px" title="Falsch gezählt? Einen abziehen">−1</button>
+          <button id="monReset" style="padding:4px 14px; font-size:13px">Auf 0</button></p>
         <label style="font-size:12.5px; color:var(--text-secondary); display:block; max-width:340px">Empfindlichkeit (niedrig = strenger):
           <input type="range" id="monEmpf" min="10" max="60" step="5" value="${empf}" style="width:100%"></label>
-        <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">So lernst du die Erkennung an: Monitor starten → im Spiel einmal sterben →
-        WÄHREND der Respawn-Bildschirm zu sehen ist, „einlernen“ drücken. Ab dann zählt der Monitor mit und trägt die Zahl automatisch
-        in die Schnell-Eingabe ein (du kannst sie dort immer korrigieren). Beta: Bei Fehlzählungen die Empfindlichkeit senken und neu einlernen.</p>
+        <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">So trainierst du die Erkennung: Während der Respawn-Bildschirm zu sehen ist
+        „☠ Das ist der Death-Bildschirm“ drücken – und zwischendurch im normalen Spiel 3–4× „🎮 Das ist normales Spiel“. Die Erkennung vergleicht dann
+        jedes Bild mit ALLEN deinen Beispielen und entscheidet, was näher dran ist. Zählt sie falsch? Einfach im richtigen Moment das passende Beispiel
+        nachlegen – so wird sie mit jedem Beispiel schlauer. Der Live-Check darunter zeigt dir jederzeit, was sie gerade sieht.</p>
       </div>
     </div>`;
 
@@ -1943,16 +1966,22 @@ function initialisiereMonitor() {
     $("#monStart").hidden = false; $("#monStop").hidden = true;
   }
 
+  function lernStatusText() {
+    const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
+    if (!B.death.length) return "Noch nicht angelernt – zeige mir zuerst einen Death-Bildschirm.";
+    return `Angelernt mit ${B.death.length} Death-Beispiel${B.death.length === 1 ? "" : "en"} und ${B.spiel.length} Spiel-Beispiel${B.spiel.length === 1 ? "" : "en"}. Je mehr Beispiele, desto schlauer – bei Fehlern einfach das passende Beispiel nachlegen.`;
+  }
+
   function starteAnalyse() {
     const video = $("#monVideo");
     monitorTimer = setInterval(() => {
       if (!monitorStream || video.readyState < 2) return;
-      const sigGespeichert = state.monitor && state.monitor.signatur;
-      if (!sigGespeichert) return;
+      const urteil = monKlassifiziere(monSignatur(video));
+      const live = document.getElementById("monLive");
+      if (!urteil) { if (live) live.textContent = ""; return; }
+      if (live) live.textContent = urteil.death ? "Live-Check: ☠ Death-Bildschirm erkannt!" : "Live-Check: 🎮 normales Spiel";
       const jetzt = Date.now();
-      const abstand = monAbstand(monSignatur(video), sigGespeichert);
-      const schwelle = (state.monitor && state.monitor.empfindlichkeit) || 30;
-      if (abstand < schwelle) {
+      if (urteil.death) {
         monitorTrefferSerie++;
         if (monitorTrefferSerie >= 2 && jetzt - monitorLetzterTreffer > 8000) {
           monitorLetzterTreffer = jetzt;
@@ -1978,19 +2007,37 @@ function initialisiereMonitor() {
       video.srcObject = monitorStream; $("#monRahmen").style.display = "block"; await video.play();
       $("#monSteuerung").style.display = "block"; $("#monStart").hidden = true; $("#monStop").hidden = false;
       $("#monFehler").style.display = "none";
-      $("#monLernStatus").textContent = state.monitor && state.monitor.signatur ? "Death-Bildschirm ist eingelernt ✓" : "Noch nicht eingelernt";
+      $("#monLernStatus").textContent = lernStatusText();
       zeigeCrop(); halteWach();
       fuelleQuellen();
       starteAnalyse();
     } catch (e) { zeigeFehler("Zugriff auf die Videoquelle fehlgeschlagen (" + e.name + "). Erlaube den Kamera-/Video-Zugriff oder wähle oben eine andere Quelle – eine Capture-Karte darf nicht von OBS & Co. belegt sein."); }
   });
   $("#monStop").addEventListener("click", stoppeMonitor);
-  $("#monLernen").addEventListener("click", () => {
+
+  // Altes Einzel-Signatur-Format in die lernende Erkennung übernehmen
+  if (state.monitor && state.monitor.signatur && !state.monitor.beispiele) {
+    state.monitor.beispiele = { death: [state.monitor.signatur], spiel: [] };
+    delete state.monitor.signatur;
+    speichereState();
+  }
+
+  function lerneBeispiel(klasse) {
     const video = $("#monVideo");
     if (!monitorStream || video.readyState < 2) return;
-    state.monitor = Object.assign({}, state.monitor, { signatur: monSignatur(video), empfindlichkeit: +$("#monEmpf").value });
+    const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
+    B[klasse].push(monSignatur(video));
+    if (B[klasse].length > MON_MAX_BEISPIELE) B[klasse].shift();
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: B });
     speichereState();
-    $("#monLernStatus").textContent = "Death-Bildschirm ist eingelernt ✓ (gespeichert)";
+    $("#monLernStatus").textContent = (klasse === "death" ? "☠ Death-Beispiel gespeichert ✓ – " : "🎮 Spiel-Beispiel gespeichert ✓ – ") + lernStatusText();
+  }
+  $("#monLernen").addEventListener("click", () => lerneBeispiel("death"));
+  $("#monLernenSpiel").addEventListener("click", () => lerneBeispiel("spiel"));
+  $("#monBeispieleReset").addEventListener("click", () => {
+    state.monitor = Object.assign({}, state.monitor, { beispiele: { death: [], spiel: [] } });
+    speichereState();
+    $("#monLernStatus").textContent = lernStatusText();
   });
 
   // Bildausschnitt (z. B. nur das TV-Bild im Kamerabild) per Ziehen festlegen
@@ -2001,9 +2048,9 @@ function initialisiereMonitor() {
     $("#monLernStatus").textContent = "Ziehe jetzt mit dem Finger/der Maus ein Rechteck um das TV-Bild …";
   });
   $("#monCropReset").addEventListener("click", () => {
-    state.monitor = Object.assign({}, state.monitor, { crop: null, signatur: null });
+    state.monitor = Object.assign({}, state.monitor, { crop: null, beispiele: { death: [], spiel: [] } });
     speichereState(); zeigeCrop();
-    $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte Death-Bildschirm neu einlernen.";
+    $("#monLernStatus").textContent = "Ganzes Bild aktiv – bitte neu anlernen (Beispiele passen nicht mehr).";
   });
   const cropPunkt = (e) => {
     const b = rahmen.getBoundingClientRect();
@@ -2025,11 +2072,17 @@ function initialisiereMonitor() {
                    w: Math.abs(p.x - cropStart.x), h: Math.abs(p.y - cropStart.y) };
     cropStart = null; cropLayer.style.display = "none";
     if (crop.w < 0.05 || crop.h < 0.05) { zeigeCrop(); return; } // zu klein -> verwerfen
-    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, signatur: null });
+    state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { crop, beispiele: { death: [], spiel: [] } });
     speichereState(); zeigeCrop();
-    $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte Death-Bildschirm neu einlernen.";
+    $("#monLernStatus").textContent = "Bildausschnitt gespeichert ✓ – bitte neu anlernen (☠ und 🎮 Beispiele zeigen).";
   });
   $("#monReset").addEventListener("click", monitorNeuesMatch);
+  $("#monMinus").addEventListener("click", () => {
+    autoDeaths = Math.max(0, autoDeaths - 1);
+    $("#monDeaths").textContent = String(autoDeaths);
+    const qd = document.getElementById("qDeaths");
+    if (qd) qd.textContent = String(autoDeaths);
+  });
   $("#monEmpf").addEventListener("change", () => {
     if (state.monitor) { state.monitor.empfindlichkeit = +$("#monEmpf").value; speichereState(); }
   });
