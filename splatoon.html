@@ -336,7 +336,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.39"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.40"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2563,6 +2563,18 @@ function monSkaliere(sig, von, nach) {
   return out;
 }
 function monAbstand(a, b) { let s = 0; for (let i = 0; i < a.length; i++) s += (a[i] - b[i]) ** 2; return Math.sqrt(s / a.length); }
+// Linke obere Ecke einer Signatur (35 % Breite, 25 % Höhe) – dort steht „Sieg!“ / „Verloren…“.
+// Nur die Helligkeit zählt: weiße Schrift auf dunklem Grund, egal welche Tintenfarben leuchten.
+function monEcke(sig) {
+  const raster = Math.round(Math.sqrt(sig.length / 3));
+  const bx = Math.max(2, Math.round(raster * 0.35)), by = Math.max(2, Math.round(raster * 0.25));
+  const out = [];
+  for (let gy = 0; gy < by; gy++) for (let gx = 0; gx < bx; gx++) {
+    const i = (gy * raster + gx) * 3;
+    out.push(0.299 * sig[i] + 0.587 * sig[i + 1] + 0.114 * sig[i + 2]);
+  }
+  return out;
+}
 
 /* Lernende Erkennung, Stufe 2:
    - feines Seh-Raster: 24×24 Zellen bei 192×108 Abtastung
@@ -2585,9 +2597,19 @@ function monKlassifiziere(sig) {
     }
     return monAbstand(proLaenge[e.length], monNormalisiere(e));
   };
+  // „Sieg!“ / „Verloren…“ steht oben links – für diese Klassen zählt nur die Bild-Ecke,
+  // damit die jedes Match wechselnden Teamfarben auf der Karte nicht stören
+  let eckeN = null;
+  const abstandEcke = (e) => {
+    if (e.length !== sig.length) return abstand(e); // Sicherheitsnetz für alte Formate
+    if (!eckeN) eckeN = monNormalisiere(monEcke(sig));
+    return monAbstand(eckeN, monNormalisiere(monEcke(e)));
+  };
   const alle = [];
-  for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel], ["sieg", B.sieg], ["niederlage", B.niederlage]])
+  for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel]])
     for (const e of (liste || [])) alle.push({ k: klasse, d: abstand(e) });
+  for (const [klasse, liste] of [["sieg", B.sieg], ["niederlage", B.niederlage]])
+    for (const e of (liste || [])) alle.push({ k: klasse, d: abstandEcke(e) });
   alle.sort((a, b) => a.d - b.d);
   const minK = (k) => { const l = alle.filter(x => x.k === k); return l.length ? Math.min(...l.map(x => x.d)) : Infinity; };
   const minDeath = minK("death"), minSpiel = minK("spiel"), minSieg = minK("sieg"), minNieder = minK("niederlage");
@@ -2722,8 +2744,8 @@ function initialisiereMonitor() {
           <button id="sprachBtn" type="button" title="Der Coach sagt dir Tipps laut an – direkt beim Spielen"></button>
         </div>
         <div class="form-actions" style="margin-top:8px">
-          <button id="monLernenSieg" title="Am Match-Ende drücken, während „Sieg!“ zu sehen ist">🏆 Das ist der Sieg-Bildschirm</button>
-          <button id="monLernenNieder" title="Am Match-Ende drücken, während „Niederlage“ zu sehen ist">😞 Das ist der Niederlage-Bildschirm</button>
+          <button id="monLernenSieg" title="Am Match-Ende drücken, während oben links „Sieg!“ steht">🏆 Das ist der „Sieg!“-Bildschirm</button>
+          <button id="monLernenNieder" title="Am Match-Ende drücken, während oben links „Verloren…“ steht">😞 Das ist der „Verloren…“-Bildschirm</button>
         </div>
         <div id="liveFeedback" role="status" style="display:none; margin-top:10px; padding:12px 14px; border-radius:10px; background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--series-1); font-size:16px; font-weight:600"></div>
         <p id="monLernStatus" style="font-size:13px; color:var(--text-muted); margin:6px 0 0"></p>
