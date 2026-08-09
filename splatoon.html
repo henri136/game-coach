@@ -255,7 +255,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.11"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.12"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -821,6 +821,10 @@ function renderUebersicht(stats) {
         · ${m.splats}/${m.assists}/${m.deaths} (Splats/Unterst./Deaths), ${m.spezials} Spezials</p>
       ${punkte.filter(Boolean).map(p => `<p style="margin:6px 0; font-size:13.5px">${p}</p>`).join("") || '<p style="margin:6px 0; font-size:13.5px">Solides Match – keine Auffälligkeiten. Weiter so!</p>'}
       <p style="margin:8px 0 0; font-size:12px; color:var(--text-muted)">Kommt automatisch: Neue Matches landen per stat.ink-Abgleich hier – samt Karte, Modus, Waffe und Ergebnis.</p>
+      <div class="form-actions" style="margin-top:10px">
+        <button id="claudeBerichtBtn" title="Kopiert deine Daten als Text – füge ihn im Chat mit Claude ein">🧠 Bericht für Claude kopieren</button>
+        <span id="claudeBerichtStatus" style="font-size:12.5px; color:var(--text-muted)"></span>
+      </div>
     </div>`;
   }
   el.innerHTML = `
@@ -859,6 +863,36 @@ function renderUebersicht(stats) {
     </div>`;
   renderModusChart(stats);
   renderTrendChart(stats);
+  const berichtBtn = document.getElementById("claudeBerichtBtn");
+  if (berichtBtn) berichtBtn.addEventListener("click", async () => {
+    const chrono = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id);
+    const modi = MODI.filter(mo => stats.proModus[mo]).map(mo => `- ${mo}: ${Math.round(stats.proModus[mo].winrate * 100)} % Siege (${stats.proModus[mo].n} Matches)`).join("\n");
+    const karten = Object.entries(stats.proKarte).filter(([, v]) => v.n >= 3).sort((a, b) => a[1].winrate - b[1].winrate).slice(0, 5)
+      .map(([k, v]) => `- ${k}: ${Math.round(v.winrate * 100)} % Siege (${v.n} Matches)`).join("\n");
+    const letzte = chrono.slice(0, 10).map(m => `- ${m.datum} | ${m.modus} | ${m.karte || "?"} | ${m.waffe} | ${m.ergebnis === "S" ? "Sieg" : "Niederlage"} | ${m.splats}/${m.assists}/${m.deaths}, ${m.spezials} Spezials, ${m.farbe} Farbe`).join("\n");
+    const text = `Hallo Claude! Hier ist mein aktueller Splatoon-3-Coach-Bericht. Bitte schau ihn dir an und gib mir Coaching-Tipps.
+
+GESAMT: ${stats.n} Matches, ${Math.round(stats.winrate * 100)} % Winrate, Ø ${fmt1(stats.avgDeaths)} Deaths, Ø ${fmt1(stats.avgSplats + stats.avgAssists)} Splats+Unterstützungen, Wirkung/Death: ${fmt1(stats.kad)}
+
+WINRATE PRO MODUS:
+${modi || "- noch keine Daten"}
+
+SCHWIERIGSTE KARTEN (mind. 3 Matches):
+${karten || "- noch keine Daten"}
+
+LETZTE 10 MATCHES (Datum | Modus | Karte | Waffe | Ergebnis | Splats/Unterst./Deaths):
+${letzte || "- keine"}
+
+Meine Frage: `;
+    const status = document.getElementById("claudeBerichtStatus");
+    try {
+      await navigator.clipboard.writeText(text);
+      if (status) status.textContent = "✔ Kopiert! Jetzt im Chat mit Claude einfügen und deine Frage dazuschreiben.";
+    } catch (e) {
+      // Zwischenablage gesperrt (z. B. eingebettete Ansicht) -> Text zum Selbst-Kopieren anzeigen
+      prompt("Kopieren nicht erlaubt – markiere den Text und kopiere ihn selbst:", text);
+    }
+  });
 }
 
 /* ---------- Balkendiagramm: Winrate pro Modus (eine Serie, direkt beschriftet) ---------- */
