@@ -335,7 +335,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.36"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.37"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -361,6 +361,7 @@ const APP_VERSION = "2026-08-10.36"; // Zähler ab jetzt immer zweistellig (Stri
       <p>Deine Matches kommen automatisch rein – der Coach vergleicht dich mit den Top-Spielern und zeigt dir, wie du besser wirst.</p>
     </div>
     <div class="spacer"></div>
+    <button id="installBtn" class="primary" hidden title="Installiert die App mit eigenem Symbol – wie aus dem App Store">📲 Als App installieren</button>
     <button id="updateBtn" title="Nach neuer Version suchen (braucht Internet)">⬆ Update</button>
     <button id="themeToggle" title="Hell/Dunkel umschalten">🌗 Design</button>
   </header>
@@ -1080,6 +1081,21 @@ function renderUebersicht(stats) {
     </div>`;
   }
   // In der Chat-Vorschau (claude.ai) sind stat.ink-Sync und Wiki-Bilder gesperrt -> auf die richtige App hinweisen
+  // Installations-Hinweis für iPhone/iPad (dort gibt es keinen automatischen Install-Dialog)
+  let installHinweis = "";
+  if (!window.claude && istIos() && !laeuftAlsApp() && !localStorage.getItem("install-hinweis-weg") && location.protocol === "https:") {
+    installHinweis = `
+    <div class="card" style="border-color:var(--series-1)">
+      <h2>📲 Als App installieren</h2>
+      <p style="margin:0; font-size:13.5px">Hol dir die App mit eigenem Symbol auf den Home-Bildschirm – Vollbild ohne Browser-Leiste, funktioniert komplett offline:</p>
+      <ol style="margin:8px 0 0; padding-left:22px; font-size:13.5px">
+        <li>Unten in Safari auf <strong>Teilen</strong> tippen (Viereck mit Pfeil nach oben)</li>
+        <li><strong>„Zum Home-Bildschirm“</strong> wählen</li>
+        <li><strong>Hinzufügen</strong> – fertig, die App liegt neben deinen anderen Apps</li>
+      </ol>
+      <p style="margin:8px 0 0; font-size:12px"><a href="#" id="installHinweisWeg" style="color:var(--text-muted)">Nicht mehr anzeigen</a></p>
+    </div>` ;
+  }
   const vorschauHinweis = window.claude ? `
     <div class="card" style="border-color:var(--status-warning)">
       <p style="margin:0; font-size:13.5px">📱 <strong>Du nutzt gerade die Chat-Vorschau.</strong> Hier ist der automatische stat.ink-Abgleich gesperrt (Sicherheits-Sperre der Vorschau).
@@ -1089,6 +1105,7 @@ function renderUebersicht(stats) {
     </div>` : "";
   el.innerHTML = `
     ${vorschauHinweis}
+    ${installHinweis}
     ${rotationHtml}
     <div class="card hero">
       <div class="label">Winrate gesamt (${stats.n} Matches)</div>
@@ -1130,6 +1147,12 @@ function renderUebersicht(stats) {
     </div>`;
   renderModusChart(stats);
   renderTrendChart(stats);
+  const hinweisWeg = document.getElementById("installHinweisWeg");
+  if (hinweisWeg) hinweisWeg.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    try { localStorage.setItem("install-hinweis-weg", "1"); } catch (e) {}
+    renderAlles();
+  });
   const berichtBtn = document.getElementById("claudeBerichtBtn");
   if (berichtBtn) berichtBtn.addEventListener("click", async () => {
     const chrono = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id);
@@ -3293,6 +3316,35 @@ function renderAlles() {
 }
 let resizeTimer;
 addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderAlles, 150); });
+
+/* ---------- Installation als App (Android: echter Dialog, iPhone/iPad: Anleitung) ---------- */
+function istIos() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // neueres iPadOS meldet sich als Mac
+}
+function laeuftAlsApp() {
+  return (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+}
+let installDialog = null; // von Android-Chrome gelieferter Installations-Dialog
+addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  installDialog = e;
+  const btn = document.getElementById("installBtn");
+  if (btn && !laeuftAlsApp()) btn.hidden = false;
+});
+document.getElementById("installBtn").addEventListener("click", async () => {
+  if (!installDialog) return;
+  installDialog.prompt();
+  try { await installDialog.userChoice; } catch (e) {}
+  installDialog = null;
+  document.getElementById("installBtn").hidden = true;
+});
+addEventListener("appinstalled", () => {
+  installDialog = null;
+  const btn = document.getElementById("installBtn"); if (btn) btn.hidden = true;
+  try { localStorage.setItem("install-hinweis-weg", "1"); } catch (e) {}
+});
+
 /* ---------- Update-Knopf ---------- */
 const UPDATE_QUELLE = "https://raw.githubusercontent.com/henri136/game-coach/main/splatoon.html";
 document.getElementById("updateBtn").addEventListener("click", async () => {
