@@ -37,6 +37,11 @@
     --status-serious: #ec835a;
     --status-critical:#d03b3b;
     --delta-good:     #006300;
+    --tinte-1:        #d21f74;   /* Pink   */
+    --tinte-2:        #2657d8;   /* Blau   */
+    --tinte-3:        #e06a10;   /* Orange */
+    --tinte-4:        #0d9488;   /* Türkis */
+    --tinte-5:        #6f9c10;   /* Grün   */
   }
   @media (prefers-color-scheme: dark) {
     :root:where(:not([data-theme="light"])) {
@@ -60,6 +65,11 @@
       --status-serious: #f08a5c;
       --status-critical:#ff5d5d;
       --delta-good:     #45d483;
+      --tinte-1:        #ef4f9f;
+      --tinte-2:        #5a8cff;
+      --tinte-3:        #ff8a3c;
+      --tinte-4:        #35d6c0;
+      --tinte-5:        #c3ea3c;
     }
   }
   :root[data-theme="dark"] {
@@ -83,9 +93,18 @@
     --status-serious: #f08a5c;
     --status-critical:#ff5d5d;
     --delta-good:     #45d483;
+    --tinte-1:        #ef4f9f;
+    --tinte-2:        #5a8cff;
+    --tinte-3:        #ff8a3c;
+    --tinte-4:        #35d6c0;
+    --tinte-5:        #c3ea3c;
   }
 
   * { box-sizing: border-box; }
+  body::before {
+    content: ""; position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 50;
+    background: linear-gradient(90deg, var(--tinte-1), var(--tinte-2), var(--tinte-3), var(--tinte-4), var(--tinte-5));
+  }
   body {
     margin: 0;
     background: var(--page);
@@ -113,7 +132,11 @@
   nav.tabs { display: flex; gap: 2px; flex-wrap: wrap; margin: 18px 0; border-bottom: 1px solid var(--border); }
   nav.tabs button { border: none; background: transparent; padding: 9px 14px 11px; border-radius: 0; color: var(--text-muted); font-weight: 600; font-size: 13.5px; letter-spacing: 0.02em; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   nav.tabs button:hover { color: var(--text-primary); background: transparent; border-bottom-color: var(--baseline); }
-  nav.tabs button.active { background: transparent; color: var(--series-1); border-bottom-color: var(--series-1); font-weight: 700; box-shadow: 0 10px 14px -12px color-mix(in srgb, var(--series-1) 70%, transparent); }
+  nav.tabs button.active { background: transparent; color: var(--series-1); border-bottom-color: currentColor; font-weight: 700; box-shadow: 0 10px 14px -12px color-mix(in srgb, currentColor 70%, transparent); }
+  nav.tabs button:nth-child(5n+2).active { color: var(--tinte-2); }
+  nav.tabs button:nth-child(5n+3).active { color: var(--tinte-3); }
+  nav.tabs button:nth-child(5n+4).active { color: var(--tinte-4); }
+  nav.tabs button:nth-child(5n+5).active { color: var(--tinte-5); }
 
   .card {
     background: var(--surface-1); border: 1px solid var(--border);
@@ -123,7 +146,11 @@
   .card h2 + p.sub { margin: 0 0 12px; color: var(--text-muted); font-size: 13px; }
 
   .tile-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
-  .tile { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .tile { background: var(--surface-1); border: 1px solid var(--border); border-top: 3px solid var(--series-1); border-radius: 10px; padding: 12px 14px; }
+  .tile-row .tile:nth-child(4n+1) { border-top-color: var(--tinte-1); } .tile-row .tile:nth-child(4n+1) .value { color: var(--tinte-1); }
+  .tile-row .tile:nth-child(4n+2) { border-top-color: var(--tinte-2); } .tile-row .tile:nth-child(4n+2) .value { color: var(--tinte-2); }
+  .tile-row .tile:nth-child(4n+3) { border-top-color: var(--tinte-3); } .tile-row .tile:nth-child(4n+3) .value { color: var(--tinte-3); }
+  .tile-row .tile:nth-child(4n+4) { border-top-color: var(--tinte-4); } .tile-row .tile:nth-child(4n+4) .value { color: var(--tinte-4); }
   .tile .label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
   .tile .value { font-size: 26px; font-weight: 700; margin-top: 3px; font-variant-numeric: tabular-nums; }
   .tile .delta { font-size: 12px; margin-top: 2px; color: var(--text-muted); }
@@ -142,6 +169,10 @@
   .balken-reihe img.mini { width: 36px; height: 21px; object-fit: cover; border-radius: 4px; flex: none; }
   .balken { height: 8px; border-radius: 4px; background: var(--series-1-track); position: relative; }
   .balken .fuellung { position: absolute; top: 0; bottom: 0; left: 0; border-radius: 4px; background: var(--series-1); }
+  .balken-reihe:nth-child(5n+2) .balken .fuellung { background: var(--tinte-2); }
+  .balken-reihe:nth-child(5n+3) .balken .fuellung { background: var(--tinte-3); }
+  .balken-reihe:nth-child(5n+4) .balken .fuellung { background: var(--tinte-4); }
+  .balken-reihe:nth-child(5n+0) .balken .fuellung { background: var(--tinte-5); }
   .balken .marke50 { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--baseline); }
   .balken-reihe .bwert { font-size: 13px; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
@@ -336,7 +367,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.42"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.43"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1196,8 +1227,9 @@ function renderModusChart(stats) {
   const H = oben + daten.length * bandH + 24;
   const plotW = W - labelW - rechts;
   const x = (v) => labelW + v * plotW;
-  const blau = cssVar("--series-1"), gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
+  const gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
         prim = cssVar("--text-primary"), baseF = cssVar("--baseline");
+  const tinten = ["--tinte-1", "--tinte-2", "--tinte-3", "--tinte-4", "--tinte-5"].map(cssVar);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Winrate pro Modus">`;
   for (const g of [0, 0.25, 0.5, 0.75, 1]) {
     s += `<line x1="${x(g)}" y1="${oben}" x2="${x(g)}" y2="${H - 22}" stroke="${gridF}" stroke-width="1"/>`;
@@ -1208,7 +1240,7 @@ function renderModusChart(stats) {
     const bw = Math.max(2, d.winrate * plotW);
     const r = Math.min(4, bw / 2);
     s += `<text x="${labelW - 10}" y="${y + balkenH / 2 + 4}" font-size="12.5" fill="${prim}" text-anchor="end">${esc(d.modus)}</text>`;
-    s += `<path d="M ${labelW} ${y} H ${labelW + bw - r} a ${r} ${r} 0 0 1 ${r} ${r} V ${y + balkenH - r} a ${r} ${r} 0 0 1 ${-r} ${r} H ${labelW} Z" fill="${blau}"/>`;
+    s += `<path d="M ${labelW} ${y} H ${labelW + bw - r} a ${r} ${r} 0 0 1 ${r} ${r} V ${y + balkenH - r} a ${r} ${r} 0 0 1 ${-r} ${r} H ${labelW} Z" fill="${tinten[i % 5]}"/>`;
     s += `<text x="${labelW + bw + 7}" y="${y + balkenH / 2 + 4}" font-size="12" fill="${prim}" font-weight="600">${Math.round(d.winrate * 100)} %</text>`;
     s += `<rect data-hover="modus" data-i="${i}" x="0" y="${oben + i * bandH}" width="${W}" height="${bandH}" fill="transparent"/>`;
   });
