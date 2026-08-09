@@ -166,13 +166,6 @@
   table.mini th, table.mini td { text-align: left; padding: 3px 12px 3px 0; border-bottom: 1px solid var(--grid); font-variant-numeric: tabular-nums; }
   table.mini th { color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
 
-  form.match-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 12px; align-items: end; }
-  form.match-form label { display: block; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 3px; }
-  form.match-form input, form.match-form select {
-    width: 100%; font: inherit; color: var(--text-primary);
-    background: var(--page); border: 1px solid var(--border); border-radius: 8px; padding: 7px 9px;
-  }
-  form.match-form .full { grid-column: 1 / -1; }
   .form-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
   .table-scroll { overflow-x: auto; }
@@ -315,7 +308,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.29"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.30"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
