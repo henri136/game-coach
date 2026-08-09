@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.05"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.06"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2281,7 +2281,12 @@ function initialisiereMonitor() {
 
   function lerneBeispiel(klasse) {
     const video = $("#monVideo");
-    if (!monitorStream || video.readyState < 2) return;
+    // monitorQuelle statt monitorStream: im Datei-Modus gibt es keinen Stream,
+    // Anlernen aus einem geladenen Video (auch pausiert) muss trotzdem gehen
+    if (!monitorQuelle || video.readyState < 2) {
+      $("#monLernStatus").textContent = "Kein Bild da – starte oben eine Videoquelle oder lade ein Video, dann noch einmal drücken.";
+      return;
+    }
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
     B[klasse].push(monSignatur(video));
     if (B[klasse].length > MON_MAX_BEISPIELE) B[klasse].shift();
