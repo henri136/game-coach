@@ -265,6 +265,26 @@
   .quellen { font-size: 12.5px; color: var(--text-muted); }
   .quellen li { margin: 2px 0; overflow-wrap: anywhere; }
 
+  /* Arenen-Anzeige (Rotation) im Stil des Spiel-Menüs */
+  .rot-block { border-top: 1px solid var(--grid); padding: 12px 0 10px; }
+  .rot-block:first-of-type { border-top: none; padding-top: 2px; }
+  .rot-kopf { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; margin-bottom: 8px; }
+  .rot-zeit { color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rot-tag { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 4px; }
+  .rot-tag.aktuell { background: #f5e030; color: #171310; transform: rotate(-2deg); }
+  .rot-tag.bald { background: #6a5df0; color: #ffffff; transform: rotate(-2deg); }
+  .rot-stages { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; max-width: 560px; }
+  .rot-stage { margin: 0; }
+  .rot-stage img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); display: block; background: var(--grid); }
+  .rot-stage figcaption { font-size: 12.5px; margin-top: 3px; color: var(--text-secondary); }
+  .rot-next { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-top: 8px; }
+  .rot-minik { display: inline-flex; align-items: center; gap: 5px; }
+  .rot-minik img.mini { width: 36px; height: 21px; object-fit: cover; border-radius: 4px; }
+  .rot-salmon { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .rot-srbild { width: 180px; max-width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+  .rot-waffen { display: flex; gap: 10px; flex-wrap: wrap; font-size: 12.5px; color: var(--text-secondary); margin-top: 4px; }
+  .rot-waffen span { display: inline-flex; align-items: center; }
+
   /* Salmon-Run-Tab im SplatNet-Look: Grizzco-Dunkelrot mit Rogen-Muster,
      Orange als Akzent, Statistik-Kacheln als gelbe Bärenpunkte-Karte.
      Bewusst in beiden Themes gleich – wie bei Nintendo. */
@@ -308,7 +328,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.30"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.31"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -728,28 +748,30 @@ const RULE_DE = { TURF_WAR: "Revierkampf", AREA: "Herrschaft", LOFT: "Turm-Komma
 async function ladeRotation() {
   if (window.claude) return; // Vorschau: externe Abrufe gesperrt
   try {
-    const c = JSON.parse(localStorage.getItem("rotation-cache") || "null");
+    const c = JSON.parse(localStorage.getItem("rotation-cache-v2") || "null");
     if (c && Date.now() - c.zeit < 25 * 60000) { rotationDaten = c.daten; renderAlles(); return; }
   } catch (e) {}
   if (!navigator.onLine) return;
   try {
-    // Deutsche Namen: Stage-IDs -> Namen aus der splatoon3.ink-Sprachdatei (7 Tage gemerkt)
-    let stagesDe = null;
-    try { const lc = JSON.parse(localStorage.getItem("s3ink-stages-de") || "null"); if (lc && Date.now() - lc.zeit < 7 * 86400e3) stagesDe = lc.map; } catch (e) {}
-    if (!stagesDe) {
+    // Deutsche Namen: Stage-IDs und Event-Namen aus der splatoon3.ink-Sprachdatei (7 Tage gemerkt)
+    let de = null;
+    try { const lc = JSON.parse(localStorage.getItem("s3ink-de-v2") || "null"); if (lc && Date.now() - lc.zeit < 7 * 86400e3) de = lc; } catch (e) {}
+    if (!de) {
       const lr = await fetch("https://splatoon3.ink/data/locale/de-DE.json");
       const loc = await lr.json();
-      stagesDe = {};
-      for (const [id, v] of Object.entries(loc.stages || {})) if (v && v.name) stagesDe[id] = v.name;
-      try { localStorage.setItem("s3ink-stages-de", JSON.stringify({ zeit: Date.now(), map: stagesDe })); } catch (e) {}
+      de = { zeit: Date.now(), stages: {}, events: {} };
+      for (const [id, v] of Object.entries(loc.stages || {})) if (v && v.name) de.stages[id] = v.name;
+      for (const [id, v] of Object.entries(loc.events || {})) if (v && v.name) de.events[id] = { name: v.name, desc: v.desc || "" };
+      try { localStorage.setItem("s3ink-de-v2", JSON.stringify(de)); } catch (e) {}
     }
     const r = await fetch("https://splatoon3.ink/data/schedules.json", { cache: "no-store" });
     const D = (await r.json()).data;
     const WDE = Object.fromEntries(WAFFEN.map(w => [w.e, w.n]));
-    const stageName = (s) => stagesDe[s.id] || s.name;
+    // Karten als {name, bild}: Bild-URL von splatoon3.ink als Reserve, falls kein eingebautes Bild da ist
+    const stage = (s) => ({ name: de.stages[s.id] || s.name, bild: ((s || {}).image || {}).url || "" });
     const vsEintrag = (node, setting, art) => setting ? ({
       art, modus: RULE_DE[(setting.vsRule || {}).rule] || "?",
-      karten: (setting.vsStages || []).map(stageName), bis: node.endTime }) : null;
+      karten: (setting.vsStages || []).map(stage), von: node.startTime, bis: node.endTime }) : null;
     const block = (idx) => {
       const e = [];
       const reg = (D.regularSchedules.nodes || [])[idx];
@@ -761,10 +783,24 @@ async function ladeRotation() {
       return e.filter(Boolean);
     };
     const sr = ((D.coopGroupingSchedule || {}).regularSchedules || {}).nodes || [];
-    rotationDaten = { jetzt: block(0), danach: block(1),
-      salmon: sr[0] ? { karte: stagesDe[sr[0].setting.coopStage.id] || sr[0].setting.coopStage.name,
-        waffen: (sr[0].setting.weapons || []).map(w => WDE[w.name] || w.name), bis: sr[0].endTime } : null };
-    try { localStorage.setItem("rotation-cache", JSON.stringify({ zeit: Date.now(), daten: rotationDaten })); } catch (e) {}
+    const salmon = sr.slice(0, 2).map(n => ({
+      karte: de.stages[n.setting.coopStage.id] || n.setting.coopStage.name,
+      bild: (((n.setting.coopStage || {}).thumbnailImage || (n.setting.coopStage || {}).image) || {}).url || "",
+      waffen: (n.setting.weapons || []).map(w => WDE[w.name] || w.name),
+      von: n.startTime, bis: n.endTime }));
+    // Event-Kampf (Challenge): Name/Beschreibung deutsch + alle Zeitfenster
+    let event = null;
+    const ev = ((D.eventSchedules || {}).nodes || [])[0];
+    if (ev && ev.leagueMatchSetting) {
+      const em = ev.leagueMatchSetting.leagueMatchEvent || {};
+      const evDe = de.events[em.id] || {};
+      event = { name: evDe.name || em.name || "Event-Kampf", desc: evDe.desc || em.desc || "",
+        modus: RULE_DE[(ev.leagueMatchSetting.vsRule || {}).rule] || "?",
+        karten: (ev.leagueMatchSetting.vsStages || []).map(stage),
+        zeiten: (ev.timePeriods || []).slice(0, 6).map(t => ({ von: t.startTime, bis: t.endTime })) };
+    }
+    rotationDaten = { vs: [block(0), block(1), block(2)], salmon, event };
+    try { localStorage.setItem("rotation-cache-v2", JSON.stringify({ zeit: Date.now(), daten: rotationDaten })); } catch (e) {}
     renderAlles();
   } catch (e) { /* nicht erreichbar -> Anzeige entfaellt einfach */ }
 }
@@ -937,39 +973,81 @@ function renderUebersicht(stats) {
     return `<div class="delta ${gut ? "good" : "bad"}">${pfeil} ${einheit === "%" ? Math.abs(Math.round(wert * 100)) + " Pp." : fmt1(Math.abs(wert))} vs. 10 davor</div>`;
   };
   // Rotations-Karte: was ist gerade spielbar, und wo lohnt es sich für dich?
-  const uhrzeit = (iso) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }) + " Uhr";
   let rotationHtml = "";
-  if (rotationDaten && rotationDaten.jetzt && rotationDaten.jetzt.length) {
+  if (rotationDaten && rotationDaten.vs && rotationDaten.vs[0] && rotationDaten.vs[0].length) {
     const R = rotationDaten;
-    const kChip = (k) => {
-      const s = stats && stats.proKarte[k];
-      if (s && s.n >= 3) {
-        const farbe = s.winrate >= 0.55 ? "var(--delta-good)" : s.winrate <= 0.45 ? "var(--status-critical)" : "var(--text-secondary)";
-        return `${esc(k)} <span style="color:${farbe}; font-weight:600">(${Math.round(s.winrate * 100)} %)</span>`;
-      }
-      return esc(k);
+    const zeitOhne = (iso) => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+    const spanne = (von, bis) => {
+      const v = new Date(von);
+      const tag = v.toDateString() === new Date().toDateString() ? "" :
+        v.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" }) + ". ";
+      return `${tag}${zeitOhne(von)} – ${zeitOhne(bis)}`;
+    };
+    const wrChip = (name) => {
+      const s = stats && stats.proKarte[name];
+      if (!s || s.n < 3) return "";
+      const farbe = s.winrate >= 0.55 ? "var(--delta-good)" : s.winrate <= 0.45 ? "var(--status-critical)" : "var(--text-secondary)";
+      return ` <span style="color:${farbe}; font-weight:700">${Math.round(s.winrate * 100)} %</span>`;
+    };
+    const kartenSrc = (k) => { const ki = KARTEN_INFO.find(x => x.de === k.name); return ki ? bildSrc(ki.bild) : k.bild; };
+    const stageKachel = (k) => {
+      const src = kartenSrc(k);
+      return `<figure class="rot-stage">${src ? `<img loading="lazy" alt="" src="${src}" onerror="this.style.display='none'">` : ""}
+        <figcaption>${esc(k.name)}${wrChip(k.name)}</figcaption></figure>`;
+    };
+    const miniKarte = (k) => {
+      const src = kartenSrc(k);
+      return `<span class="rot-minik">${src ? `<img class="mini" alt="" src="${src}" onerror="this.style.display='none'">` : ""}${esc(k.name)}${wrChip(k.name)}</span>`;
+    };
+    const modusBlock = (art) => {
+      const jetzt = R.vs[0].find(e => e.art === art);
+      if (!jetzt) return "";
+      const spaeter = [R.vs[1], R.vs[2]].map(b => (b || []).find(e => e.art === art)).filter(Boolean);
+      return `<div class="rot-block">
+        <div class="rot-kopf"><strong>${esc(art)}</strong> · ${esc(jetzt.modus)}
+          <span class="rot-tag aktuell">Aktuell</span><span class="rot-zeit">${spanne(jetzt.von, jetzt.bis)}</span></div>
+        <div class="rot-stages">${jetzt.karten.map(stageKachel).join("")}</div>
+        ${spaeter.map((e, i) => `<div class="rot-next"><span class="rot-tag bald">${i === 0 ? "Demnächst" : "Danach"}</span>
+          <span class="rot-zeit">${spanne(e.von, e.bis)}</span> ${esc(e.modus)}: ${e.karten.map(miniKarte).join(" ")}</div>`).join("")}
+      </div>`;
     };
     let tipp = "";
     if (stats) {
       let best = null;
-      for (const e of R.jetzt) for (const k of e.karten) {
-        const s = stats.proKarte[k];
-        if (s && s.n >= 3 && (!best || s.winrate > best.wr)) best = { k, wr: s.winrate, art: e.art, modus: e.modus };
+      for (const e of R.vs[0]) for (const k of e.karten) {
+        const s = stats.proKarte[k.name];
+        if (s && s.n >= 3 && (!best || s.winrate > best.wr)) best = { k: k.name, wr: s.winrate, art: e.art, modus: e.modus };
       }
-      if (best && best.wr >= 0.55) tipp = `<p style="margin:8px 0 0; font-size:13.5px">🎯 <strong>Jetzt lohnt es sich:</strong> ${esc(best.modus)} (${esc(best.art)}) auf ${esc(best.k)} – dort gewinnst du ${Math.round(best.wr * 100)} %!</p>`;
+      if (best && best.wr >= 0.55) tipp = `<p style="margin:10px 0 0; font-size:13.5px">🎯 <strong>Jetzt lohnt es sich:</strong> ${esc(best.modus)} (${esc(best.art)}) auf ${esc(best.k)} – dort gewinnst du ${Math.round(best.wr * 100)} %!</p>`;
       else if (best && best.wr <= 0.45) {
-        const kommende = [...new Set((R.danach || []).flatMap(e => e.karten))].slice(0, 3);
-        tipp = `<p style="margin:8px 0 0; font-size:13.5px">⏳ Gerade laufen eher deine schwächeren Karten – die nächste Rotation bringt${kommende.length ? " u. a. " + kommende.map(esc).join(", ") : " neue Karten"}.</p>`;
+        const kommende = [...new Set((R.vs[1] || []).flatMap(e => e.karten.map(k => k.name)))].slice(0, 3);
+        tipp = `<p style="margin:10px 0 0; font-size:13.5px">⏳ Gerade laufen eher deine schwächeren Karten – die nächste Rotation bringt${kommende.length ? " u. a. " + kommende.map(esc).join(", ") : " neue Karten"}.</p>`;
       }
     }
-    const salmonHtml = R.salmon ? `<p style="margin:8px 0 0; font-size:13.5px">🐟 <strong>Salmon Run:</strong> ${esc(R.salmon.karte)} mit ${R.salmon.waffen.map(esc).join(", ")} – noch bis ${uhrzeit(R.salmon.bis)}</p>` : "";
+    const s0 = (R.salmon || [])[0], s1 = (R.salmon || [])[1];
+    const salmonHtml = s0 ? `<div class="rot-block">
+      <div class="rot-kopf"><strong>🐟 Salmon Run</strong>
+        <span class="rot-tag aktuell">Aktuell</span><span class="rot-zeit">${spanne(s0.von, s0.bis)}</span></div>
+      <div class="rot-salmon">
+        ${s0.bild ? `<img class="rot-srbild" loading="lazy" alt="" src="${s0.bild}" onerror="this.style.display='none'">` : ""}
+        <div><div style="font-weight:700">${esc(s0.karte)}</div>
+          <div class="rot-waffen">${s0.waffen.map(w => `<span>${wIcon(w)}${esc(w)}</span>`).join("")}</div></div>
+      </div>
+      ${s1 ? `<div class="rot-next"><span class="rot-tag bald">Demnächst</span><span class="rot-zeit">${spanne(s1.von, s1.bis)}</span>
+        ${esc(s1.karte)}: ${s1.waffen.map(w => wIcon(w)).join("")}</div>` : ""}
+    </div>` : "";
+    const eventHtml = R.event ? `<div class="rot-block">
+      <div class="rot-kopf"><strong>🎪 Event-Kampf</strong> · ${esc(R.event.modus)}</div>
+      <div style="font-weight:700; color:var(--series-1)">${esc(R.event.name)}</div>
+      ${R.event.desc ? `<p style="margin:2px 0 8px; font-size:12.5px; color:var(--text-muted)">${esc(R.event.desc)}</p>` : ""}
+      <div class="rot-stages">${R.event.karten.map(stageKachel).join("")}</div>
+      <div class="rot-next" style="flex-wrap:wrap">${R.event.zeiten.map(z => `<span class="rot-zeit" style="border:1px solid var(--border); border-radius:4px; padding:2px 8px">${spanne(z.von, z.bis)}</span>`).join("")}</div>
+    </div>` : "";
     rotationHtml = `
     <div class="card">
-      <h2>🕒 Gerade spielbar <span style="font-weight:400; font-size:12.5px; color:var(--text-muted)">bis ${uhrzeit(R.jetzt[0].bis)} · Daten: splatoon3.ink</span></h2>
-      <div class="kb-table-scroll"><table class="kb"><tr><th>Wo</th><th>Modus</th><th>Karten (deine Winrate)</th></tr>
-      ${R.jetzt.map(e => `<tr><td><strong>${esc(e.art)}</strong></td><td>${esc(e.modus)}</td><td>${e.karten.map(kChip).join(" · ")}</td></tr>`).join("")}
-      </table></div>
-      ${tipp}${salmonHtml}
+      <h2>🕒 Arenen – gerade spielbar <span style="font-weight:400; letter-spacing:0; text-transform:none; font-size:12px; color:var(--text-muted)">Daten: splatoon3.ink</span></h2>
+      ${["Normal", "Anarchie Serie", "Anarchie Offen", "X-Rang"].map(modusBlock).join("")}
+      ${salmonHtml}${eventHtml}${tipp}
     </div>`;
   }
   // Auto-Feedback: das neueste Match (kommt per stat.ink-Sync von selbst) sofort bewerten
