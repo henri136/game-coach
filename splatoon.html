@@ -6,14 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Splatoon Coach">
-<meta name="theme-color" content="#10151d">
+<meta name="theme-color" content="#0e0c13">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Splatoon 3 Coach – Werde besser wie die Top-Spieler</title>
 <style>
-  /* Turnier-Profi-Design: aufgeräumtes E-Sport-Dashboard.
-     dunkel = Anthrazit #10151d mit Türkis #4dd8c0 (Standard-Look),
-     hell = neutrales Grau/Weiß mit Petrol #0d9488 als Gegenstück. */
+  /* Design „Turnier-Profi × Splatsville Neon“: die aufgeräumte
+     Dashboard-Struktur von C mit den Nacht-Neon-Farben von A.
+     dunkel = Splatsville-Nacht (#0e0c13) + Neon-Pink #ef4f9f (Standard-Look),
+     hell = neutrales Grau/Weiß mit Tinten-Pink #d21f74 als Gegenstück. */
   :root {
     color-scheme: light;
     --page:           #f2f4f7;
@@ -25,10 +26,10 @@
     --grid:           #e4e8ee;
     --baseline:       #c4ccd6;
     --border:         rgba(22,32,43,0.14);
-    --series-1:       #0d9488;   /* Petrol/Türkis */
-    --series-1-track: #d5ece9;
-    --area-wash:      rgba(13,148,136,0.10);
-    --ink-2:          #2077d8;   /* zweiter Akzent (blau) */
+    --series-1:       #d21f74;   /* Tinten-Pink (Kontrast-geprüft) */
+    --series-1-track: #f7cce2;
+    --area-wash:      rgba(210,31,116,0.10);
+    --ink-2:          #9bd315;   /* zweiter Akzent (Neon-Grün) */
     --on-accent:      #ffffff;
     --status-good:    #0ca30c;
     --status-warning: #fab219;
@@ -39,20 +40,20 @@
   @media (prefers-color-scheme: dark) {
     :root:where(:not([data-theme="light"])) {
       color-scheme: dark;
-      --page:           #10151d;
-      --surface-1:      #151c26;
-      --surface-2:      #131a23;
-      --text-primary:   #e8edf4;
-      --text-secondary: #b8c2cd;
-      --text-muted:     #7f8b9a;
-      --grid:           #1d2632;
-      --baseline:       #33404f;
-      --border:         #26303d;
-      --series-1:       #4dd8c0;
-      --series-1-track: #1d2632;
-      --area-wash:      rgba(77,216,192,0.10);
-      --ink-2:          #35b5ff;
-      --on-accent:      #10151d;
+      --page:           #0e0c13;
+      --surface-1:      #191521;
+      --surface-2:      #15111c;
+      --text-primary:   #f2eef7;
+      --text-secondary: #beb6cb;
+      --text-muted:     #8d8399;
+      --grid:           #292234;
+      --baseline:       #453d54;
+      --border:         #322b3f;
+      --series-1:       #ef4f9f;
+      --series-1-track: #2c1a26;
+      --area-wash:      rgba(239,79,159,0.12);
+      --ink-2:          #c3ea3c;
+      --on-accent:      #16101a;
       --status-good:    #45d483;
       --status-warning: #f5b83d;
       --status-serious: #f08a5c;
@@ -62,20 +63,20 @@
   }
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --page:           #10151d;
-    --surface-1:      #151c26;
-    --surface-2:      #131a23;
-    --text-primary:   #e8edf4;
-    --text-secondary: #b8c2cd;
-    --text-muted:     #7f8b9a;
-    --grid:           #1d2632;
-    --baseline:       #33404f;
-    --border:         #26303d;
-    --series-1:       #4dd8c0;
-    --series-1-track: #1d2632;
-    --area-wash:      rgba(77,216,192,0.10);
-    --ink-2:          #35b5ff;
-    --on-accent:      #10151d;
+    --page:           #0e0c13;
+    --surface-1:      #191521;
+    --surface-2:      #15111c;
+    --text-primary:   #f2eef7;
+    --text-secondary: #beb6cb;
+    --text-muted:     #8d8399;
+    --grid:           #292234;
+    --baseline:       #453d54;
+    --border:         #322b3f;
+    --series-1:       #ef4f9f;
+    --series-1-track: #2c1a26;
+    --area-wash:      rgba(239,79,159,0.12);
+    --ink-2:          #c3ea3c;
+    --on-accent:      #16101a;
     --status-good:    #45d483;
     --status-warning: #f5b83d;
     --status-serious: #f08a5c;
@@ -105,13 +106,13 @@
     border-radius: 8px; padding: 7px 14px; cursor: pointer;
   }
   button:hover { border-color: var(--series-1); }
-  button.primary { background: var(--series-1); border-color: transparent; color: var(--on-accent); font-weight: 700; }
+  button.primary { background: var(--series-1); border-color: transparent; color: var(--on-accent); font-weight: 700; box-shadow: 0 0 16px -2px color-mix(in srgb, var(--series-1) 55%, transparent); }
   button.danger  { color: var(--status-critical); }
 
   nav.tabs { display: flex; gap: 2px; flex-wrap: wrap; margin: 18px 0; border-bottom: 1px solid var(--border); }
   nav.tabs button { border: none; background: transparent; padding: 9px 14px 11px; border-radius: 0; color: var(--text-muted); font-weight: 600; font-size: 13.5px; letter-spacing: 0.02em; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   nav.tabs button:hover { color: var(--text-primary); background: transparent; border-bottom-color: var(--baseline); }
-  nav.tabs button.active { background: transparent; color: var(--series-1); border-bottom-color: var(--series-1); font-weight: 700; }
+  nav.tabs button.active { background: transparent; color: var(--series-1); border-bottom-color: var(--series-1); font-weight: 700; box-shadow: 0 10px 14px -12px color-mix(in srgb, var(--series-1) 70%, transparent); }
 
   .card {
     background: var(--surface-1); border: 1px solid var(--border);
@@ -129,7 +130,7 @@
   .tile .delta.bad  { color: var(--status-critical); }
 
   .hero { text-align: left; }
-  .hero .value { font-size: 52px; font-weight: 700; line-height: 1.1; color: var(--series-1); font-variant-numeric: tabular-nums; }
+  .hero .value { font-size: 52px; font-weight: 700; line-height: 1.1; color: var(--series-1); font-variant-numeric: tabular-nums; text-shadow: 0 0 22px color-mix(in srgb, var(--series-1) 40%, transparent); }
   .hero .label { color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
 
   .micon { width: 26px; height: 26px; object-fit: contain; vertical-align: -8px; margin-right: 6px; }
@@ -242,13 +243,13 @@
   .empty-hint { color: var(--text-muted); padding: 18px 0; }
 
   /* Live-Coach: große Touch-Ziele fürs iPad neben der Konsole */
-  .live-banner { border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; font-weight: 600; display: flex; gap: 10px; align-items: flex-start; }
+  .live-banner { border-radius: 10px; padding: 14px 16px; margin-bottom: 16px; font-weight: 600; display: flex; gap: 10px; align-items: flex-start; }
   .live-banner.warnung  { background: color-mix(in srgb, var(--status-warning) 18%, var(--surface-1)); }
   .live-banner.kritisch { background: color-mix(in srgb, var(--status-critical) 16%, var(--surface-1)); }
   .live-banner .icon { font-size: 20px; }
   .live-banner p { margin: 2px 0 0; font-weight: 400; color: var(--text-secondary); font-size: 13.5px; }
   .quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
-  .stepper { background: var(--page); border: 1px solid var(--border); border-radius: 12px; padding: 8px 10px; text-align: center; }
+  .stepper { background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; text-align: center; }
   .stepper .slabel { font-size: 12px; color: var(--text-secondary); }
   .stepper .srow { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; }
   .stepper button { width: 44px; height: 44px; font-size: 20px; border-radius: 50%; padding: 0; }
@@ -261,7 +262,8 @@
   .ergebnis-row button { font-size: 17px; font-weight: 800; padding: 16px 10px; border-radius: 10px; border: none; color: #ffffff; }
   .ergebnis-row .sieg { background: var(--status-good); }
   .ergebnis-row .niederlage { background: var(--status-critical); }
-  .fokus-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; margin: 8px 0; cursor: pointer; }
+  .fokus-option { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px; margin: 8px 0; cursor: pointer; }
+  .fokus-option:has(input:checked) { border-color: var(--series-1); box-shadow: 0 0 12px -4px color-mix(in srgb, var(--series-1) 50%, transparent); }
   .fokus-option input { width: 18px; height: 18px; margin-top: 2px; accent-color: var(--series-1); }
   .fokus-option .empf { font-size: 11.5px; font-weight: 700; color: var(--delta-good); text-transform: uppercase; letter-spacing: 0.04em; }
   .session-stat-row { display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline; }
@@ -276,7 +278,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.26"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.27"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
