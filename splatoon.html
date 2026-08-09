@@ -107,7 +107,17 @@
   }
   body {
     margin: 0;
-    background: var(--page);
+    background-color: var(--page);
+    /* Tintenkleckse in den Symbol-Farben – dezent, Karten liegen deckend darüber */
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23ef4f9f' fill-opacity='0.11' d='M100 15C140 5 175 35 180 75c5 35 20 50 5 75-20 30-65 15-85 35-20 15-55 0-70-25C10 130 25 110 15 80 5 45 55 25 100 15Z'/%3E%3Ccircle cx='178' cy='150' r='9' fill='%23ef4f9f' fill-opacity='0.13'/%3E%3Ccircle cx='30' cy='38' r='6' fill='%23ef4f9f' fill-opacity='0.12'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%235a8cff' fill-opacity='0.10' d='M95 10c35-12 80 8 90 45 8 32-12 48-5 78 8 34-30 62-65 55-30-6-38-28-68-32C15 152-2 120 8 88 20 50 55 24 95 10Z'/%3E%3Ccircle cx='25' cy='170' r='8' fill='%235a8cff' fill-opacity='0.12'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%23ff8a3c' fill-opacity='0.10' d='M105 18c38-10 72 18 78 52 6 30-14 44-8 72 7 30-24 52-56 48-28-4-36-22-62-27-26-6-42-32-35-60 9-38 45-74 83-85Z'/%3E%3Ccircle cx='40' cy='30' r='7' fill='%23ff8a3c' fill-opacity='0.12'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath fill='%2335d6c0' fill-opacity='0.10' d='M90 12c40-8 85 15 92 52 6 30-16 45-10 74 7 32-28 56-62 50-30-5-36-25-66-30-28-5-44-33-36-62C18 58 52 20 90 12Z'/%3E%3Ccircle cx='170' cy='35' r='8' fill='%2335d6c0' fill-opacity='0.12'/%3E%3C/svg%3E"),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 260'%3E%3Cg fill-opacity='0.055'%3E%3Ccircle cx='34' cy='46' r='5' fill='%23ef4f9f'/%3E%3Ccircle cx='140' cy='22' r='4' fill='%235a8cff'/%3E%3Ccircle cx='226' cy='72' r='6' fill='%23c3ea3c'/%3E%3Ccircle cx='72' cy='140' r='4' fill='%23ff8a3c'/%3E%3Ccircle cx='186' cy='150' r='5' fill='%2335d6c0'/%3E%3Ccircle cx='30' cy='216' r='6' fill='%235a8cff'/%3E%3Ccircle cx='126' cy='232' r='4' fill='%23ef4f9f'/%3E%3Ccircle cx='232' cy='210' r='5' fill='%23ff8a3c'/%3E%3C/g%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+    background-position: right -70px top -60px, left -90px top 22%, right -60px top 55%, left -80px top 78%, 0 0;
+    background-size: 360px 360px, 330px 330px, 300px 300px, 300px 300px, 260px 260px;
     color: var(--text-primary);
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 15px;
@@ -367,7 +377,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.43"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.44"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
