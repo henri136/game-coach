@@ -271,6 +271,43 @@
   .footnote { color: var(--text-muted); font-size: 12.5px; margin-top: 24px; }
   .quellen { font-size: 12.5px; color: var(--text-muted); }
   .quellen li { margin: 2px 0; overflow-wrap: anywhere; }
+
+  /* Salmon-Run-Tab im SplatNet-Look: Grizzco-Dunkelrot mit Rogen-Muster,
+     Orange als Akzent, Statistik-Kacheln als gelbe Bärenpunkte-Karte.
+     Bewusst in beiden Themes gleich – wie bei Nintendo. */
+  #tab-salmon {
+    --surface-1: rgba(22,10,5,0.86);
+    --surface-2: rgba(16,7,4,0.85);
+    --text-primary: #ffeede;
+    --text-secondary: #e9c6aa;
+    --text-muted: #bb9077;
+    --grid: #3d1d0e;
+    --baseline: #63301a;
+    --border: #4d2410;
+    --series-1: #ff6a2e;
+    --series-1-track: #38160a;
+    --area-wash: rgba(255,106,46,0.14);
+    --ink-2: #a4f22b;
+    --on-accent: #1a0a04;
+    --delta-good: #a4f22b;
+    color: var(--text-primary);
+    padding: 14px 14px 20px;
+    border-radius: 12px;
+    background-color: #200c05;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 260 260'%3E%3Cg fill='%23000000' fill-opacity='0.22'%3E%3Cellipse cx='36' cy='42' rx='26' ry='20'/%3E%3Cellipse cx='128' cy='24' rx='18' ry='14'/%3E%3Cellipse cx='214' cy='58' rx='30' ry='24'/%3E%3Cellipse cx='70' cy='126' rx='34' ry='26'/%3E%3Cellipse cx='182' cy='140' rx='22' ry='17'/%3E%3Cellipse cx='28' cy='210' rx='20' ry='16'/%3E%3Cellipse cx='120' cy='226' rx='28' ry='21'/%3E%3Cellipse cx='226' cy='218' rx='16' ry='12'/%3E%3C/g%3E%3C/svg%3E"),
+      linear-gradient(180deg, #672408 0%, #47180a 420px, #240d06 1100px, #1a0a05 100%);
+    background-size: 260px 260px, auto;
+  }
+  #tab-salmon .card { border: 1.5px solid var(--border); }
+  #tab-salmon .card h2 { color: #ff8a4a; letter-spacing: 0.12em; }
+  #tab-salmon .tile { background: #efe97c; border: 2px solid #171310; color: #171310; box-shadow: 0 3px 0 rgba(0,0,0,0.4); }
+  #tab-salmon .tile .label { color: #57501f; }
+  #tab-salmon .tile .value { color: #171310; }
+  #tab-salmon .tile .delta { color: #6e6528; }
+  #tab-salmon .tile .delta.good { color: #23690f; }
+  #tab-salmon .tile .delta.bad  { color: #a02414; }
+  #tab-salmon .kat-head { color: #a4f22b; }
 </style>
 </head>
 <body>
@@ -278,7 +315,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.28"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.29"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2021,8 +2058,11 @@ function renderSrEierChart(sr) {
   const yMax = Math.ceil(maxE / 5) * 5;
   const x = (i) => links + (daten.length === 1 ? 0 : (i / (daten.length - 1)) * plotW);
   const y = (v) => oben + (1 - v / yMax) * plotH;
-  const blau = cssVar("--series-1"), gridF = cssVar("--grid"), muted = cssVar("--text-muted"),
-        prim = cssVar("--text-primary"), surf = cssVar("--surface-1"), baseF = cssVar("--baseline"), wash = cssVar("--area-wash");
+  // Farben aus dem Salmon-Abschnitt lesen – der hat eigene (SplatNet-)Farbwerte
+  const salmEl = document.getElementById("tab-salmon") || document.documentElement;
+  const sv = (n) => getComputedStyle(salmEl).getPropertyValue(n).trim();
+  const blau = sv("--series-1"), gridF = sv("--grid"), muted = sv("--text-muted"),
+        prim = sv("--text-primary"), surf = "#1c0d06", baseF = sv("--baseline"), wash = sv("--area-wash");
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Goldene Eier pro Schicht">`;
   const schritt = yMax / 5;
   for (let g = 0; g <= yMax; g += schritt) {
@@ -2412,7 +2452,7 @@ function initialisiereMonitor() {
         <span style="font-size:12px; color:var(--text-muted)">Tipp: Zum Einlernen auf einen Death-Moment spulen, Pause drücken, dann ☠.</span>
       </div>
       <div id="monFehler" class="empty-hint" style="display:none"></div>
-      <div id="monRahmen" style="position:relative; max-width:560px; display:none">
+      <div id="monRahmen" style="position:relative; width:100%; display:none">
         <video id="monVideo" muted playsinline style="width:100%; border-radius:12px; display:block; border:1.5px solid var(--border)"></video>
         <div id="monCropRect" style="position:absolute; border:2px dashed rgba(255,255,255,0.95); outline:2px dashed var(--series-1); border-radius:4px; display:none; pointer-events:none"></div>
         <div id="monCropLayer" style="position:absolute; inset:0; display:none; touch-action:none; cursor:crosshair"></div>
