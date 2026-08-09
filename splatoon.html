@@ -244,7 +244,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-09.6";
+const APP_VERSION = "2026-08-09.7";
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -611,6 +611,14 @@ const WISSEN = {
       "Mit „schlechten“ Waffen-Rotationen trotzdem spielen: Top-Spieler kennen jede Waffe der Rotation – genau das trennt sie vom Durchschnitt.",
       "In der Xtrawelle Goldene Eier auf den Salmoniden-König werfen statt nur zu schießen – die Eierwürfe machen den Großteil des Schadens.",
     ],
+    video_training: [
+      { id: "position", frage: "Wo steht er die meiste Zeit?", achte_auf: "Zähle beim Zuschauen mit: Wie oft ist er mehr als ~3 Sekunden Laufweg vom Korb entfernt? Top-Spieler sind 70–80 % der Zeit im mittleren Bereich – auch beim Farmen." },
+      { id: "bosse", frage: "Was macht er, wenn ein Boss spawnt?", achte_auf: "Er tötet ihn fast nie sofort am Spawn-Punkt – er wartet, bis der Boss näher am Korb ist, oder LOCKT ihn aktiv dorthin. Zähle mit, wie viele Bosse er neben dem Korb erledigt." },
+      { id: "eier", frage: "Wann und wie liefert er Eier ab?", achte_auf: "Er trägt selten weit – er WIRFT Eier Richtung Korb und sammelt in Schüben (erst Bosse legen, dann 2–3 Eier am Stück liefern). Achte auf die Eierwürfe!" },
+      { id: "gezeiten", frage: "Was macht er als Erstes bei Flut oder Ebbe?", achte_auf: "Er repositioniert sich SOFORT, bevor die Welle richtig losgeht – bei Ebbe mit raus ans Wasser, bei Flut früh auf die sichere Fläche. Er wird nie von der Gezeit überrascht." },
+      { id: "retten", frage: "Wie schnell reagiert er auf ausgefallene Kollegen?", achte_auf: "Stoppuhr im Kopf: Wie viele Sekunden vergehen, bis ein Kollege in seiner Nähe wiederbelebt wird? Meist unter 3 – notfalls lässt er dafür Eier liegen." },
+      { id: "spezial", frage: "Wann zündet er die Spezialwaffe?", achte_auf: "Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt." },
+    ],
     typische_fehler: [
       "Bosse dort töten, wo sie spawnen (am Kartenrand) – die Eier liegen dann unerreichbar weit weg.",
       "Eier einzeln über die halbe Karte tragen, statt Bosse zu locken oder zu werfen.",
@@ -633,9 +641,9 @@ let state = ladeState();
 function ladeState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null }; }
+    if (raw) { const s = JSON.parse(raw); return { matches: s.matches || [], srRuns: s.srRuns || [], habits: s.habits || {}, theme: s.theme || null, session: s.session || null, lastSummary: s.lastSummary || null, monitor: s.monitor || null, statink: s.statink || null, videoTraining: s.videoTraining || {} }; }
   } catch (e) { /* Speicher gesperrt oder defekt -> im Arbeitsspeicher weiterarbeiten */ }
-  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null };
+  return { matches: [], srRuns: [], habits: {}, theme: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {} };
 }
 function speichereState() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -1447,6 +1455,31 @@ function renderSalmon() {
   const el = $("#salmonInhalt");
   const sr = berechneSrStats(state.srRuns);
   const W = WISSEN.salmon;
+
+  // Video-Training: geführtes Abschauen bei Top-Spielern, personalisiert nach den eigenen Baustellen
+  const vt = (W && W.video_training) || [];
+  let fokusText = "";
+  if (sr && W && sr.n >= 3) {
+    const S = W.schwellen;
+    if (sr.avgGerettet > S.gerettet_ok) fokusText = "Du fällst überdurchschnittlich oft aus – achte deshalb BESONDERS auf Frage 1 (wo er steht) und Frage 5 (wie schnell gerettet wird).";
+    else if (sr.avgEier < sr.expEier * S.eier_faktor_ok) fokusText = "Deine Eierzahl ist deine größte Baustelle – achte BESONDERS auf Frage 2 (Bosse locken) und Frage 3 (Eier werfen).";
+    else if (sr.avgBosse < sr.expBosse * S.bosse_faktor_ok) fokusText = "Deine Boss-Kills sind ausbaufähig – achte BESONDERS auf Frage 2 (was er macht, wenn ein Boss spawnt).";
+    else fokusText = "Deine Grundwerte stimmen schon – hol dir das Feintuning: Spezial-Timing (Frage 6) und Gezeiten-Verhalten (Frage 4).";
+  }
+  const erledigtVT = vt.filter(t => state.videoTraining[t.id]).length;
+  const videoHtml = vt.length ? `
+    <div class="card">
+      <h2>🎥 Video-Training: Von den Besten abschauen</h2>
+      <p class="sub">Öffne ein Video von <a href="https://www.youtube.com/@kenshiro3114" target="_blank" rel="noopener" style="color:var(--series-1)">Kenshiro SalmonRun (けんしろ)</a>
+      und beantworte beim Zuschauen diese 6 Beobachtungs-Fragen – genau so lernen Profis aus Videos: nicht passiv schauen, sondern gezielt beobachten.
+      Fortschritt: ${erledigtVT}/${vt.length}</p>
+      ${fokusText ? `<div class="live-banner warnung"><span class="icon">💡</span><div>Dein persönlicher Fokus<p>${esc(fokusText)}</p></div></div>` : ""}
+      ${vt.map((t, i) => `<label class="habit">
+        <input type="checkbox" data-vt="${esc(t.id)}" ${state.videoTraining[t.id] ? "checked" : ""}>
+        <div><h3>${i + 1}. ${esc(t.frage)}</h3><p>${esc(t.achte_auf)}</p></div>
+      </label>`).join("")}
+      ${erledigtVT === vt.length ? `<p style="margin:10px 0 0; color:var(--delta-good); font-weight:600">✔ Alle 6 beobachtet – stark! Nimm dir für deine nächste eigene Schicht EINE dieser Beobachtungen als Fokus vor und vergleiche danach deine Zahlen hier in der App.</p>` : ""}
+    </div>` : "";
   const kbHtml = W ? `
     <div class="card"><h2>Benchmarks: Salmon Run</h2>
       <p class="sub">Richtwerte pro voller Schicht (3 Wellen), aus 13.329 ausgewerteten stat.ink-Schichten (Juli 2026). „Top“ = höchster Rang (engl. „Eggsecutive VP“) bei 333 % Gefahrenstufe.</p>
@@ -1459,9 +1492,15 @@ function renderSalmon() {
       <ul>${(W.typische_fehler || []).map(t => `<li>${esc(t)}</li>`).join("")}</ul>
       <p class="sub" style="margin-top:10px">Zum Abgucken empfohlen: YouTube-Kanal „Kenshiro SalmonRun (けんしろ)“ – Salmon-Run-Spezialist.
       Beim Zuschauen auf zwei Dinge achten: Wo steht er relativ zum Korb, und wann liefert er Eier ab vs. wann kämpft er?</p></div>` : "";
+  const vtHandler = () => {
+    el.querySelectorAll("input[data-vt]").forEach(cb => cb.addEventListener("change", () => {
+      state.videoTraining[cb.dataset.vt] = cb.checked; speichereState(); renderAlles();
+    }));
+  };
   if (!sr) {
     el.innerHTML = `<div class="card"><p class="empty-hint">Noch keine Schichten eingetragen. Trage oben deine erste Salmon-Run-Schicht ein –
-      oder lade im Tab „Matches“ Beispieldaten (enthalten auch Salmon-Run-Schichten).</p></div>${kbHtml}`;
+      oder lade im Tab „Matches“ Beispieldaten (enthalten auch Salmon-Run-Schichten).</p></div>${videoHtml}${kbHtml}`;
+    vtHandler();
     return;
   }
   const tipps = erzeugeSrTipps(sr);
@@ -1492,7 +1531,9 @@ function renderSalmon() {
       <h2>Deine Schichten</h2>
       <div class="table-scroll" id="srTabelle"></div>
     </div>
+    ${videoHtml}
     ${kbHtml}`;
+  vtHandler();
   renderSrEierChart(sr);
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical"), warn = cssVar("--status-warning");
   $("#srTabelle").innerHTML = `<table class="matches">
