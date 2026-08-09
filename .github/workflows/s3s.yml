@@ -1,0 +1,45 @@
+name: Matches automatisch zu stat.ink hochladen (s3s)
+
+# Ersetzt den PC: Lädt alle 4 Stunden neue Splatoon-3-Matches und
+# Salmon-Run-Schichten von Nintendo zu stat.ink hoch - von dort holt
+# sie sich die Coach-App automatisch.
+#
+# EINRICHTUNG (einmalig, mit Hilfe eines Erwachsenen):
+# 1. Auf dem PC, wo s3s schon läuft, die Datei config.txt öffnen
+#    (liegt im s3s-Ordner) und den GESAMTEN Inhalt kopieren.
+# 2. Auf GitHub: dieses Repository -> Settings -> Secrets and variables
+#    -> Actions -> "New repository secret"
+#    Name: S3S_CONFIG   |   Inhalt: das kopierte config.txt
+# 3. Fertig! Ab dann läuft der Upload automatisch alle 4 Stunden.
+#    (Zum Testen: Actions-Tab -> diesen Workflow wählen -> "Run workflow")
+
+on:
+  schedule:
+    - cron: "23 */4 * * *"   # alle 4 Stunden
+  workflow_dispatch: {}       # jederzeit von Hand startbar
+
+jobs:
+  hochladen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: s3s holen
+        uses: actions/checkout@v4
+        with:
+          repository: frozenpandaman/s3s
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Abhängigkeiten installieren
+        run: pip install -q -r requirements.txt
+      - name: Neue Matches hochladen
+        env:
+          S3S_CONFIG: ${{ secrets.S3S_CONFIG }}
+        run: |
+          if [ -z "$S3S_CONFIG" ]; then
+            echo "Kein S3S_CONFIG-Secret gesetzt - Anleitung steht oben in dieser Datei."
+            exit 0
+          fi
+          printf '%s' "$S3S_CONFIG" > config.txt
+          # Ausgabe unterdrücken: die Logs dieses öffentlichen Repos sind einsehbar
+          timeout 480 python s3s.py -r > /dev/null 2>&1 || true
+          echo "Durchlauf beendet."
