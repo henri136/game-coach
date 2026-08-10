@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.71"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.72"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2946,6 +2946,7 @@ const MON_RASTER_FEIN = 24;  // Seh-Raster 24×24 = 576 Zellen; ältere Beispiel
 const MON_MAX_BEISPIELE = 24;
 const MON_BREITE = 192, MON_HOEHE = 108;
 
+let monRandZone = null; // erkannte Spielbild-Grenzen ohne schwarze Balken
 function monSignatur(video) {
   if (!monitorCanvas || monitorCanvas.width !== MON_BREITE) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = MON_BREITE; monitorCanvas.height = MON_HOEHE; }
   const ctx = monitorCanvas.getContext("2d", { willReadFrequently: true, alpha: false });
@@ -2954,15 +2955,32 @@ function monSignatur(video) {
   if (crop && vw && vh) ctx.drawImage(video, crop.x * vw, crop.y * vh, crop.w * vw, crop.h * vh, 0, 0, MON_BREITE, MON_HOEHE);
   else ctx.drawImage(video, 0, 0, MON_BREITE, MON_HOEHE);
   const d = ctx.getImageData(0, 0, MON_BREITE, MON_HOEHE).data;
-  const sig = [], zw = MON_BREITE / MON_RASTER_FEIN, zh = MON_HOEHE / MON_RASTER_FEIN;
+  // Schwarze Balken (z. B. bei Bildschirm-Aufnahmen) automatisch abschneiden:
+  // Zeilen/Spalten am Rand, die praktisch schwarz sind, gehören nicht zum Spielbild.
+  const zeilen = new Array(MON_HOEHE).fill(0), spalten = new Array(MON_BREITE).fill(0);
+  for (let y = 0; y < MON_HOEHE; y++) for (let x = 0; x < MON_BREITE; x += 2) {
+    const i = (y * MON_BREITE + x) * 4, h = (d[i] + d[i + 1] + d[i + 2]) / 3;
+    zeilen[y] += h; spalten[x] += h;
+  }
+  for (let y = 0; y < MON_HOEHE; y++) zeilen[y] /= MON_BREITE / 2;
+  for (let x = 0; x < MON_BREITE; x += 2) spalten[x] /= MON_HOEHE;
+  const SW = 12;
+  let o = 0; while (o < MON_HOEHE - 1 && zeilen[o] < SW) o++;
+  let u = MON_HOEHE - 1; while (u > o && zeilen[u] < SW) u--;
+  let l = 0; while (l < MON_BREITE - 2 && spalten[l] < SW) l += 2;
+  let r2 = MON_BREITE - 2; while (r2 > l && spalten[r2] < SW) r2 -= 2;
+  // plausible Grenzen merken - beim Death-Dunkel bleibt so der zuletzt bekannte Ausschnitt aktiv
+  if (u - o + 1 >= MON_HOEHE * 0.35 && r2 - l + 1 >= MON_BREITE * 0.35) monRandZone = { o, u, l, r: r2 };
+  const Z = monRandZone || { o: 0, u: MON_HOEHE - 1, l: 0, r: MON_BREITE - 1 };
+  const sig = [], zw = (Z.r - Z.l + 1) / MON_RASTER_FEIN, zh = (Z.u - Z.o + 1) / MON_RASTER_FEIN;
   for (let gy = 0; gy < MON_RASTER_FEIN; gy++) for (let gx = 0; gx < MON_RASTER_FEIN; gx++) {
     let r = 0, g = 0, b = 0, n = 0;
-    for (let y = Math.floor(gy * zh); y < Math.floor((gy + 1) * zh); y++)
-      for (let x = Math.floor(gx * zw); x < Math.floor((gx + 1) * zw); x++) {
+    for (let y = Z.o + Math.floor(gy * zh); y < Z.o + Math.floor((gy + 1) * zh); y++)
+      for (let x = Z.l + Math.floor(gx * zw); x < Z.l + Math.floor((gx + 1) * zw); x++) {
         const i = (y * MON_BREITE + x) * 4; r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
       }
     // ganzzahlig gerundet, damit der Speicher klein bleibt (576 Zellen × 3 Farbwerte)
-    sig.push(Math.round(r / n), Math.round(g / n), Math.round(b / n));
+    sig.push(n ? Math.round(r / n) : 0, n ? Math.round(g / n) : 0, n ? Math.round(b / n) : 0);
   }
   return sig;
 }
@@ -3282,6 +3300,7 @@ function initialisiereMonitor() {
   }
 
   function stoppeMonitor() {
+    monRandZone = null;
     if (aufnahmeRolle) beendeAufnahme(); // laufende Vergleichs-Aufnahme sauber abschließen
     if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
     const auge = document.getElementById("monAuge"); if (auge) auge.style.display = "none";
