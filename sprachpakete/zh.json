@@ -1077,5 +1077,9 @@
 "🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.": "🚀 画面跳动是故意的——AI 在翻阅视频，这不是播放。",
 "Schnell-Analyse läuft – tippen zum Ansehen": "快速分析进行中——点按查看",
 "🛟 Ausfall-Beispiel (Salmon Run)": "🛟 倒下示例（鲑鱼跑）",
-"👁 KI: 🛟 Ausfall erkannt!": "👁 AI：🛟 识别到倒下！"
+"👁 KI: 🛟 Ausfall erkannt!": "👁 AI：🛟 识别到倒下！",
+"Spielmodus:": "游戏模式：",
+"🤖 Automatisch erkennen": "🤖 自动识别",
+"🎮 Kampf (Anarchie/Revier)": "🎮 对战（蛮颓/占地对战）",
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "如果 AI 判断错模式，请在这里固定 – 对战中统计变暗的阵亡画面，鲑鱼跑中统计倒下次数。"
 }

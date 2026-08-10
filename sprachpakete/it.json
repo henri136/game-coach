@@ -1074,5 +1074,9 @@
 "🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.": "🚀 L'immagine salta di proposito – l'IA sfoglia il video, non è una riproduzione.",
 "Schnell-Analyse läuft – tippen zum Ansehen": "Analisi rapida in corso – tocca per vedere",
 "🛟 Ausfall-Beispiel (Salmon Run)": "🛟 esempio di caduta (Salmon Run)",
-"👁 KI: 🛟 Ausfall erkannt!": "👁 IA: 🛟 caduta riconosciuta!"
+"👁 KI: 🛟 Ausfall erkannt!": "👁 IA: 🛟 caduta riconosciuta!",
+"Spielmodus:": "Modalità di gioco:",
+"🤖 Automatisch erkennen": "🤖 Rilevamento automatico",
+"🎮 Kampf (Anarchie/Revier)": "🎮 Battaglia (Anarchica/Mischia mollusca)",
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Se l'IA sbaglia modalità, bloccala qui: in battaglia conta la schermata scura di morte, in Salmon Run gli abbattimenti."
 }

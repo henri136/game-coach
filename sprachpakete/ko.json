@@ -1077,5 +1077,9 @@
 "🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.": "🚀 화면이 튀는 건 의도된 것 — AI가 영상을 넘겨보는 중이며 재생이 아니다.",
 "Schnell-Analyse läuft – tippen zum Ansehen": "고속 분석 진행 중 — 탭해서 보기",
 "🛟 Ausfall-Beispiel (Salmon Run)": "🛟 다운 예시(새먼 런)",
-"👁 KI: 🛟 Ausfall erkannt!": "👁 AI: 🛟 다운 인식!"
+"👁 KI: 🛟 Ausfall erkannt!": "👁 AI: 🛟 다운 인식!",
+"Spielmodus:": "게임 모드:",
+"🤖 Automatisch erkennen": "🤖 자동 감지",
+"🎮 Kampf (Anarchie/Revier)": "🎮 배틀 (카오폴리스/영역 배틀)",
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AI가 모드를 잘못 판단하면 여기서 고정하세요 – 배틀에서는 어두운 사망 화면을, 새먼 런에서는 쓰러짐을 셉니다."
 }

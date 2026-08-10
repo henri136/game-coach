@@ -1076,5 +1076,9 @@
 "🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.": "🚀 映像が飛ぶのはわざと ― AIが動画をめくっているだけで、再生ではない。",
 "Schnell-Analyse läuft – tippen zum Ansehen": "高速解析が実行中 ― タップで表示",
 "🛟 Ausfall-Beispiel (Salmon Run)": "🛟 ダウンの例(サーモンラン)",
-"👁 KI: 🛟 Ausfall erkannt!": "👁 AI:🛟 ダウンを認識!"
+"👁 KI: 🛟 Ausfall erkannt!": "👁 AI:🛟 ダウンを認識!",
+"Spielmodus:": "ゲームモード:",
+"🤖 Automatisch erkennen": "🤖 自動で判定",
+"🎮 Kampf (Anarchie/Revier)": "🎮 バトル（バンカラ/ナワバリ）",
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AIがモードを間違えたらここで固定 – バトルでは暗いやられ画面を、サーモンランでは救助待ちをカウントします。"
 }

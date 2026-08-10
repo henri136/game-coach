@@ -1082,5 +1082,9 @@
 "🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.": "🚀 Картинка прыгает намеренно — ИИ листает видео, это не воспроизведение.",
 "Schnell-Analyse läuft – tippen zum Ansehen": "Идёт быстрый анализ — нажми, чтобы посмотреть",
 "🛟 Ausfall-Beispiel (Salmon Run)": "🛟 пример выбывания (Salmon Run)",
-"👁 KI: 🛟 Ausfall erkannt!": "👁 ИИ: 🛟 выбывание распознано!"
+"👁 KI: 🛟 Ausfall erkannt!": "👁 ИИ: 🛟 выбывание распознано!",
+"Spielmodus:": "Режим игры:",
+"🤖 Automatisch erkennen": "🤖 Определять автоматически",
+"🎮 Kampf (Anarchie/Revier)": "🎮 Бой (Анархия/Бой за район)",
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Если ИИ определяет режим неверно, зафиксируй его здесь: в бою он считает тёмный экран смерти, в Salmon Run – нокауты."
 }
