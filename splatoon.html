@@ -414,7 +414,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.54"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.55"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1106,13 +1106,45 @@ async function ladeTextPaket() {
     renderAlles();
   } catch (e) { /* offline/kein Paket -> Deutsch bleibt */ }
 }
+let textVorlagen = null; // Paket-Einträge mit {0}/{1}-Platzhaltern, zu Regexen kompiliert
+function baueTextVorlagen() {
+  textVorlagen = [];
+  if (!textPaket) return;
+  for (const k in textPaket) {
+    if (k.indexOf("{0}") === -1) continue;
+    const reihenfolge = [];
+    const muster = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\\\{(\d+)\\\}/g, (_, nr) => { reihenfolge.push(+nr); return "([\\s\\S]+?)"; });
+    try { textVorlagen.push({ re: new RegExp("^" + muster + "$"), en: textPaket[k], reihenfolge }); } catch (e) {}
+  }
+}
+function uebersetzeSatz(kern) {
+  if (!textPaket) return null;
+  if (textPaket[kern]) return textPaket[kern];
+  if (!textVorlagen) baueTextVorlagen();
+  for (const v of textVorlagen) {
+    const m = v.re.exec(kern);
+    if (m) return v.en.replace(/\{(\d+)\}/g, (_, nr) => {
+      const i = v.reihenfolge.indexOf(+nr);
+      if (i < 0) return "";
+      const wert = m[i + 1], klein = wert.trim();
+      // eingesetzte Stücke (z. B. Modus-/Fokus-Namen) selbst noch übersetzen, wenn bekannt
+      return textPaket[klein] ? wert.replace(klein, textPaket[klein]) : wert;
+    });
+  }
+  return null;
+}
 function uebersetzeTextknoten() {
   if (!textPaket) return;
   const lauf = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   let n;
   while ((n = lauf.nextNode())) {
+    const elt = n.parentNode && n.parentNode.tagName;
+    if (elt === "SCRIPT" || elt === "STYLE") continue;
     const roh = n.nodeValue, kern = roh.trim();
-    if (kern.length > 2 && textPaket[kern]) n.nodeValue = roh.replace(kern, textPaket[kern]);
+    if (kern.length <= 2 || kern.length > 500) continue;
+    const neu = uebersetzeSatz(kern);
+    if (neu) n.nodeValue = roh.replace(kern, neu);
   }
 }
 const esc = (s) => {
