@@ -918,5 +918,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 Your main weapon: {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "With your paint average of {0} p you theoretically charge {1} ~{2}× per match – but you only fire it Ø {3}×. Charge is being lost: fire BEFORE taking risks, don't die with a full gauge.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "With your paint average of {0} p you theoretically charge {1} ~{2}× per match – and you also use it Ø {3}×. You rarely waste your gauge, strong."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "With your paint average of {0} p you theoretically charge {1} ~{2}× per match – and you also use it Ø {3}×. You rarely waste your gauge, strong.",
+"👁 KI wartet auf Bild …": "👁 AI waiting for a picture …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 AI watching – no examples trained yet",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 AI: result screen recognized!",
+"👁 KI: ☠ Death erkannt!": "👁 AI: ☠ death recognized!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 AI watching – 🎮 gameplay",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "The AI eye in the top left of the picture always shows you what the AI is doing:",
+"wartet auf Bild": "waiting for a picture",
+"schaut zu (Spiel läuft)": "watching (game running)",
+"Death erkannt": "death recognized",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "result recognized – match is saved automatically"
 }

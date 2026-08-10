@@ -925,5 +925,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 Ton arme principale : {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "Avec ta moyenne de peinture de {0} p, tu charges {1} en théorie ~{2}× par match – mais tu ne le déclenches que Ø {3}×. De la charge se perd : déclenche AVANT le risque, ne meurs pas avec la jauge pleine.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Avec ta moyenne de peinture de {0} p, tu charges {1} en théorie ~{2}× par match – et tu l'utilises aussi Ø {3}×. Ta jauge se perd rarement, du solide."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Avec ta moyenne de peinture de {0} p, tu charges {1} en théorie ~{2}× par match – et tu l'utilises aussi Ø {3}×. Ta jauge se perd rarement, du solide.",
+"👁 KI wartet auf Bild …": "👁 L'IA attend une image …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 L'IA regarde – aucun exemple appris pour l'instant",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 IA : écran de résultat reconnu !",
+"👁 KI: ☠ Death erkannt!": "👁 IA : ☠ mort reconnue !",
+"👁 KI schaut zu – 🎮 Spiel": "👁 L'IA regarde – 🎮 jeu",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "L'œil IA en haut à gauche de l'image te montre à tout moment ce que fait l'IA :",
+"wartet auf Bild": "attend une image",
+"schaut zu (Spiel läuft)": "regarde (partie en cours)",
+"Death erkannt": "mort reconnue",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "résultat reconnu – le match est enregistré automatiquement"
 }

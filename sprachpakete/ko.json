@@ -922,5 +922,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 나의 주력 무기: {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1}({2}P)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "칠 평균 {0}P면 {1}을(를) 이론상 매치당 ~{2}× 채울 수 있다 — 그런데 실제 사용은 Ø {3}×뿐. 게이지가 새고 있다: 위험 전에 쓰고, 가득 찬 채 죽지 말자.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "칠 평균 {0}P면 {1}을(를) 이론상 매치당 ~{2}× 채울 수 있다 — 그리고 실제로도 Ø {3}× 쓴다. 게이지 낭비가 거의 없다, 강하다."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "칠 평균 {0}P면 {1}을(를) 이론상 매치당 ~{2}× 채울 수 있다 — 그리고 실제로도 Ø {3}× 쓴다. 게이지 낭비가 거의 없다, 강하다.",
+"👁 KI wartet auf Bild …": "👁 AI가 화면을 기다리는 중 …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 AI가 보는 중 — 아직 학습된 예시 없음",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 AI: 결과 화면 인식!",
+"👁 KI: ☠ Death erkannt!": "👁 AI: ☠ 데스 인식!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 AI가 보는 중 — 🎮 플레이",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "화면 왼쪽 위의 AI 눈은 AI가 지금 뭘 하는지 항상 보여준다:",
+"wartet auf Bild": "화면 대기 중",
+"schaut zu (Spiel läuft)": "보는 중(매치 진행)",
+"Death erkannt": "데스 인식",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "결과 인식 — 매치가 자동 저장된다"
 }

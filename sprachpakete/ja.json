@@ -921,5 +921,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 キミのメインブキ:{0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1}({2}P)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "塗り平均{0}Pなら、{1}は計算上1マッチに~{2}回チャージできる ― でも実際の使用はØ {3}回。チャージが失われている:リスクの前に使おう、満タンで死なないこと。",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "塗り平均{0}Pなら、{1}は計算上1マッチに~{2}回チャージできる ― そして実際にØ {3}回使えている。ゲージのムダがほぼない、強い。"
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "塗り平均{0}Pなら、{1}は計算上1マッチに~{2}回チャージできる ― そして実際にØ {3}回使えている。ゲージのムダがほぼない、強い。",
+"👁 KI wartet auf Bild …": "👁 AIが映像を待っている…",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 AIが見ている ― まだ例を学習していない",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 AI:リザルト画面を認識!",
+"👁 KI: ☠ Death erkannt!": "👁 AI:☠ デスを認識!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 AIが見ている ― 🎮 プレイ中",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "画像左上のAIアイは、AIが今なにをしているかを常に見せてくれる:",
+"wartet auf Bild": "映像を待機中",
+"schaut zu (Spiel läuft)": "見ている(プレイ中)",
+"Death erkannt": "デスを認識",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "リザルトを認識 ― マッチは自動保存される"
 }

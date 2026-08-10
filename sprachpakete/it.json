@@ -919,5 +919,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 La tua arma principale: {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "Con la tua media di pittura di {0} p carichi {1} in teoria ~{2}× a partita – ma la attivi solo Ø {3}×. Si perde carica: attivala PRIMA del rischio, non morire con la barra piena.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Con la tua media di pittura di {0} p carichi {1} in teoria ~{2}× a partita – e la usi anche Ø {3}×. La tua barra va persa di rado, forte."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Con la tua media di pittura di {0} p carichi {1} in teoria ~{2}× a partita – e la usi anche Ø {3}×. La tua barra va persa di rado, forte.",
+"👁 KI wartet auf Bild …": "👁 L'IA attende un'immagine …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 L'IA sta guardando – ancora nessun esempio appreso",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 IA: schermata del risultato riconosciuta!",
+"👁 KI: ☠ Death erkannt!": "👁 IA: ☠ morte riconosciuta!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 L'IA sta guardando – 🎮 gioco",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "L'occhio IA in alto a sinistra ti mostra in ogni momento cosa sta facendo l'IA:",
+"wartet auf Bild": "attende un'immagine",
+"schaut zu (Spiel läuft)": "sta guardando (partita in corso)",
+"Death erkannt": "morte riconosciuta",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "risultato riconosciuto – la partita viene salvata automaticamente"
 }

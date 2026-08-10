@@ -927,5 +927,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 Твоё основное оружие: {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} т.)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "С твоей средней покраской {0} т. ты теоретически заряжаешь {1} ~{2}× за матч — но активируешь его лишь Ø {3}×. Заряд теряется: активируй ДО риска, не умирай с полной шкалой.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "С твоей средней покраской {0} т. ты теоретически заряжаешь {1} ~{2}× за матч — и используешь его Ø {3}×. Твоя шкала редко пропадает, сильно."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "С твоей средней покраской {0} т. ты теоретически заряжаешь {1} ~{2}× за матч — и используешь его Ø {3}×. Твоя шкала редко пропадает, сильно.",
+"👁 KI wartet auf Bild …": "👁 ИИ ждёт картинку …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 ИИ смотрит — примеры ещё не обучены",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 ИИ: экран результата распознан!",
+"👁 KI: ☠ Death erkannt!": "👁 ИИ: ☠ смерть распознана!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 ИИ смотрит — 🎮 игра",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "Глаз ИИ в левом верхнем углу картинки всегда показывает, что ИИ делает:",
+"wartet auf Bild": "ждёт картинку",
+"schaut zu (Spiel läuft)": "смотрит (идёт матч)",
+"Death erkannt": "смерть распознана",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "результат распознан — матч сохраняется автоматически"
 }

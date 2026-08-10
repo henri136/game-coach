@@ -922,5 +922,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 Jouw hoofdwapen: {0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "Met je verfgemiddelde van {0} p laad je {1} in theorie ~{2}× per potje – maar je vuurt hem maar Ø {3}× af. Er gaat lading verloren: vuur VÓÓR het risico, sterf niet met een volle meter.",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Met je verfgemiddelde van {0} p laad je {1} in theorie ~{2}× per potje – en je gebruikt hem ook Ø {3}×. Je meter gaat zelden verloren, sterk."
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Met je verfgemiddelde van {0} p laad je {1} in theorie ~{2}× per potje – en je gebruikt hem ook Ø {3}×. Je meter gaat zelden verloren, sterk.",
+"👁 KI wartet auf Bild …": "👁 AI wacht op beeld …",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 AI kijkt mee – nog geen voorbeelden aangeleerd",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 AI: resultaatscherm herkend!",
+"👁 KI: ☠ Death erkannt!": "👁 AI: ☠ death herkend!",
+"👁 KI schaut zu – 🎮 Spiel": "👁 AI kijkt mee – 🎮 spel",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "Het AI-oog linksboven in beeld laat je altijd zien wat de AI aan het doen is:",
+"wartet auf Bild": "wacht op beeld",
+"schaut zu (Spiel läuft)": "kijkt mee (potje loopt)",
+"Death erkannt": "death herkend",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "resultaat herkend – potje wordt automatisch opgeslagen"
 }

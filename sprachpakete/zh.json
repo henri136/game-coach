@@ -922,5 +922,15 @@
 "🔫 Deine Hauptwaffe: {0}": "🔫 你的主武器：{0}",
 "💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1}（{2}p）",
 "Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "以你 {0}p 的涂地平均值，理论上每场能给 {1} 充能 ~{2} 次——但你只放了 Ø {3} 次。充能在流失：在冒险之前放掉，别满槽阵亡。",
-"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "以你 {0}p 的涂地平均值，理论上每场能给 {1} 充能 ~{2} 次——而你也确实用了 Ø {3} 次。你的量表很少浪费，强。"
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "以你 {0}p 的涂地平均值，理论上每场能给 {1} 充能 ~{2} 次——而你也确实用了 Ø {3} 次。你的量表很少浪费，强。",
+"👁 KI wartet auf Bild …": "👁 AI 正在等待画面……",
+"👁 KI schaut zu – noch keine Beispiele angelernt": "👁 AI 在看着——还没有学习示例",
+"👁 KI: Ergebnis-Bildschirm erkannt!": "👁 AI：识别到结算画面！",
+"👁 KI: ☠ Death erkannt!": "👁 AI：☠ 识别到阵亡！",
+"👁 KI schaut zu – 🎮 Spiel": "👁 AI 在看着——🎮 游戏中",
+"Das KI-Auge oben links im Bild zeigt dir jederzeit, was die KI gerade macht:": "画面左上角的 AI 之眼随时告诉你 AI 正在做什么：",
+"wartet auf Bild": "等待画面",
+"schaut zu (Spiel läuft)": "在看着（对战进行中）",
+"Death erkannt": "识别到阵亡",
+"Ergebnis erkannt – Match wird automatisch gespeichert": "识别到结果——对战会自动保存"
 }
