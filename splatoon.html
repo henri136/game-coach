@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.76"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.77"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3465,7 +3465,7 @@ function initialisiereMonitor() {
     const debounce = monitorQuelle === "datei" ? 6000 : 8000;
     if (dauer < 1200 || dauer > 4500 || A.basis < 30 || jetzt - monitorLetzterTreffer <= debounce) return;
     if (jetzt - A.startZeit < 8000) return; // Aufwärmzeit: Intro-Abblenden am Anfang sind keine Deaths
-    if (modusSchaetzung === "sr") return; // Salmon Run hat keinen Splat-Bildschirm - dunkle Wellen-Übergänge sind keine Deaths
+    if (modusSchaetzung === "sr") { kiEreignis("🐟 Dunkle Stelle im Salmon Run ignoriert – dort gibt es keinen Death-Bildschirm"); return; }
     monitorLetzterTreffer = jetzt;
     verbucheDeath();
     kiEreignis("☠ Death erkannt (Dunkel-Knick, selbst gelernt), Dauer " + Math.round(dauer / 100) / 10 + " s");
