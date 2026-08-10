@@ -414,7 +414,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.53"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.54"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1105,6 +1105,15 @@ async function ladeTextPaket() {
     try { localStorage.setItem("textpaket-" + code, JSON.stringify({ zeit: Date.now(), map })); } catch (e) {}
     renderAlles();
   } catch (e) { /* offline/kein Paket -> Deutsch bleibt */ }
+}
+function uebersetzeTextknoten() {
+  if (!textPaket) return;
+  const lauf = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  let n;
+  while ((n = lauf.nextNode())) {
+    const roh = n.nodeValue, kern = roh.trim();
+    if (kern.length > 2 && textPaket[kern]) n.nodeValue = roh.replace(kern, textPaket[kern]);
+  }
 }
 const esc = (s) => {
   s = s == null ? "" : String(s);
@@ -3844,6 +3853,7 @@ function renderAlles() {
   renderSalmon();
   renderSelbstcheck();
   renderWissen();
+  uebersetzeTextknoten();
 }
 let resizeTimer;
 addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(renderAlles, 150); });
