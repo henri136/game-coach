@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.63"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.64"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3003,9 +3003,19 @@ function monNormalisiere(sig) {
   const streuung = Math.sqrt(varsum / sig.length) || 1;
   return sig.map(v => (v - mittel) / streuung * 40); // Skala 40 ≈ typische Bild-Streuung – hält den Empfindlichkeits-Regler gültig
 }
+/* WERKSBEISPIELE-ANFANG */
+const WERKS_BEISPIELE = {};
+/* WERKSBEISPIELE-ENDE */
 function monKlassifiziere(sig) {
-  const B = state.monitor && state.monitor.beispiele;
-  if (!B) return null;
+  const eigen = (state.monitor && state.monitor.beispiele) || {};
+  // Werks-Wissen: Beispiele, die die KI vorab aus echten Splatoon-3-Videos (YouTube/Archive)
+  // gelernt hat. Sie zählen nur mit, solange du selbst noch keine 3 eigenen Beispiele der
+  // Klasse hast - deine eigenen Bilder passen besser zu deiner Kamera und übernehmen dann.
+  const B = {};
+  for (const k of ["death", "spiel", "sieg", "niederlage", "srja", "srnein"]) {
+    const e = eigen[k] || [];
+    B[k] = (e.length >= 3 || !(typeof WERKS_BEISPIELE !== "undefined" && WERKS_BEISPIELE[k] && WERKS_BEISPIELE[k].length)) ? e : e.concat(WERKS_BEISPIELE[k]);
+  }
   const gesamt = ["death", "spiel", "sieg", "niederlage", "srja", "srnein"].reduce((a, k) => a + ((B[k] || []).length), 0);
   if (!gesamt) return null; // noch gar nichts angelernt
   const proLaenge = { [sig.length]: monNormalisiere(sig) }; // je Beispiel-Raster die passend skalierte Signatur
