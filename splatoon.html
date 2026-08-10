@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.78"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.79"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3436,8 +3436,13 @@ function initialisiereMonitor() {
     const srAnteil = modusStimmen.reduce((a, b) => a + b, 0);
     if (modusStimmen.length >= 4) {
       const vorher = modusSchaetzung;
-      if (srAnteil >= modusStimmen.length - 1) modusSchaetzung = "sr";
-      else if (srAnteil <= 1) modusSchaetzung = "pvp";
+      // Erst-Erkennung ab 4 Stimmen; ein WECHSEL des Modus braucht das volle 8er-Fenster (~14 s),
+      // damit Punkte-Bildschirme zwischen zwei Schichten die Schätzung nicht kurz umkippen
+      const noetig = vorher === null ? 4 : 8;
+      if (modusStimmen.length >= noetig) {
+        if (srAnteil >= modusStimmen.length - 1) modusSchaetzung = "sr";
+        else if (srAnteil <= 1) modusSchaetzung = "pvp";
+      }
       if (modusSchaetzung !== vorher) kiEreignis(modusSchaetzung === "sr" ? "🐟 Modus erkannt: Salmon Run" : "🎮 Modus erkannt: Kampf");
     }
   }
