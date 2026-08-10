@@ -494,5 +494,12 @@
 "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)": "stat.ink 鲑鱼跑 CSV 导出，13,329 次打工的分析（2026 年 7 月）",
 "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte": "KeenGamer 对职业选手 yellow.ggp 的采访；Squid School（Gem）和 ProChara 的教学内容",
 "📖 Anleitung zum Weitergeben an Freunde": "📖 可以分享给朋友的指南",
-"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "所有数据都留在你的设备上——不会上传任何东西。与任天堂无关的粉丝项目（斯普拉遁是任天堂的商标）。来源：stat.ink（你的对战 + 全体玩家的开放原始数据，CC BY 4.0）、Inkipedia、splatoon3.ink。"
+"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "所有数据都留在你的设备上——不会上传任何东西。与任天堂无关的粉丝项目（斯普拉遁是任天堂的商标）。来源：stat.ink（你的对战 + 全体玩家的开放原始数据，CC BY 4.0）、Inkipedia、splatoon3.ink。",
+"Synchronisiere mit stat.ink …": "正在与 stat.ink 同步……",
+"Sync gerade nicht möglich (offline?)": "目前无法同步（离线？）",
+"✔ {0} neue Einträge übernommen (Matches + Salmon){1} ({2} Uhr)": "✔ 已添加 {0} 条新记录（对战+打工）{1}（{2}）",
+"✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ 已是最新{0}（{1}）",
+" – {0} Karten nachgetragen": " —— 补全了 {0} 个场地",
+"{0} neue Matches von stat.ink übernommen!": "从 stat.ink 添加了 {0} 场新对战！",
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "stat.ink 上没有新对战——你已是最新。"
 }

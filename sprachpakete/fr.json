@@ -500,5 +500,12 @@
 "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)": "Exports CSV Salmon Run de stat.ink, analyse de 13 329 services (juillet 2026)",
 "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte": "Interview KeenGamer du joueur pro yellow.ggp ; contenus de coaching de Squid School (Gem) et ProChara",
 "📖 Anleitung zum Weitergeben an Freunde": "📖 Guide à partager avec des amis",
-"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "Toutes les données restent sur ton appareil – rien n'est téléversé. Un projet de fans sans lien avec Nintendo (Splatoon est une marque de Nintendo). Sources : stat.ink (tes propres matchs + données brutes ouvertes de tous les joueurs, CC BY 4.0), Inkipedia, splatoon3.ink."
+"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "Toutes les données restent sur ton appareil – rien n'est téléversé. Un projet de fans sans lien avec Nintendo (Splatoon est une marque de Nintendo). Sources : stat.ink (tes propres matchs + données brutes ouvertes de tous les joueurs, CC BY 4.0), Inkipedia, splatoon3.ink.",
+"Synchronisiere mit stat.ink …": "Synchronisation avec stat.ink …",
+"Sync gerade nicht möglich (offline?)": "Synchronisation impossible pour le moment (hors ligne ?)",
+"✔ {0} neue Einträge übernommen (Matches + Salmon){1} ({2} Uhr)": "✔ {0} nouvelles entrées ajoutées (matchs + Salmon){1} ({2})",
+"✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ À jour{0} ({1})",
+" – {0} Karten nachgetragen": " – {0} stages complétés",
+"{0} neue Matches von stat.ink übernommen!": "{0} nouveaux matchs ajoutés depuis stat.ink !",
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "Pas de nouveaux matchs sur stat.ink – tu es à jour."
 }

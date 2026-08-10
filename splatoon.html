@@ -414,7 +414,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.55"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.56"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1129,11 +1129,16 @@ function uebersetzeSatz(kern) {
       if (i < 0) return "";
       const wert = m[i + 1], klein = wert.trim();
       // eingesetzte Stücke (z. B. Modus-/Fokus-Namen) selbst noch übersetzen, wenn bekannt
-      return textPaket[klein] ? wert.replace(klein, textPaket[klein]) : wert;
+      const innen = uebersetzeSatz(klein);
+      return innen ? wert.replace(klein, innen) : wert;
     });
   }
   return null;
 }
+// Auch Dialoge (alert/confirm) durch das Sprachpaket schicken
+const _alert = window.alert.bind(window), _confirm = window.confirm.bind(window);
+window.alert = (t) => _alert(uebersetzeSatz(String(t)) || t);
+window.confirm = (t) => _confirm(uebersetzeSatz(String(t)) || t);
 function uebersetzeTextknoten() {
   if (!textPaket) return;
   const lauf = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -1937,7 +1942,7 @@ async function statinkWaffenMap() {
 async function statinkSync(still) {
   const name = ((state.statink && state.statink.name) || "").trim();
   const status = document.getElementById("syncStatus");
-  const setze = (t) => { if (status) status.textContent = t; };
+  const setze = (t) => { if (status) status.textContent = uebersetzeSatz(t) || t; };
   if (!name) { setze("Trage oben deinen stat.ink-Namen ein – dann kommen deine Matches automatisch."); return; }
   setze("Synchronisiere mit stat.ink …");
   try {

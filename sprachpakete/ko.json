@@ -494,5 +494,12 @@
 "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)": "stat.ink 새먼 런 CSV 내보내기, 아르바이트 13,329건 분석(2026년 7월)",
 "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte": "프로 선수 yellow.ggp의 KeenGamer 인터뷰; Squid School(Gem)과 ProChara의 코칭 자료",
 "📖 Anleitung zum Weitergeben an Freunde": "📖 친구에게 공유할 가이드",
-"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "모든 데이터는 기기에 남는다 — 아무것도 업로드되지 않는다. 닌텐도와 무관한 팬 프로젝트(스플래툰은 닌텐도의 상표). 출처: stat.ink(내 매치 + 전체 플레이어 오픈 원시 데이터, CC BY 4.0), Inkipedia, splatoon3.ink."
+"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "모든 데이터는 기기에 남는다 — 아무것도 업로드되지 않는다. 닌텐도와 무관한 팬 프로젝트(스플래툰은 닌텐도의 상표). 출처: stat.ink(내 매치 + 전체 플레이어 오픈 원시 데이터, CC BY 4.0), Inkipedia, splatoon3.ink.",
+"Synchronisiere mit stat.ink …": "stat.ink와 동기화 중 …",
+"Sync gerade nicht möglich (offline?)": "지금은 동기화 불가(오프라인?)",
+"✔ {0} neue Einträge übernommen (Matches + Salmon){1} ({2} Uhr)": "✔ 새 항목 {0}건 추가(매치+새먼){1} ({2})",
+"✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ 최신 상태{0} ({1})",
+" – {0} Karten nachgetragen": " – 스테이지 {0}건 보완",
+"{0} neue Matches von stat.ink übernommen!": "stat.ink에서 새 매치 {0}건을 가져왔다!",
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "stat.ink에 새 매치 없음 — 최신 상태다."
 }

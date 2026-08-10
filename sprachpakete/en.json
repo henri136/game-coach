@@ -897,5 +897,12 @@
 "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)": "stat.ink Salmon Run CSV exports, analysis of 13,329 shifts (July 2026)",
 "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte": "KeenGamer interview with pro player yellow.ggp; Squid School (Gem) and ProChara coaching content",
 "📖 Anleitung zum Weitergeben an Freunde": "📖 Guide to share with friends",
-"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "All data stays on your device – nothing is uploaded. A fan project with no affiliation with Nintendo (Splatoon is a trademark of Nintendo). Sources: stat.ink (your own matches + open raw data of all players, CC BY 4.0), Inkipedia, splatoon3.ink."
+"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "All data stays on your device – nothing is uploaded. A fan project with no affiliation with Nintendo (Splatoon is a trademark of Nintendo). Sources: stat.ink (your own matches + open raw data of all players, CC BY 4.0), Inkipedia, splatoon3.ink.",
+"Synchronisiere mit stat.ink …": "Syncing with stat.ink …",
+"Sync gerade nicht möglich (offline?)": "Sync not possible right now (offline?)",
+"✔ {0} neue Einträge übernommen (Matches + Salmon){1} ({2} Uhr)": "✔ {0} new entries added (matches + Salmon){1} (at {2})",
+"✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ Up to date{0} (at {1})",
+" – {0} Karten nachgetragen": " – {0} stages backfilled",
+"{0} neue Matches von stat.ink übernommen!": "{0} new matches added from stat.ink!",
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "No new matches on stat.ink – you're up to date."
 }

@@ -496,5 +496,12 @@
 "stat.ink Salmon-Run-CSV-Exporte, Auswertung von 13.329 Schichten (Juli 2026)": "stat.ink サーモンラン CSV エクスポート、13,329 バイトの分析(2026年7月)",
 "KeenGamer-Interview mit Profi-Spieler yellow.ggp; Squid School (Gem) und ProChara Coaching-Inhalte": "プロ選手 yellow.ggp の KeenGamer インタビュー;Squid School(Gem)と ProChara のコーチング資料",
 "📖 Anleitung zum Weitergeben an Freunde": "📖 友達に渡せるガイド",
-"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "すべてのデータは端末に残る ― 何もアップロードされない。任天堂と無関係のファンプロジェクト(スプラトゥーンは任天堂の商標)。出典:stat.ink(自分のマッチ+全プレイヤーのオープン生データ、CC BY 4.0)、Inkipedia、splatoon3.ink。"
+"Alle Daten bleiben auf deinem Gerät – nichts wird hochgeladen. Ein Fan-Projekt ohne Verbindung zu Nintendo (Splatoon ist eine Marke von Nintendo). Quellen: stat.ink (eigene Matches + offene Rohdaten aller Spieler, CC BY 4.0), Inkipedia, splatoon3.ink.": "すべてのデータは端末に残る ― 何もアップロードされない。任天堂と無関係のファンプロジェクト(スプラトゥーンは任天堂の商標)。出典:stat.ink(自分のマッチ+全プレイヤーのオープン生データ、CC BY 4.0)、Inkipedia、splatoon3.ink。",
+"Synchronisiere mit stat.ink …": "stat.ink と同期中…",
+"Sync gerade nicht möglich (offline?)": "今は同期できない(オフライン?)",
+"✔ {0} neue Einträge übernommen (Matches + Salmon){1} ({2} Uhr)": "✔ 新規{0}件を取り込み(マッチ+バイト){1}({2})",
+"✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ 最新の状態{0}({1})",
+" – {0} Karten nachgetragen": " ― ステージ{0}件を補完",
+"{0} neue Matches von stat.ink übernommen!": "stat.ink から新しいマッチを{0}件取り込んだ!",
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "stat.ink に新しいマッチはない ― 最新の状態だ。"
 }
