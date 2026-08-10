@@ -335,6 +335,12 @@
   .rot-waffen span { display: inline-flex; align-items: center; }
 
   .abz { width: 38px; height: 38px; object-fit: contain; vertical-align: middle; margin: 1px 2px 1px 0; }
+  .stufen-leiste { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .stufe { border: 1px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 11.5px; font-variant-numeric: tabular-nums; color: var(--text-muted); white-space: nowrap; }
+  .stufe.erreicht { background: var(--status-good); color: #ffffff; border-color: transparent; font-weight: 700; }
+  .stufe.naechste { border-color: var(--series-1); color: var(--series-1); font-weight: 700; box-shadow: 0 0 10px -4px color-mix(in srgb, var(--series-1) 60%, transparent); }
+  .stufe-pfeil { color: var(--baseline); font-size: 11px; }
+  .stufen-text { font-size: 12px; color: var(--text-secondary); margin: 4px 0 0; }
   .fortschritt .balken-reihe { grid-template-columns: minmax(105px, 165px) 1fr minmax(170px, auto); }
   @media (max-width: 560px) { .fortschritt .balken-reihe { grid-template-columns: 1fr; gap: 3px; } .fortschritt .balken { order: 3; } }
 
@@ -408,7 +414,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.52"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.53"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3590,6 +3596,16 @@ function renderWissen() {
     </div>`;
   // Abzeichen-Fortschritt: Wie weit bist du, was fehlt noch? (Stand aus Henris SplatNet-Fotos + App-Zählung)
   const abz = (name) => BILDER["abz/S3 Badge " + name + ".png"] ? `<img class="abz" loading="lazy" alt="" src="${BILDER["abz/S3 Badge " + name + ".png"]}">` : "";
+  const abzStufen = (stufen, wert, text) => {
+    const z = (n) => typeof n === "number" ? n.toLocaleString("de-DE") : n;
+    const naechste = wert != null ? stufen.find(s => typeof s === "number" && s > wert) : undefined;
+    const pills = stufen.map(s => {
+      const erreicht = wert != null && typeof s === "number" && wert >= s;
+      const istN = s === naechste;
+      return `<span class="stufe ${erreicht ? "erreicht" : ""} ${istN ? "naechste" : ""}">${erreicht ? "✓ " : ""}${z(s)}${istN ? ` · fehlen ${z(s - wert)}` : ""}</span>`;
+    }).join('<span class="stufe-pfeil">→</span>');
+    return `<div class="stufen-leiste">${pills}</div>${text ? `<p class="stufen-text">${text}</p>` : ""}`;
+  };
   const ABZ_STAND = {
     stand: "09.08.2026", level: 65, baerPunkte: 146683,
     bosse: { "Bäm": 665, "Rakzak": 330, "Pfanndit": 667, "Staal": 523, "Stapla": 607, "Grablax": 617,
@@ -3661,35 +3677,35 @@ function renderWissen() {
       <p class="sub">Über 1.500 Abzeichen fürs Namensschild – bis zu 3 gleichzeitig tragbar. Hier alle Arten mit ihren Bedingungen.</p>
       <details class="mode"><summary>🔫 Waffen &amp; Spezialwaffen (die meisten Abzeichen)</summary>
         ${abzTab(`
-        <tr><td>${[4,5,6,7,8,9,10].map(n => abz("Splattershot " + n)).join("")}<br><strong>Waffen-Flair</strong></td><td>Für <strong>jede Hauptwaffe</strong> gibt es 7 Abzeichen: 4★ bis 10★ Flair (hier das Beispiel Kleckser). Flair steigt, wenn du mit der Waffe malst und gewinnst – bei ~140 Waffen sind das allein fast 1.000 Abzeichen.</td></tr>
-        <tr><td><strong>Flair-Sammler</strong></td><td>4★ Flair mit <strong>10 / 25 / 50 verschiedenen</strong> Waffen erreichen.</td></tr>
-        <tr><td>${spezialStreifen}<br><strong>Spezialwaffen-Sieger</strong></td><td>Je Spezialwaffe 3 Stufen: <strong>30 / 180 / 1.200 Siege</strong>, in denen du sie mindestens einmal gezündet hast.</td></tr>`)}
+        <tr><td>${[4,5,6,7,8,9,10].map(n => abz("Splattershot " + n)).join("")}<br><strong>Waffen-Flair</strong></td><td>${abzStufen(["4★","5★","6★","7★","8★","9★","10★"], null, "Für jede Hauptwaffe 7 Abzeichen – Flair steigt durchs Malen und Gewinnen mit der Waffe. Bei ~140 Waffen fast 1.000 Abzeichen.")}</td></tr>
+        <tr><td><strong>Flair-Sammler</strong></td><td>${abzStufen([10, 25, 50], null, "4★ Flair mit so vielen verschiedenen Waffen erreichen.")}</td></tr>
+        <tr><td>${spezialStreifen}<br><strong>Spezialwaffen-Sieger</strong></td><td>${abzStufen([30, 180, 1200], null, "Siege je Spezialwaffe, in denen du sie mindestens einmal gezündet hast.")}</td></tr>`)}
       </details>
       <details class="mode"><summary>⚔️ Kämpfe, Ränge &amp; Level</summary>
         ${abzTab(`
-        <tr><td>${abz("Turf War 50")}${abz("Turf War 250")}${abz("Turf War 1200")}<br><strong>Revierkampf-Siege</strong></td><td>50 / 250 / 1.200 Siege im Revierkampf.</td></tr>
-        <tr><td>${abz("Splat Zones 1000")}${abz("Tower Control 1000")}${abz("Rainmaker 1000")}${abz("Clam Blitz 1000")}<br><strong>Modus-Siege</strong></td><td>Je Anarchie-Modus (Herrschaft, Turm-Kommando, Operation Goldfisch, Muschelchaos): <strong>100 / 1.000 Siege</strong>.</td></tr>
-        <tr><td>${abz("Rank A")}${abz("Rank S")}${abz("Rank S+")}<br><strong>Rang-Abzeichen</strong></td><td>Rang <strong>A</strong>, <strong>S</strong> und <strong>S+</strong> erreichen – plus weitere Meilenstein-Stufen (10 / 50 / 250).</td></tr>
+        <tr><td>${abz("Turf War 50")}${abz("Turf War 250")}${abz("Turf War 1200")}<br><strong>Revierkampf-Siege</strong></td><td>${abzStufen([50, 250, 1200], siegeProModus["Revierkampf"] || 0, "Siege im Revierkampf (App-Zählung).")}</td></tr>
+        <tr><td>${abz("Splat Zones 1000")}${abz("Tower Control 1000")}${abz("Rainmaker 1000")}${abz("Clam Blitz 1000")}<br><strong>Modus-Siege</strong></td><td>${abzStufen([100, 1000], null, "Je Anarchie-Modus – deinen Stand je Modus siehst du oben im Abzeichen-Fortschritt.")}</td></tr>
+        <tr><td>${abz("Rank A")}${abz("Rank S")}${abz("Rank S+")}<br><strong>Rang-Abzeichen</strong></td><td>${abzStufen(["A", "S", "S+"], null, "Rang erreichen – plus weitere Meilenstein-Stufen (10 / 50 / 250).")}</td></tr>
         <tr><td>${abz("Tricolor Attacker 10")}${abz("Shiver 10x Win")}<br><strong>Splatfest</strong></td><td>Trikolore-Siege (1 / 10), 10×-Kämpfe (3 bestritten / 10 gewonnen) und der Splatfest-Spitzenrang bringen eigene Abzeichen.</td></tr>
-        <tr><td>${abz("Catalog 50")}${abz("Catalog 100")}<br><strong>Katalog</strong></td><td>Katalog-Level <strong>50 / 100</strong> – in jeder Saison neu möglich.</td></tr>
-        <tr><td>${abz("Level 999")}<br><strong>Spieler-Level</strong></td><td>Level 30 / 50 / 100 / 200 / 300 … bis <strong>999</strong>.</td></tr>`)}
+        <tr><td>${abz("Catalog 50")}${abz("Catalog 100")}<br><strong>Katalog</strong></td><td>${abzStufen([50, 100], null, "Katalog-Level – in jeder Saison neu möglich.")}</td></tr>
+        <tr><td>${abz("Level 999")}<br><strong>Spieler-Level</strong></td><td>${abzStufen([30, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 999], ABZ_STAND.level, "Spieler-Level (dein Stand: " + ABZ_STAND.level + ").")}</td></tr>`)}
       </details>
       <details class="mode"><summary>🐟 Salmon Run</summary>
         ${abzTab(`
-        ${SPIEL_WISSEN.salmon_bosse.map(b => `<tr><td>${abz(b.en + " 10000") || `<img class="bicon" loading="lazy" alt="" src="${bildSrc(b.bild)}">`} <strong>${esc(b.de)}</strong></td><td>100 / 1.000 / 10.000× besiegt.</td></tr>`).join("")}
-        ${SPIEL_WISSEN.salmon_koenige.map(k => `<tr><td>${abz(k.en + " 1000") || `<img class="bicon" loading="lazy" alt="" src="${bildSrc(k.bild)}">`} <strong>König: ${esc(k.de)}</strong></td><td>10 / 100 / 1.000× besiegt.</td></tr>`).join("")}
-        <tr><td>${abz("Grizzco 10K")}${abz("Grizzco 100K")}${abz("Grizzco 10M")}<br><strong>Bär-Punkte</strong></td><td>Gesamt <strong>10.000 / 100.000 / 9.999.999</strong> Punkte für die Bär GmbH gesammelt.</td></tr>
-        <tr><td>${abz("Salmonid Smokeyard 999")}<br><strong>Küsten-Profi</strong></td><td>Je Salmon-Küste: Rang „Fuka-VP“ <strong>200 / 400 / 600 / 999</strong> erreicht.</td></tr>
+        ${SPIEL_WISSEN.salmon_bosse.map(b => `<tr><td>${abz(b.en + " 10000") || `<img class="bicon" loading="lazy" alt="" src="${bildSrc(b.bild)}">`} <strong>${esc(b.de)}</strong></td><td>${abzStufen([100, 1000, 10000], ABZ_STAND.bosse[b.de])}</td></tr>`).join("")}
+        ${SPIEL_WISSEN.salmon_koenige.map(k => `<tr><td>${abz(k.en + " 1000") || `<img class="bicon" loading="lazy" alt="" src="${bildSrc(k.bild)}">`} <strong>König: ${esc(k.de)}</strong></td><td>${abzStufen([10, 100, 1000], ABZ_STAND.koenige[k.de] || 0)}</td></tr>`).join("")}
+        <tr><td>${abz("Grizzco 10K")}${abz("Grizzco 100K")}${abz("Grizzco 10M")}<br><strong>Bär-Punkte</strong></td><td>${abzStufen([10000, 100000, 9999999], ABZ_STAND.baerPunkte, "Bär-Punkte gesamt.")}</td></tr>
+        <tr><td>${abz("Salmonid Smokeyard 999")}<br><strong>Küsten-Profi</strong></td><td>${abzStufen([200, 400, 600, 999], null, "Je Salmon-Küste: Rang „Fuka-VP“ erreichen.")}</td></tr>
         <tr><td>${abz("Big Run Top 5 Percent")}<br><strong>Big Run &amp; Eierschicht</strong></td><td>Top-Platzierungen bei Big-Run- und Eierschicht-Events (z. B. beste 50 %).</td></tr>`)}
       </details>
       <details class="mode"><summary>🛍️ Läden, Tableturf &amp; Sonstiges</summary>
         ${abzTab(`
         <tr><td><strong>Stammkunde</strong></td><td>Je Ausrüstungs-Laden: viel Geld dort ausgeben (mehrere Stufen).</td></tr>
-        <tr><td>${abz("Shell-Out Machine 30M")}<br><strong>Muschel-Automat</strong></td><td><strong>300.000 / 3 Mio. / 30 Mio.</strong> Geld am Automaten ausgegeben.</td></tr>
-        <tr><td>${abz("Tableturf Rank 999")}<br><strong>Tableturf-Rang</strong></td><td>Rang 30 / 40 / 50 / 100 … bis <strong>999</strong> im Kartenspiel.</td></tr>
-        <tr><td>${abz("Tableturf Cards 150")}<br><strong>Karten-Sammler</strong></td><td><strong>90 / 120 / 150</strong> Tableturf-Karten gesammelt.</td></tr>
+        <tr><td>${abz("Shell-Out Machine 30M")}<br><strong>Muschel-Automat</strong></td><td>${abzStufen([300000, 3000000, 30000000], null, "Geld am Muschel-Automaten ausgegeben.")}</td></tr>
+        <tr><td>${abz("Tableturf Rank 999")}<br><strong>Tableturf-Rang</strong></td><td>${abzStufen([30, 40, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 999], null, "Tableturf-Rang im Kartenspiel.")}</td></tr>
+        <tr><td>${abz("Tableturf Cards 150")}<br><strong>Karten-Sammler</strong></td><td>${abzStufen([90, 120, 150], null, "Tableturf-Karten gesammelt.")}</td></tr>
         <tr><td>${abz("DJ Octavio")}<br><strong>Story-Modus</strong></td><td>Abschluss-Abzeichen für die Story (z. B. Endboss besiegt, alles zu 100 % geschafft).</td></tr>
-        <tr><td>${abz("Tournament Manager 1000")}<br><strong>Turnier-Manager</strong></td><td>Eigenes Turnier mit <strong>16 / 250 / 1.000</strong> Teilnehmern organisiert.</td></tr>`)}
+        <tr><td>${abz("Tournament Manager 1000")}<br><strong>Turnier-Manager</strong></td><td>${abzStufen([16, 250, 1000], null, "Eigenes Turnier mit so vielen Teilnehmern organisiert.")}</td></tr>`)}
       </details>
       <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">Deine eigenen Abzeichen siehst du im Spiel unter Namensschild bearbeiten – dort werden sie auch angelegt. Quelle: Inkipedia (Badge-Übersicht).</p>
     </div>`;
