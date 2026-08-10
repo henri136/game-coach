@@ -396,7 +396,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.46"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.47"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3378,6 +3378,47 @@ function renderWissen() {
         <div id="seedErgebnis" style="margin-top:10px"></div>
       </details>
     </div>`;
+  // Abzeichen-Lexikon: alle Abzeichen-Arten mit Bedingungen, bebildert mit den eingebauten Icons
+  const abzTab = (zeilen) => `<div class="kb-table-scroll"><table class="kb"><tr><th>Abzeichen</th><th>So bekommst du sie</th></tr>${zeilen}</table></div>`;
+  const spezialStreifen = SPIEL_WISSEN.spezialwaffen.map(s => `<img class="wicon" loading="lazy" alt="${esc(s.de)}" title="${esc(s.de)}" src="${bildSrc(s.bild)}">`).join("");
+  const waffenStreifen = WAFFEN.slice(0, 9).map(w => wIcon(w.n)).join("") + " …";
+  const abzeichenHtml = `
+    <div class="card"><h2>🎖 Abzeichen-Lexikon: Alle Abzeichen & wie du sie bekommst</h2>
+      <p class="sub">Über 1.500 Abzeichen fürs Namensschild – bis zu 3 gleichzeitig tragbar. Hier alle Arten mit ihren Bedingungen.</p>
+      <details class="mode"><summary>🔫 Waffen &amp; Spezialwaffen (die meisten Abzeichen)</summary>
+        ${abzTab(`
+        <tr><td>${waffenStreifen}<br><strong>Waffen-Flair</strong></td><td>Für <strong>jede Hauptwaffe</strong> gibt es 7 Abzeichen: 4★ bis 10★ Flair. Flair steigt, wenn du mit der Waffe malst und gewinnst – bei ~140 Waffen sind das allein fast 1.000 Abzeichen.</td></tr>
+        <tr><td><strong>Flair-Sammler</strong></td><td>4★ Flair mit <strong>10 / 25 / 50 verschiedenen</strong> Waffen erreichen.</td></tr>
+        <tr><td>${spezialStreifen}<br><strong>Spezialwaffen-Sieger</strong></td><td>Je Spezialwaffe 3 Stufen: <strong>30 / 180 / 1.200 Siege</strong>, in denen du sie mindestens einmal gezündet hast.</td></tr>`)}
+      </details>
+      <details class="mode"><summary>⚔️ Kämpfe, Ränge &amp; Level</summary>
+        ${abzTab(`
+        <tr><td><strong>Revierkampf-Siege</strong></td><td>50 / 250 / 1.200 Siege im Revierkampf.</td></tr>
+        <tr><td><strong>Modus-Siege</strong></td><td>Je Anarchie-Modus (Herrschaft, Turm-Kommando, Operation Goldfisch, Muschelchaos): <strong>100 / 1.000 Siege</strong>.</td></tr>
+        <tr><td><strong>Rang-Abzeichen</strong></td><td>Rang <strong>A</strong>, <strong>S</strong> und <strong>S+</strong> erreichen – plus weitere Meilenstein-Stufen (10 / 50 / 250).</td></tr>
+        <tr><td><strong>Splatfest</strong></td><td>Trikolore-Siege (1 / 10), 10×-Kämpfe (3 bestritten / 10 gewonnen) und der Splatfest-Spitzenrang bringen eigene Abzeichen.</td></tr>
+        <tr><td><strong>Katalog</strong></td><td>Katalog-Level <strong>50 / 100</strong> – in jeder Saison neu möglich.</td></tr>
+        <tr><td><strong>Spieler-Level</strong></td><td>Level 30 / 50 / 100 / 200 / 300 … bis <strong>999</strong>.</td></tr>`)}
+      </details>
+      <details class="mode"><summary>🐟 Salmon Run</summary>
+        ${abzTab(`
+        ${SPIEL_WISSEN.salmon_bosse.map(b => `<tr><td><img class="bicon" loading="lazy" alt="" src="${bildSrc(b.bild)}"> <strong>${esc(b.de)}</strong></td><td>100 / 1.000 / 10.000× besiegt.</td></tr>`).join("")}
+        ${SPIEL_WISSEN.salmon_koenige.map(k => `<tr><td><img class="bicon" loading="lazy" alt="" src="${bildSrc(k.bild)}"> <strong>König: ${esc(k.de)}</strong></td><td>10 / 100 / 1.000× besiegt.</td></tr>`).join("")}
+        <tr><td><strong>Bär-Punkte</strong></td><td>Gesamt <strong>10.000 / 100.000 / 9.999.999</strong> Punkte für die Bär GmbH gesammelt.</td></tr>
+        <tr><td><strong>Küsten-Profi</strong></td><td>Je Salmon-Küste: Rang „Fuka-VP“ <strong>200 / 400 / 600 / 999</strong> erreicht.</td></tr>
+        <tr><td><strong>Big Run &amp; Eierschicht</strong></td><td>Top-Platzierungen bei Big-Run- und Eierschicht-Events (z. B. beste 50 %).</td></tr>`)}
+      </details>
+      <details class="mode"><summary>🛍️ Läden, Tableturf &amp; Sonstiges</summary>
+        ${abzTab(`
+        <tr><td><strong>Stammkunde</strong></td><td>Je Ausrüstungs-Laden: viel Geld dort ausgeben (mehrere Stufen).</td></tr>
+        <tr><td><strong>Muschel-Automat</strong></td><td><strong>300.000 / 3 Mio. / 30 Mio.</strong> Geld am Automaten ausgegeben.</td></tr>
+        <tr><td><strong>Tableturf-Rang</strong></td><td>Rang 30 / 40 / 50 / 100 … bis <strong>999</strong> im Kartenspiel.</td></tr>
+        <tr><td><strong>Karten-Sammler</strong></td><td><strong>90 / 120 / 150</strong> Tableturf-Karten gesammelt.</td></tr>
+        <tr><td><strong>Story-Modus</strong></td><td>Abschluss-Abzeichen für die Story (z. B. Endboss besiegt, alles zu 100 % geschafft).</td></tr>
+        <tr><td><strong>Turnier-Manager</strong></td><td>Eigenes Turnier mit <strong>16 / 250 / 1.000</strong> Teilnehmern organisiert.</td></tr>`)}
+      </details>
+      <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">Deine eigenen Abzeichen siehst du im Spiel unter Namensschild bearbeiten – dort werden sie auch angelegt. Quelle: Inkipedia (Badge-Übersicht).</p>
+    </div>`;
   const werkzeugeHtml = `
     ${helferHtml}
     <div class="card"><h2>🧰 Nützliche Community-Werkzeuge</h2>
@@ -3476,6 +3517,7 @@ function renderWissen() {
     ${spielWissenHtml}
     <div class="card"><h2>So trainieren Top-Spieler</h2>${trainingHtml}</div>
     ${lexikonHtml}
+    ${abzeichenHtml}
     ${werkzeugeHtml}
     ${quellenHtml}`;
   const markenWahl = document.getElementById("seedMarkenWahl");
