@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.64"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.65"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3257,7 +3257,14 @@ function initialisiereMonitor() {
     try { if ("wakeLock" in navigator) wachLock = await navigator.wakeLock.request("screen"); } catch (e) {}
   }
   document.addEventListener("visibilitychange", () => {
-    if (monitorStream && document.visibilityState === "visible") halteWach();
+    if (document.visibilityState !== "visible") return;
+    // gilt für Kamera UND Video-Datei - sonst legt sich das iPad bei langen Videos schlafen
+    if (monitorStream || monitorQuelle === "datei") halteWach();
+    // Video-Datei nach Unterbrechung (Sperrbildschirm, App-Wechsel) automatisch weiterspielen
+    if (monitorQuelle === "datei") {
+      const v = document.getElementById("monVideo");
+      if (v && v.paused && !v.ended && v.currentTime > 0) v.play().catch(() => {});
+    }
   });
 
   function zeigeCrop() {
@@ -3363,7 +3370,16 @@ function initialisiereMonitor() {
   }
   function starteAnalyse() {
     const video = $("#monVideo");
+    let ueberspringe = 0; // Selbstschutz: wenn ein Takt zu lange dauert, kurz Pause statt Einfrieren
     monitorTimer = setInterval(() => {
+      if (ueberspringe > 0) { ueberspringe--; return; }
+      const taktStart = performance.now();
+      try {
+        analyseTakt();
+      } catch (e) { /* ein Fehler darf die Erkennung nie stoppen */ }
+      if (performance.now() - taktStart > 120) ueberspringe = 4; // Gerät ächzt -> ~1 s Luft geben
+    }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
+    function analyseTakt() {
       if (!monitorQuelle || video.readyState < 2 || (monitorQuelle === "datei" && video.paused)) {
         augeZeige("warte", "👁 KI wartet auf Bild …");
         return;
@@ -3415,7 +3431,7 @@ function initialisiereMonitor() {
           }
         }
       } else monErgebnisSerie = 0;
-    }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
+    }
   }
 
   function zeigeMonitorUi() {
@@ -3474,6 +3490,7 @@ function initialisiereMonitor() {
     monitorDateiUrl = URL.createObjectURL(f);
     const video = $("#monVideo");
     video.srcObject = null; video.src = monitorDateiUrl; video.controls = true;
+    halteWach(); // auch bei Video-Dateien: iPad darf sich nicht schlafen legen
     $("#monTempo").style.display = "flex";
     zeigeMonitorUi();
     const vgl = document.querySelector("#monSteuerung details.formdetails"); if (vgl) vgl.open = true; // Vergleichs-Aufnahme sichtbar machen
