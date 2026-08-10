@@ -335,6 +335,8 @@
   .rot-waffen span { display: inline-flex; align-items: center; }
 
   .abz { width: 38px; height: 38px; object-fit: contain; vertical-align: middle; margin: 1px 2px 1px 0; }
+  .fortschritt .balken-reihe { grid-template-columns: minmax(105px, 165px) 1fr minmax(170px, auto); }
+  @media (max-width: 560px) { .fortschritt .balken-reihe { grid-template-columns: 1fr; gap: 3px; } .fortschritt .balken { order: 3; } }
 
   /* SplatNet-Laden (Kleidung des Tages) */
   .laden-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
@@ -406,7 +408,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.48"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.49"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3473,6 +3475,49 @@ function renderWissen() {
         <div id="seedErgebnis" style="margin-top:10px"></div>
       </details>
     </div>`;
+  // Abzeichen-Fortschritt: Wie weit bist du, was fehlt noch? (Stand aus Henris SplatNet-Fotos + App-Zählung)
+  const abz = (name) => BILDER["abz/S3 Badge " + name + ".png"] ? `<img class="abz" loading="lazy" alt="" src="${BILDER["abz/S3 Badge " + name + ".png"]}">` : "";
+  const ABZ_STAND = {
+    stand: "09.08.2026", level: 65, baerPunkte: 146683,
+    bosse: { "Bäm": 665, "Rakzak": 330, "Pfanndit": 667, "Staal": 523, "Stapla": 607, "Grablax": 617,
+             "Regnar": 513, "Mobelisk": 561, "Sturmreifer": 517, "Kanonya": 174, "Deckler": 589 },
+    koenige: { "Malmsalm": 11, "Horroboros": 3, "Kataklysmaul": 2 },
+  };
+  const fortReihe = (bildHtml, name, wert, stufen) => {
+    const ziel = stufen.find(s => s > wert);
+    const zahl = (n) => n.toLocaleString("de-DE");
+    if (!ziel) return `<div class="balken-reihe"><span class="bname">${bildHtml}<span>${esc(name)}</span></span>
+      <div class="balken"><div class="fuellung" style="width:100%"></div></div>
+      <span class="bwert" style="color:var(--delta-good)">🎉 höchste Stufe!</span></div>`;
+    const start = [...stufen].reverse().find(s => s <= wert) || 0;
+    const prozent = Math.max(3, Math.round((wert - start) / (ziel - start) * 100));
+    return `<div class="balken-reihe"><span class="bname">${bildHtml}<span>${esc(name)}</span></span>
+      <div class="balken"><div class="fuellung" style="width:${Math.min(100, prozent)}%"></div></div>
+      <span class="bwert">${zahl(wert)} / ${zahl(ziel)} · <strong>fehlen ${zahl(ziel - wert)}</strong></span></div>`;
+  };
+  const MODUS_ABZ = { "Herrschaft": "Splat Zones", "Turm-Kommando": "Tower Control", "Operation Goldfisch": "Rainmaker", "Muschelchaos": "Clam Blitz" };
+  const siegeProModus = {};
+  for (const m of state.matches) if (m.ergebnis === "S") siegeProModus[m.modus] = (siegeProModus[m.modus] || 0) + 1;
+  const fortschrittHtml = `
+    <div class="card fortschritt"><h2>🎯 Abzeichen-Fortschritt: Das fehlt dir noch</h2>
+      <p class="sub">Deine Zahlen (Stand ${ABZ_STAND.stand} aus SplatNet + App-Zählung) gegen die nächste Abzeichen-Stufe.</p>
+      <p class="kat-head" style="margin-top:6px">Salmon Run – Bosse (nächste Stufe: 1.000)</p>
+      ${SPIEL_WISSEN.salmon_bosse
+        .map(b => ({ b, wert: ABZ_STAND.bosse[b.de] }))
+        .filter(x => x.wert !== undefined)
+        .sort((a, c) => c.wert - a.wert)
+        .map(x => fortReihe(abz(x.b.en + " 10000") || `<img class="bicon" alt="" src="${bildSrc(x.b.bild)}">`, x.b.de, x.wert, [100, 1000, 10000])).join("")}
+      <p class="kat-head">Salmon Run – Könige &amp; Punkte</p>
+      ${SPIEL_WISSEN.salmon_koenige
+        .map(k => fortReihe(abz(k.en + " 1000") || `<img class="bicon" alt="" src="${bildSrc(k.bild)}">`, "König: " + k.de, ABZ_STAND.koenige[k.de] || 0, [10, 100, 1000])).join("")}
+      ${fortReihe(abz("Grizzco 10M"), "Bär-Punkte", ABZ_STAND.baerPunkte, [10000, 100000, 9999999])}
+      <p class="kat-head">Kämpfe &amp; Level</p>
+      ${fortReihe(abz("Level 999"), "Spieler-Level", ABZ_STAND.level, [30, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 999])}
+      ${fortReihe(abz("Turf War 1200"), "Revierkampf-Siege (App-Zählung)", siegeProModus["Revierkampf"] || 0, [50, 250, 1200])}
+      ${Object.entries(MODUS_ABZ).map(([de, en]) => fortReihe(abz(en + " 1000"), de + "-Siege (App-Zählung)", siegeProModus[de] || 0, [100, 1000])).join("")}
+      <p style="font-size:12px; color:var(--text-muted); margin:8px 0 0">Die Modus-Siege zählt die App ab jetzt automatisch mit – dein echter Gesamtstand aus dem Spiel kann höher liegen. Schick mir neue SplatNet-Fotos, dann aktualisiere ich den Stand.</p>
+    </div>`;
+
   // Kleidung: SplatNet-Laden des Tages (Bilder von splatoon3.ink, nur online)
   let ladenHtml = "";
   if (ladenDaten && ladenDaten.stuecke && ladenDaten.stuecke.length) {
@@ -3496,7 +3541,6 @@ function renderWissen() {
 
   // Abzeichen-Lexikon: alle Abzeichen-Arten mit Bedingungen, bebildert mit den eingebauten Icons
   const abzTab = (zeilen) => `<div class="kb-table-scroll"><table class="kb"><tr><th>Abzeichen</th><th>So bekommst du sie</th></tr>${zeilen}</table></div>`;
-  const abz = (name) => BILDER["abz/S3 Badge " + name + ".png"] ? `<img class="abz" loading="lazy" alt="" src="${BILDER["abz/S3 Badge " + name + ".png"]}">` : "";
   const spezialStreifen = SPIEL_WISSEN.spezialwaffen.map(s => `<img class="wicon" loading="lazy" alt="${esc(s.de)}" title="${esc(s.de)}" src="${bildSrc(s.bild)}">`).join("");
   const waffenStreifen = WAFFEN.slice(0, 9).map(w => wIcon(w.n)).join("") + " …";
   const abzeichenHtml = `
@@ -3634,6 +3678,7 @@ function renderWissen() {
     ${spielWissenHtml}
     <div class="card"><h2>So trainieren Top-Spieler</h2>${trainingHtml}</div>
     ${lexikonHtml}
+    ${fortschrittHtml}
     ${ladenHtml}
     ${abzeichenHtml}
     ${werkzeugeHtml}
