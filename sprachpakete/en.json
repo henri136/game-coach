@@ -904,5 +904,19 @@
 "✔ Auf dem neuesten Stand{0} ({1} Uhr)": "✔ Up to date{0} (at {1})",
 " – {0} Karten nachgetragen": " – {0} stages backfilled",
 "{0} neue Matches von stat.ink übernommen!": "{0} new matches added from stat.ink!",
-"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "No new matches on stat.ink – you're up to date."
+"Keine neuen Matches auf stat.ink – du bist auf dem neuesten Stand.": "No new matches on stat.ink – you're up to date.",
+"Reichweite": "Range",
+"Angriff": "Power",
+"Feuerrate": "Fire Rate",
+"Ladetempo": "Charge Speed",
+"Mobilität": "Mobility",
+"Färbetempo": "Ink Speed",
+"Gewicht": "Weight",
+"Explosion": "Blast",
+"Schutz": "Durability",
+"Offizielle Spieldaten (Spielversion 10.1.0) – so tickt deine Waffe.": "Official game data (game version 10.1.0) – this is how your weapon ticks.",
+"🔫 Deine Hauptwaffe: {0}": "🔫 Your main weapon: {0}",
+"💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "With your paint average of {0} p you theoretically charge {1} ~{2}× per match – but you only fire it Ø {3}×. Charge is being lost: fire BEFORE taking risks, don't die with a full gauge.",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "With your paint average of {0} p you theoretically charge {1} ~{2}× per match – and you also use it Ø {3}×. You rarely waste your gauge, strong."
 }

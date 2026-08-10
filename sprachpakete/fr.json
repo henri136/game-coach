@@ -908,5 +908,22 @@
 "Wie schnell reagiert er auf ausgefallene Kollegen?": "À quelle vitesse réagit-il aux coéquipiers tombés ?",
 "Stoppuhr im Kopf: Wie viele Sekunden vergehen, bis ein Kollege in seiner Nähe wiederbelebt wird? Meist unter 3 – notfalls lässt er dafür Eier liegen.": "Chronomètre en tête : combien de secondes avant qu'un coéquipier proche de lui soit relevé ? En général moins de 3 – au besoin, il laisse des œufs par terre pour ça.",
 "Wann zündet er die Spezialwaffe?": "Quand déclenche-t-il son arme spéciale ?",
-"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "Pas quand il est presque mort – mais AVANT que la situation bascule (beaucoup de boss à la fois, quota qui vacille). Note dans quelle vague il répartit ses 2 utilisations."
+"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "Pas quand il est presque mort – mais AVANT que la situation bascule (beaucoup de boss à la fois, quota qui vacille). Note dans quelle vague il répartit ses 2 utilisations.",
+"Sprinkler": "Fontaine",
+"Trizooka": "Lance-rafales",
+"Torpedo": "Bentorpille",
+"Reichweite": "Portée",
+"Angriff": "Puissance",
+"Feuerrate": "Cadence",
+"Ladetempo": "Vitesse de charge",
+"Mobilität": "Mobilité",
+"Färbetempo": "Vitesse d'encrage",
+"Gewicht": "Poids",
+"Explosion": "Explosion",
+"Schutz": "Résistance",
+"Offizielle Spieldaten (Spielversion 10.1.0) – so tickt deine Waffe.": "Données officielles du jeu (version 10.1.0) – voilà comment ton arme fonctionne.",
+"🔫 Deine Hauptwaffe: {0}": "🔫 Ton arme principale : {0}",
+"💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "Avec ta moyenne de peinture de {0} p, tu charges {1} en théorie ~{2}× par match – mais tu ne le déclenches que Ø {3}×. De la charge se perd : déclenche AVANT le risque, ne meurs pas avec la jauge pleine.",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Avec ta moyenne de peinture de {0} p, tu charges {1} en théorie ~{2}× par match – et tu l'utilises aussi Ø {3}×. Ta jauge se perd rarement, du solide."
 }

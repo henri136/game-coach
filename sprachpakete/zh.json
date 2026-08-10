@@ -905,5 +905,22 @@
 "Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "不是等快死了才放——而是在局势崩掉之前（大量头目同时出现、配额岌岌可危）。注意他把 2 次使用分配在哪几波。",
 "Malmsalm": "横纲",
 "Horroboros": "辰龙",
-"Kataklysmaul": "巨颚"
+"Kataklysmaul": "巨颚",
+"Sprinkler": "洒墨器",
+"Trizooka": "终极发射",
+"Torpedo": "鱼雷",
+"Reichweite": "射程",
+"Angriff": "攻击",
+"Feuerrate": "连射",
+"Ladetempo": "蓄力速度",
+"Mobilität": "机动性",
+"Färbetempo": "涂墨速度",
+"Gewicht": "重量",
+"Explosion": "爆炸",
+"Schutz": "耐久",
+"Offizielle Spieldaten (Spielversion 10.1.0) – so tickt deine Waffe.": "官方游戏数据（游戏版本 10.1.0）——你的武器就是这样运作的。",
+"🔫 Deine Hauptwaffe: {0}": "🔫 你的主武器：{0}",
+"💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1}（{2}p）",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "以你 {0}p 的涂地平均值，理论上每场能给 {1} 充能 ~{2} 次——但你只放了 Ø {3} 次。充能在流失：在冒险之前放掉，别满槽阵亡。",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "以你 {0}p 的涂地平均值，理论上每场能给 {1} 充能 ~{2} 次——而你也确实用了 Ø {3} 次。你的量表很少浪费，强。"
 }

@@ -910,5 +910,21 @@
 "Wie schnell reagiert er auf ausgefallene Kollegen?": "¿Con qué rapidez reacciona ante compañeros caídos?",
 "Stoppuhr im Kopf: Wie viele Sekunden vergehen, bis ein Kollege in seiner Nähe wiederbelebt wird? Meist unter 3 – notfalls lässt er dafür Eier liegen.": "Cronómetro mental: ¿cuántos segundos pasan hasta que reanima a un compañero cercano? Casi siempre menos de 3; si hace falta, deja huevos en el suelo para ello.",
 "Wann zündet er die Spezialwaffe?": "¿Cuándo activa el arma especial?",
-"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "No cuando está casi muerto, sino ANTES de que la situación se tuerza (muchos jefes a la vez, la cuota peligra). Fíjate en qué oleadas reparte los 2 usos."
+"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "No cuando está casi muerto, sino ANTES de que la situación se tuerza (muchos jefes a la vez, la cuota peligra). Fíjate en qué oleadas reparte los 2 usos.",
+"Sprinkler": "Aspersor",
+"Trizooka": "Tintazuca triple",
+"Reichweite": "Alcance",
+"Angriff": "Potencia",
+"Feuerrate": "Cadencia",
+"Ladetempo": "Velocidad de carga",
+"Mobilität": "Movilidad",
+"Färbetempo": "Velocidad de tinta",
+"Gewicht": "Peso",
+"Explosion": "Explosión",
+"Schutz": "Resistencia",
+"Offizielle Spieldaten (Spielversion 10.1.0) – so tickt deine Waffe.": "Datos oficiales del juego (versión 10.1.0): así funciona tu arma.",
+"🔫 Deine Hauptwaffe: {0}": "🔫 Tu arma principal: {0}",
+"💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1} ({2} p)",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "Con tu media de pintura de {0} p cargas {1} en teoría ~{2}× por combate, pero solo la activas Ø {3}×. Se pierde carga: actívala ANTES del riesgo y no mueras con la barra llena.",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "Con tu media de pintura de {0} p cargas {1} en teoría ~{2}× por combate, y también la usas Ø {3}×. Rara vez pierdes la barra, fuerte."
 }

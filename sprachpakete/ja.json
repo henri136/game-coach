@@ -904,5 +904,22 @@
 "Wie schnell reagiert er auf ausgefallene Kollegen?": "倒れた仲間に、どれだけ速く反応する?",
 "Stoppuhr im Kopf: Wie viele Sekunden vergehen, bis ein Kollege in seiner Nähe wiederbelebt wird? Meist unter 3 – notfalls lässt er dafür Eier liegen.": "頭の中でストップウォッチ:近くの仲間が復活するまで何秒かかる? たいてい3秒未満 ― 必要ならそのためにイクラを置いていく。",
 "Wann zündet er die Spezialwaffe?": "スペシャルウェポンはいつ使う?",
-"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "死にかけてからではない ― 状況が傾く前(オオモノ多数同時、ノルマが危ない)に使う。2回の使用をどのWAVEに配分しているかに注目。"
+"Nicht erst, wenn er fast tot ist – sondern BEVOR die Lage kippt (viele Bosse gleichzeitig, Quote wackelt). Achte darauf, in welcher Welle er die 2 Einsätze verteilt.": "死にかけてからではない ― 状況が傾く前(オオモノ多数同時、ノルマが危ない)に使う。2回の使用をどのWAVEに配分しているかに注目。",
+"Sprinkler": "スプリンクラー",
+"Trizooka": "ウルトラショット",
+"Torpedo": "トーピード",
+"Reichweite": "射程",
+"Angriff": "攻撃",
+"Feuerrate": "連射",
+"Ladetempo": "チャージ速度",
+"Mobilität": "機動性",
+"Färbetempo": "塗り速度",
+"Gewicht": "重さ",
+"Explosion": "爆発",
+"Schutz": "耐久",
+"Offizielle Spieldaten (Spielversion 10.1.0) – so tickt deine Waffe.": "公式ゲームデータ(バージョン10.1.0)― キミのブキはこう動く。",
+"🔫 Deine Hauptwaffe: {0}": "🔫 キミのメインブキ:{0}",
+"💣 {0} · ⚡ {1} ({2} P)": "💣 {0} · ⚡ {1}({2}P)",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – du zündest ihn aber nur Ø {3}×. Da geht Ladung verloren: Zünde VOR dem Risiko, nicht mit voller Leiste sterben.": "塗り平均{0}Pなら、{1}は計算上1マッチに~{2}回チャージできる ― でも実際の使用はØ {3}回。チャージが失われている:リスクの前に使おう、満タンで死なないこと。",
+"Mit deinem Farbschnitt von {0} P lädst du {1} rechnerisch ~{2}× pro Match – und du nutzt ihn auch Ø {3}×. Deine Leiste geht selten verloren, stark.": "塗り平均{0}Pなら、{1}は計算上1マッチに~{2}回チャージできる ― そして実際にØ {3}回使えている。ゲージのムダがほぼない、強い。"
 }
