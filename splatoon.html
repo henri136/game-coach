@@ -408,7 +408,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.51"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.52"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1077,7 +1077,34 @@ document.getElementById("tabs").addEventListener("click", (e) => {
 
 /* ---------- Hilfsfunktionen ---------- */
 const $ = (sel) => document.querySelector(sel);
-const esc = (s) => s == null ? "" : String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+/* Inhalts-Übersetzung: Sprachpakete (eigene Dateien im game-coach-Repo) legen sich als
+   Overlay über alle angezeigten Texte – Unübersetztes bleibt automatisch Deutsch. */
+let textPaket = null;
+async function ladeTextPaket() {
+  const code = state.sprache || "de";
+  if (code === "de" || window.claude) { textPaket = null; return; }
+  try {
+    const c = JSON.parse(localStorage.getItem("textpaket-" + code) || "null");
+    if (c && Date.now() - c.zeit < 24 * 3600e3) { textPaket = c.map; renderAlles(); return; }
+  } catch (e) {}
+  if (!navigator.onLine) {
+    try { const c = JSON.parse(localStorage.getItem("textpaket-" + code) || "null"); if (c) { textPaket = c.map; renderAlles(); } } catch (e) {}
+    return;
+  }
+  try {
+    const r = await fetch("https://raw.githubusercontent.com/henri136/game-coach/main/sprachpakete/" + code + ".json", { cache: "no-store" });
+    if (!r.ok) return;
+    const map = await r.json();
+    textPaket = map;
+    try { localStorage.setItem("textpaket-" + code, JSON.stringify({ zeit: Date.now(), map })); } catch (e) {}
+    renderAlles();
+  } catch (e) { /* offline/kein Paket -> Deutsch bleibt */ }
+}
+const esc = (s) => {
+  s = s == null ? "" : String(s);
+  if (textPaket && textPaket[s]) s = textPaket[s];
+  return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+};
 const fmt1 = (n) => (Math.round(n * 10) / 10).toLocaleString("de-DE");
 const pct = (n) => Math.round(n * 100) + " %";
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -3897,6 +3924,7 @@ if (window.claude) {
   setTimeout(ladeRotation, 800);
   setTimeout(ladeLaden, 1400);
   setTimeout(ladeSpielNamen, 600);
+  setTimeout(ladeTextPaket, 900);
   setInterval(() => { if (navigator.onLine) ladeRotation(); }, 20 * 60 * 1000);
   setInterval(() => { if (navigator.onLine) statinkSync(true); }, 30 * 60 * 1000);
 }
