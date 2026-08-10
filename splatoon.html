@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.75"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.76"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3352,19 +3352,39 @@ function initialisiereMonitor() {
     kiEreignis("🚀 Schnell-Analyse gestartet");
     const liveZeile = document.getElementById("monLive");
     if (liveZeile) liveZeile.textContent = uz("🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.");
-    const SCHRITT = 0.45; // Video-Sekunden pro Sprung: sicher genug für 2-4-s-Death-Knicke
-    let zuletztGemeldet = 0;
+    const GROB = 1.5, FEIN = 0.35; // große Sprünge im hellen Spiel, Feinsuche nur bei dunklen Stellen
+    let zuletztGemeldet = 0, letzteHelleZeit = video.currentTime;
+    const springe = (ziel) => new Promise((frei) => {
+      let fertig = false;
+      const weiter = () => { if (!fertig) { fertig = true; video.removeEventListener("seeked", weiter); frei(); } };
+      video.addEventListener("seeked", weiter, { once: true });
+      setTimeout(weiter, 4000); // Sicherheitsnetz, falls ein Sprung hängen bleibt
+      video.currentTime = ziel;
+    });
     while (schnellAktiv && monitorQuelle === "datei" && video.currentTime < video.duration - 0.6) {
-      const ziel = video.currentTime + SCHRITT;
-      await new Promise((frei) => {
-        let fertig = false;
-        const weiter = () => { if (!fertig) { fertig = true; video.removeEventListener("seeked", weiter); frei(); } };
-        video.addEventListener("seeked", weiter, { once: true });
-        setTimeout(weiter, 4000); // Sicherheitsnetz, falls ein Sprung hängen bleibt
-        video.currentTime = ziel;
-      });
+      await springe(video.currentTime + GROB);
       if (!schnellAktiv) break;
-      try { monitorAnalysiere && monitorAnalysiere(video.currentTime * 1000); } catch (e) {}
+      try {
+        const probe = monSignatur(video);
+        const dunkel = autoLern.basis != null && sigHelligkeit(probe) < Math.max(14, autoLern.basis * 0.45);
+        if (dunkel) {
+          // Verdacht auf Death-Knick: zurück zum letzten hellen Punkt und fein durchgehen
+          let t = Math.max(letzteHelleZeit + FEIN, video.currentTime - GROB + FEIN);
+          const ende = Math.min(video.duration - 0.5, video.currentTime + 6);
+          let helleFolge = 0;
+          while (schnellAktiv && t < ende && helleFolge < 2) {
+            await springe(t);
+            monitorAnalysiere && monitorAnalysiere(video.currentTime * 1000);
+            const h = sigHelligkeit(monSignatur(video));
+            helleFolge = (autoLern.basis != null && h >= Math.max(14, autoLern.basis * 0.45)) ? helleFolge + 1 : 0;
+            t += FEIN;
+          }
+          letzteHelleZeit = video.currentTime;
+        } else {
+          letzteHelleZeit = video.currentTime;
+          monitorAnalysiere && monitorAnalysiere(video.currentTime * 1000);
+        }
+      } catch (e) {}
       if (Date.now() - zuletztGemeldet > 1000) {
         zuletztGemeldet = Date.now();
         const st = document.getElementById("monLernStatus");
