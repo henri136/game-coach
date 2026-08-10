@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.67"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.68"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3292,7 +3292,7 @@ function initialisiereMonitor() {
     monitorQuelle = null;
     monZoom = { z: 1, sx: 0, sy: 0 }; wendeZoomAn();
     $("#monRahmen").style.display = "none"; $("#monSteuerung").style.display = "none"; $("#monTempo").style.display = "none";
-    $("#monStart").hidden = false; $("#monBildschirm").hidden = false; $("#monDateiBtn").hidden = false;
+    $("#monStart").hidden = false; $("#monBildschirm").hidden = istIos(); $("#monDateiBtn").hidden = false;
     $("#monStop").hidden = true;
   }
 
@@ -3491,6 +3491,7 @@ function initialisiereMonitor() {
   });
 
   // Bildschirm/Tab aufnehmen (PC): z. B. den YouTube-Tab mit dem Profi-Video auswählen
+  if (istIos()) $("#monBildschirm").style.display = "none"; // iPadOS erlaubt keine Browser-Bildschirmaufnahme
   $("#monBildschirm").addEventListener("click", async () => {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
       zeigeFehler("Bildschirm-Aufnahme gibt es nur am PC (Chrome/Edge oder PC-App). Auf dem iPad geht stattdessen: Kontrollzentrum → Bildschirmaufnahme starten → YouTube-Video anschauen → Aufnahme stoppen → hier „📼 Video-Datei analysieren“ und die Aufnahme aus „Fotos“/„Dateien“ wählen."); return;
