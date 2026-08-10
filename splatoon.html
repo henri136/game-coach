@@ -434,7 +434,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.70"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.71"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -2948,7 +2948,7 @@ const MON_BREITE = 192, MON_HOEHE = 108;
 
 function monSignatur(video) {
   if (!monitorCanvas || monitorCanvas.width !== MON_BREITE) { monitorCanvas = document.createElement("canvas"); monitorCanvas.width = MON_BREITE; monitorCanvas.height = MON_HOEHE; }
-  const ctx = monitorCanvas.getContext("2d", { willReadFrequently: true });
+  const ctx = monitorCanvas.getContext("2d", { willReadFrequently: true, alpha: false });
   const crop = (state.monitor && state.monitor.crop) || null;
   const vw = video.videoWidth, vh = video.videoHeight;
   if (crop && vw && vh) ctx.drawImage(video, crop.x * vw, crop.y * vh, crop.w * vw, crop.h * vh, 0, 0, MON_BREITE, MON_HOEHE);
@@ -3405,13 +3405,18 @@ function initialisiereMonitor() {
     const video = $("#monVideo");
     let ueberspringe = 0; // Selbstschutz: wenn ein Takt zu lange dauert, kurz Pause statt Einfrieren
     let letzteAnalyse = -1e12; // Video-Zeit der letzten Analyse (Datei-Modus)
+    let analyseAbstand = 350, langsameTakte = 0; // passt sich dem Gerät an (350-700 ms)
     monitorTimer = setInterval(() => {
       if (ueberspringe > 0) { ueberspringe--; return; }
       const taktStart = performance.now();
       try {
         analyseTakt();
       } catch (e) { /* ein Fehler darf die Erkennung nie stoppen */ }
-      if (performance.now() - taktStart > 120) ueberspringe = 4; // Gerät ächzt -> ~1 s Luft geben
+      const taktDauer = performance.now() - taktStart;
+      if (taktDauer > 120) ueberspringe = 4; // Gerät ächzt -> ~1 s Luft geben
+      // Datei-Modus: dauerhaft träge Takte -> Analyse-Abstand hochsetzen, damit das Video flüssig bleibt
+      if (taktDauer > 45) { if (++langsameTakte >= 3 && analyseAbstand < 700) { analyseAbstand += 175; langsameTakte = 0; } }
+      else if (langsameTakte > 0) langsameTakte--;
     }, 200); // schnelle Abtastung, damit auch 4x-Tempo im Datei-Modus jeden Death erwischt
     function analyseTakt() {
       if (!monitorQuelle || video.readyState < 2 || (monitorQuelle === "datei" && video.paused)) {
@@ -3424,7 +3429,7 @@ function initialisiereMonitor() {
       // Nur analysieren, wenn das Video wirklich ~0,35 s weitergelaufen ist - schont das iPad,
       // damit die Wiedergabe nicht ruckelt (bei 4x-Tempo wird automatisch jeder Takt genutzt)
       if (monitorQuelle === "datei") {
-        if (jetzt - letzteAnalyse < 350) return;
+        if (jetzt - letzteAnalyse < analyseAbstand) return;
         letzteAnalyse = jetzt;
       }
       const sig = monSignatur(video);
