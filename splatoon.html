@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.79"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.80"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3308,7 +3308,7 @@ function initialisiereMonitor() {
   function stoppeMonitor() {
     monRandZone = null;
     schnellAktiv = false;
-    Object.assign(autoLern, { basis: null, dunkelSeit: 0, dipSig: null, hellSig: null, startZeit: null, kameraDunkel: false });
+    Object.assign(autoLern, { basis: null, dunkelSeit: 0, dipSig: null, hellSig: null, startZeit: null, kameraDunkel: false, letztesSpielLernen: null });
     modusStimmen = []; modusSchaetzung = null; modusZeit = -1e12;
     if (aufnahmeRolle) beendeAufnahme(); // laufende Vergleichs-Aufnahme sauber abschließen
     if (monitorTimer) { clearInterval(monitorTimer); monitorTimer = null; }
@@ -3342,7 +3342,7 @@ function initialisiereMonitor() {
      Beim Death zeigt Splatoon ~2-4 s die dunkle Splat-Cam. Diesen "Dunkel-Knick" erkennt die
      Heuristik direkt an der Bildhelligkeit - sie zählt den Death UND legt die Bilder selbst als
      Beispiele ab. So bringt sich die KI bei, wie Death und normales Spiel auf DEINEM Bild aussehen. */
-  const autoLern = { basis: null, dunkelSeit: 0, dipSig: null, hellSig: null, zeigBis: 0, kameraDunkel: false, gelernt: 0, startZeit: null };
+  const autoLern = { basis: null, dunkelSeit: 0, dipSig: null, hellSig: null, zeigBis: 0, kameraDunkel: false, gelernt: 0, startZeit: null, letztesSpielLernen: null };
   /* ---------- Schnell-Analyse: das Video wird NICHT abgespielt, die KI springt Bild für
      Bild hindurch. So schafft auch ein riesiges 4K-Video die Analyse ohne Ruckeln. ---------- */
   let schnellAktiv = false, monitorAnalysiere = null;
@@ -3471,6 +3471,22 @@ function initialisiereMonitor() {
       if (hell > A.basis * 0.7) A.hellSig = sig;  // Kandidat für ein "normales Spiel"-Beispiel
     }
     A.kameraDunkel = A.basis < 22 && hell < 22;   // Kamera sieht gar kein Spielbild
+    // Laufendes Lernen: auch ohne Death regelmäßig ein "normales Spiel"-Beispiel ablegen -
+    // so lernt die KI in JEDEM Video/Match, wie dein Spielbild aussieht (auch im Salmon Run)
+    if (!imDunkel && A.basis > 30 && jetzt - A.startZeit > 8000
+        && (A.letztesSpielLernen == null || jetzt - A.letztesSpielLernen > 90000)) {
+      A.letztesSpielLernen = jetzt;
+      const BL = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
+      if ((BL.spiel = BL.spiel || []).length < 10) {
+        BL.spiel.push(sig);
+        A.gelernt++;
+        state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: BL });
+        speichereState();
+        kiEreignis("🤖 Spiel-Beispiel gelernt (jetzt " + BL.spiel.length + ")");
+        const stL = document.getElementById("monLernStatus");
+        if (stL && !schnellAktiv) stL.textContent = uz("🤖 Selbst gelernt ✓ – ") + lernStatusText();
+      }
+    }
     if (imDunkel) {
       if (!A.dunkelSeit) { A.dunkelSeit = jetzt; A.dipSig = null; }
       if (!A.dipSig && jetzt - A.dunkelSeit > 700) A.dipSig = sig; // Bild mitten im Dunkel-Knick
