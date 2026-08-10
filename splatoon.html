@@ -408,7 +408,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-10.50"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-10.51"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -982,18 +982,25 @@ async function ladeSpielNamen() {
   } catch (e) {}
   if (!navigator.onLine) return;
   try {
-    const [rz, rd] = await Promise.all([
+    // Waffen: stat.ink kennt alle 173 in allen Sprachen (unsere deutschen Namen stammen von dort -> 1:1-Treffer).
+    // Karten + Modi: Nintendo-Sprachdateien via splatoon3.ink (dort vollständig, Waffen aber nur teilweise).
+    const STATINK_CODE = { en: "en_US", fr: "fr_FR", es: "es_ES", it: "it_IT", nl: "nl_NL", ru: "ru_RU", ja: "ja_JP", ko: "ko_KR", zh: "zh_CN" };
+    const [rz, rd, rw] = await Promise.all([
       fetch("https://splatoon3.ink/data/locale/" + datei + ".json"),
       fetch("https://splatoon3.ink/data/locale/de-DE.json"),
+      fetch("https://stat.ink/api/v3/weapon?full=1", { headers: { "Accept": "application/json" } }),
     ]);
-    const ziel = await rz.json(), deu = await rd.json();
+    const ziel = await rz.json(), deu = await rd.json(), waffenListe = await rw.json();
     const map = { waffen: {}, karten: {}, modi: {} };
-    for (const [id, v] of Object.entries(deu.weapons || {}))
-      if (v && v.name && ziel.weapons && ziel.weapons[id] && ziel.weapons[id].name) map.waffen[v.name] = ziel.weapons[id].name;
+    const sCode = STATINK_CODE[code];
+    for (const w of (Array.isArray(waffenListe) ? waffenListe : []))
+      if (w.name && w.name.de_DE && w.name[sCode]) map.waffen[w.name.de_DE] = w.name[sCode];
     for (const [id, v] of Object.entries(deu.stages || {}))
       if (v && v.name && ziel.stages && ziel.stages[id] && ziel.stages[id].name) map.karten[v.name] = ziel.stages[id].name;
     for (const [id, v] of Object.entries(deu.rules || {}))
       if (v && v.name && ziel.rules && ziel.rules[id] && ziel.rules[id].name) map.modi[v.name] = ziel.rules[id].name;
+    // Big-Run-Arena fehlt in einzelnen Nintendo-Dateien – offizieller englischer Name als Ergänzung
+    if (code === "en" && !map.karten["Splatsville Grand Arena"]) map.karten["Splatsville Grand Arena"] = "Grand Splatlands Bowl";
     spielNamen = map;
     try { localStorage.setItem("spielnamen-" + code, JSON.stringify({ zeit: Date.now(), map })); } catch (e) {}
     renderAlles();
@@ -1012,6 +1019,18 @@ function wendeSpracheAn() {
   const up = document.getElementById("updateBtn"); if (up) up.textContent = "⬆ " + tx("Update");
   const th = document.getElementById("themeToggle"); if (th) th.textContent = "🌗 " + tx("Design");
   const inst = document.getElementById("installBtn"); if (inst) inst.textContent = "📲 " + tx("Als App installieren");
+  // Ehrlicher Hinweis in Fremdsprachen: lange Coach-/Wissens-Texte sind noch Deutsch
+  let notiz = document.getElementById("sprachNotiz");
+  if (spracheJetzt() !== "de") {
+    if (!notiz) {
+      notiz = document.createElement("p");
+      notiz.id = "sprachNotiz";
+      notiz.style.cssText = "margin:4px 0 0; font-size:12px; color:var(--status-warning)";
+      const kopf = document.querySelector("header.app p");
+      if (kopf) kopf.after(notiz);
+    }
+    notiz.textContent = "ℹ️ " + tx("hinweis");
+  } else if (notiz) notiz.remove();
   const wahl = document.getElementById("spracheWahl");
   if (wahl && !wahl.options.length) {
     wahl.innerHTML = SPRACHEN.map(([c, n]) => `<option value="${c}" ${c === spracheJetzt() ? "selected" : ""}>🌐 ${n}</option>`).join("");
