@@ -1086,5 +1086,10 @@
 "Spielmodus:": "Режим игры:",
 "🤖 Automatisch erkennen": "🤖 Определять автоматически",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Бой (Анархия/Бой за район)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Если ИИ определяет режим неверно, зафиксируй его здесь: в бою он считает тёмный экран смерти, в Salmon Run – нокауты."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Если ИИ определяет режим неверно, зафиксируй его здесь: в бою он считает тёмный экран смерти, в Salmon Run – нокауты.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "Обычно это не нужно. Если ИИ ошибается с режимом, задай его здесь один раз — он запомнит, как этот режим выглядит на твоём экране, и со следующего раза распознает его сам.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 Это экран нокаута",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Идёт сравнительная запись «Про» — распознанные смерти попадают в статистику профи, а НЕ в твой счётчик. Остановить: ⚙️ Расширенно → «⏹ Завершить запись».",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Идёт сравнительная запись «Я» — смерти дополнительно учитываются в твоей сравнительной статистике. Остановить: ⚙️ Расширенно → «⏹ Завершить запись».",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Видео загружено ✓ — нажми сверху «🚀 Быстрый анализ», и ИИ сам пролистает видео и посчитает твои смерти."
 }

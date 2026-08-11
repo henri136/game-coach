@@ -1080,5 +1080,10 @@
 "Spielmodus:": "ゲームモード:",
 "🤖 Automatisch erkennen": "🤖 自動で判定",
 "🎮 Kampf (Anarchie/Revier)": "🎮 バトル（バンカラ/ナワバリ）",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AIがモードを間違えたらここで固定 – バトルでは暗いやられ画面を、サーモンランでは救助待ちをカウントします。"
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AIがモードを間違えたらここで固定 – バトルでは暗いやられ画面を、サーモンランでは救助待ちをカウントします。",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "普段は不要です。AIがモードを間違えたら一度ここで正しく設定してください。あなたの画面でそのモードがどう見えるかを覚え、次回からは自動で判別します。",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 これが救助待ち画面です",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 比較記録「プロ」が実行中 – 検出したデスはプロの統計に入り、あなたのカウンターには入りません。⚙️ 詳細 →「⏹ 記録を終了」で停止できます。",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 比較記録「自分」が実行中 – デスは比較統計にも加算されます。⚙️ 詳細 →「⏹ 記録を終了」で停止できます。",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "動画を読み込みました ✓ – 上の「🚀 高速分析」を押すと、AIが自動で動画をめくってデス数を数えます。"
 }

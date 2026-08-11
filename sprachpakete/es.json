@@ -1085,5 +1085,10 @@
 "Spielmodus:": "Modo de juego:",
 "🤖 Automatisch erkennen": "🤖 Detectar automáticamente",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Combate (Anarquía/Territorial)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Si la IA adivina mal el modo, fíjalo aquí: en combate cuenta la pantalla oscura de muerte, en Salmon Run las bajas."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Si la IA adivina mal el modo, fíjalo aquí: en combate cuenta la pantalla oscura de muerte, en Salmon Run las bajas.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "Normalmente no lo necesitas. Si la IA se equivoca de modo, ajústalo aquí una vez: recordará cómo se ve ese modo en tu pantalla y lo reconocerá sola a partir de la próxima vez.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 Esta es la pantalla de baja",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 La grabación comparativa «Pro» está activa: las muertes detectadas van a las estadísticas del pro y NO a tu contador. Deténla en ⚙️ Avanzado → «⏹ Detener grabación».",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 La grabación comparativa «Yo» está activa: las muertes cuentan además en tus estadísticas de comparación. Deténla en ⚙️ Avanzado → «⏹ Detener grabación».",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vídeo cargado ✓: pulsa arriba «🚀 Análisis rápido» y la IA recorrerá el vídeo sola contando tus muertes."
 }

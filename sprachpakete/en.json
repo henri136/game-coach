@@ -1077,5 +1077,10 @@
 "Spielmodus:": "Game mode:",
 "🤖 Automatisch erkennen": "🤖 Detect automatically",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Battle (Anarchy/Turf War)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "If the AI guesses the mode wrong, lock it here – in battles it counts the dark death screen, in Salmon Run it counts downs."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "If the AI guesses the mode wrong, lock it here – in battles it counts the dark death screen, in Salmon Run it counts downs.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "You normally won't need this. If the AI gets the mode wrong, set it correctly here once – it then remembers what that mode looks like on your screen and recognises it on its own from next time.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 This is the down screen",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Comparison recording “Pro” is running – detected deaths currently go into the pro statistics and NOT into your death counter. Stop it under ⚙️ Advanced → “⏹ Stop recording”.",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Comparison recording “Me” is running – deaths also count towards your comparison statistics. Stop it under ⚙️ Advanced → “⏹ Stop recording”.",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video loaded ✓ – now press “🚀 Fast analysis” above and the AI will page through the video on its own and count your deaths."
 }

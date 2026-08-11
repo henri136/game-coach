@@ -1081,5 +1081,10 @@
 "Spielmodus:": "Spelmodus:",
 "🤖 Automatisch erkennen": "🤖 Automatisch herkennen",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Gevecht (Anarchie/Grondoorlog)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Gokt de AI de modus fout? Zet hem hier vast – in gevechten telt ze het donkere death-scherm, in Salmon Run de uitschakelingen."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Gokt de AI de modus fout? Zet hem hier vast – in gevechten telt ze het donkere death-scherm, in Salmon Run de uitschakelingen.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "Normaal heb je dit niet nodig. Gokt de AI de modus fout, zet hem hier één keer goed – ze onthoudt dan hoe die modus er op jouw beeld uitziet en herkent hem de volgende keer vanzelf.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 Dit is het uitschakelscherm",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Vergelijkingsopname ‘Pro’ loopt – herkende deaths gaan nu naar de pro-statistiek en NIET naar jouw teller. Stoppen via ⚙️ Geavanceerd → ‘⏹ Opname stoppen’.",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Vergelijkingsopname ‘Ik’ loopt – deaths tellen ook mee in je vergelijkingsstatistiek. Stoppen via ⚙️ Geavanceerd → ‘⏹ Opname stoppen’.",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video geladen ✓ – druk hierboven op ‘🚀 Snelle analyse’, dan bladert de AI zelf door de video en telt je deaths."
 }

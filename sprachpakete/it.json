@@ -1078,5 +1078,10 @@
 "Spielmodus:": "Modalità di gioco:",
 "🤖 Automatisch erkennen": "🤖 Rilevamento automatico",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Battaglia (Anarchica/Mischia mollusca)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Se l'IA sbaglia modalità, bloccala qui: in battaglia conta la schermata scura di morte, in Salmon Run gli abbattimenti."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Se l'IA sbaglia modalità, bloccala qui: in battaglia conta la schermata scura di morte, in Salmon Run gli abbattimenti.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "Di solito non ti serve. Se l'IA sbaglia modalità, impostala qui una volta: memorizza com'è fatta questa modalità sulla tua immagine e dalla volta successiva la riconosce da sola.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 Questa è la schermata di abbattimento",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 La registrazione di confronto «Pro» è attiva: le morti rilevate finiscono nelle statistiche del pro e NON nel tuo contatore. Interrompila in ⚙️ Avanzate → «⏹ Termina registrazione».",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 La registrazione di confronto «Io» è attiva: le morti contano anche nelle tue statistiche di confronto. Interrompila in ⚙️ Avanzate → «⏹ Termina registrazione».",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video caricato ✓ – premi sopra «🚀 Analisi rapida»: l'IA sfoglia il video da sola e conta le tue morti."
 }

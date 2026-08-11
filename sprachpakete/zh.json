@@ -1081,5 +1081,10 @@
 "Spielmodus:": "游戏模式：",
 "🤖 Automatisch erkennen": "🤖 自动识别",
 "🎮 Kampf (Anarchie/Revier)": "🎮 对战（蛮颓/占地对战）",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "如果 AI 判断错模式，请在这里固定 – 对战中统计变暗的阵亡画面，鲑鱼跑中统计倒下次数。"
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "如果 AI 判断错模式，请在这里固定 – 对战中统计变暗的阵亡画面，鲑鱼跑中统计倒下次数。",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "通常你不需要这个。如果 AI 判断错了模式，在这里正确设置一次——它会记住该模式在你画面上的样子，下次起就能自动识别。",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 这是倒下画面",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 对比记录“高手”正在进行 — 识别到的阵亡会计入高手统计，而不是你的计数器。可在 ⚙️ 高级 →“⏹ 结束记录”中停止。",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 对比记录“我”正在进行 — 阵亡也会计入你的对比统计。可在 ⚙️ 高级 →“⏹ 结束记录”中停止。",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "视频已加载 ✓ — 点击上方“🚀 快速分析”，AI 会自动翻阅视频并统计你的阵亡次数。"
 }

@@ -1081,5 +1081,10 @@
 "Spielmodus:": "게임 모드:",
 "🤖 Automatisch erkennen": "🤖 자동 감지",
 "🎮 Kampf (Anarchie/Revier)": "🎮 배틀 (카오폴리스/영역 배틀)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AI가 모드를 잘못 판단하면 여기서 고정하세요 – 배틀에서는 어두운 사망 화면을, 새먼 런에서는 쓰러짐을 셉니다."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "AI가 모드를 잘못 판단하면 여기서 고정하세요 – 배틀에서는 어두운 사망 화면을, 새먼 런에서는 쓰러짐을 셉니다.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "보통은 필요 없습니다. AI가 모드를 잘못 판단하면 여기서 한 번만 바르게 설정하세요. 그 모드가 당신 화면에서 어떻게 보이는지 기억해 다음부터는 스스로 인식합니다.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 이것이 쓰러짐 화면입니다",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 비교 기록 ‘프로’ 진행 중 – 감지된 데스가 프로 통계로 들어가고 내 카운터에는 들어가지 않습니다. ⚙️ 고급 → ‘⏹ 기록 종료’에서 멈추세요.",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 비교 기록 ‘나’ 진행 중 – 데스가 비교 통계에도 함께 집계됩니다. ⚙️ 고급 → ‘⏹ 기록 종료’에서 멈추세요.",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "동영상 불러옴 ✓ – 위의 ‘🚀 빠른 분석’을 누르면 AI가 알아서 영상을 훑으며 데스를 셉니다."
 }

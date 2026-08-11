@@ -1084,5 +1084,10 @@
 "Spielmodus:": "Mode de jeu :",
 "🤖 Automatisch erkennen": "🤖 Détection automatique",
 "🎮 Kampf (Anarchie/Revier)": "🎮 Combat (Anarchie/Guerre de territoire)",
-"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Si l'IA se trompe de mode, fixe-le ici – en combat elle compte l'écran sombre de mort, en Salmon Run les mises hors jeu."
+"Rät die KI den Modus falsch, stell ihn hier fest – im Kampf zählt sie den dunklen Death-Bildschirm, im Salmon Run die Ausfälle.": "Si l'IA se trompe de mode, fixe-le ici – en combat elle compte l'écran sombre de mort, en Salmon Run les mises hors jeu.",
+"Normalerweise brauchst du das nicht. Rät die KI den Modus falsch, stell ihn hier einmal richtig – sie merkt sich dann, wie dieser Modus auf deinem Bild aussieht, und erkennt ihn ab dem nächsten Mal von allein.": "Normalement tu n'en as pas besoin. Si l'IA se trompe de mode, règle-le correctement ici une fois : elle retient alors à quoi ce mode ressemble sur ton image et le reconnaît toute seule dès la prochaine fois.",
+"🛟 Das ist der Ausfall-Bildschirm": "🛟 Voici l'écran de mise hors jeu",
+"👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 L'enregistrement comparatif « Pro » est en cours – les morts détectées vont dans les stats du pro et PAS dans ton compteur. Arrête-le sous ⚙️ Avancé → « ⏹ Arrêter l'enregistrement ».",
+"🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 L'enregistrement comparatif « Moi » est en cours – les morts comptent aussi dans tes stats de comparaison. Arrête-le sous ⚙️ Avancé → « ⏹ Arrêter l'enregistrement ».",
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vidéo chargée ✓ – appuie maintenant sur « 🚀 Analyse rapide » en haut : l'IA parcourt la vidéo toute seule et compte tes morts."
 }
