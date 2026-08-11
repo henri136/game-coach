@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.09"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-11.10"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3658,7 +3658,7 @@ function initialisiereMonitor() {
      Beim Death zeigt Splatoon ~2-4 s die dunkle Splat-Cam. Diesen "Dunkel-Knick" erkennt die
      Heuristik direkt an der Bildhelligkeit - sie zählt den Death UND legt die Bilder selbst als
      Beispiele ab. So bringt sich die KI bei, wie Death und normales Spiel auf DEINEM Bild aussehen. */
-  const autoLern = { basis: null, dunkelSeit: 0, dipSig: null, dipMitte: false, hellSig: null, zeigBis: 0, kameraDunkel: false, gelernt: 0, startZeit: null, letztesSpielLernen: null, minHell: null, minHellZeit: 0 };
+  const autoLern = { basis: null, dunkelSeit: 0, dipSig: null, dipMitte: false, hellSig: null, zeigBis: 0, kameraDunkel: false, gelernt: 0, startZeit: null, letztesSpielLernen: null, minHell: null, minHellZeit: 0, bestQ: null, bestZeit: 0 };
   /* ---------- Schnell-Analyse: das Video wird NICHT abgespielt, die KI springt Bild für
      Bild hindurch. So schafft auch ein riesiges 4K-Video die Analyse ohne Ruckeln. ---------- */
   let schnellAktiv = false, monitorAnalysiere = null;
@@ -3679,7 +3679,7 @@ function initialisiereMonitor() {
     monitorNeuesMatch();
     monitorLetzterTreffer = -1e12; letzterAusfall = -1e12; imAusfall = false; srdownSerie = 0; srdownFrei = 0; modusLernZeit = -1e12;
     Object.assign(autoLern, { basis: null, dunkelSeit: 0, dipSig: null, dipMitte: false, hellSig: null, startZeit: null, letztesSpielLernen: null,
-                              minHell: null, minHellZeit: 0 }); // Dunkel-Diagnose pro Lauf frisch messen
+                              minHell: null, minHellZeit: 0, bestQ: null, bestZeit: 0 }); // Diagnose pro Lauf frisch messen
     const liveZeile = document.getElementById("monLive");
     if (liveZeile) liveZeile.textContent = uz("🚀 Das Bild springt absichtlich – die KI blättert durchs Video, das ist keine Wiedergabe.");
     const GROB = 1.5, FEIN = 0.35; // große Sprünge im hellen Spiel, Feinsuche nur bei dunklen Stellen
@@ -4004,6 +4004,12 @@ function initialisiereMonitor() {
       schaetzeModus(sig, jetzt); // Salmon Run oder Kampf? (alle ~2 s)
       selbstLernen(sig, jetzt); // läuft IMMER mit - erkennt Deaths auch ganz ohne Beispiele
       const urteil = monKlassifiziere(sig);
+      // Diagnose: Wie nah war das beste Bild ueberhaupt am Todes-Blick? Zeigt im Bericht, ob es
+      // knapp unter der Schwelle lag (dann Schwelle) oder meilenweit weg (dann Bildausschnitt).
+      if (urteil && isFinite(urteil.minDeath) && isFinite(urteil.minSpiel) && urteil.minSpiel > 0) {
+        const q = urteil.minDeath / urteil.minSpiel;
+        if (autoLern.bestQ == null || q < autoLern.bestQ) { autoLern.bestQ = q; autoLern.bestZeit = jetzt; }
+      }
       const live = document.getElementById("monLive");
       if (autoLern.zeigBis && Date.now() < autoLern.zeigBis) augeZeige("death", "👁 KI: ☠ Death erkannt – selbst gelernt!");
       else if (autoLern.kameraDunkel) augeZeige("warte", "👁 Bild zu dunkel – richte die Kamera aufs Spielbild");
@@ -4365,6 +4371,13 @@ function initialisiereMonitor() {
         + (aufnahmeRolle ? " | ⚠️ VERGLEICHS-AUFNAHME LÄUFT: " + aufnahmeRolle + (aufnahmeRolle === "profi" ? " – Deaths zählen NICHT in den Zähler!" : "") : ""),
       speicherZeile,
       "Bild: Helligkeit " + (autoLern.basis != null ? Math.round(autoLern.basis) : "-") + " (Grundwert), zu dunkel: " + (autoLern.kameraDunkel ? "JA" : "nein"),
+      "Bildzuschnitt: " + (monRandZone
+        ? Math.round(monRandZone.l / MON_BREITE * 100) + "-" + Math.round((monRandZone.r + 1) / MON_BREITE * 100) + " % breit, "
+          + Math.round(monRandZone.o / MON_HOEHE * 100) + "-" + Math.round((monRandZone.u + 1) / MON_HOEHE * 100) + " % hoch (schwarze Ränder abgeschnitten)"
+        : "ganzes Bild (keine Ränder erkannt)"),
+      "Bester Todes-Treffer: " + (autoLern.bestQ != null
+        ? (Math.round(autoLern.bestQ * 100) / 100) + " bei " + Math.floor(autoLern.bestZeit / 60000) + ":" + String(Math.floor(autoLern.bestZeit / 1000) % 60).padStart(2, "0") + " (zählt ab unter 0,80)"
+        : "keiner"),
       "Dunkelste Stelle: " + (autoLern.minHell != null
         ? Math.round(autoLern.minHell) + " bei " + Math.floor(autoLern.minHellZeit / 60000) + ":" + String(Math.floor(autoLern.minHellZeit / 1000) % 60).padStart(2, "0") + " (Death-Grenze: " + Math.round(dunkelGrenze()) + ")"
         : "-"),
