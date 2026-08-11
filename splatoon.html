@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.03"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-11.04"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -1186,7 +1186,7 @@ function baueTextVorlagen() {
     // Kurz-Vorlagen (kaum fester Text, z. B. "{0} von {1}") dürfen nur Zahlen fangen,
     // sonst zerlegen sie ganze Sätze, die zufällig das gleiche Wort enthalten.
     const fest = k.replace(/\{\d+\}/g, "").trim();
-    const gruppe = fest.length < 5 ? "([\\d.,%+~ ×]+?)" : "([\\s\\S]+?)";
+    const gruppe = fest.length < 5 ? "([\\d.,%+~ ×]*?)" : "([\\s\\S]*?)";
     const muster = k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
       .replace(/\\\{(\d+)\\\}/g, (_, nr) => { reihenfolge.push(+nr); return gruppe; });
     try { textVorlagen.push({ re: new RegExp("^" + muster + "$"), en: textPaket[k], reihenfolge, fest: fest.length }); } catch (e) {}
@@ -1254,6 +1254,11 @@ const pct = (n) => Math.round(n * 100) + " %";
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
 /* ---------- Statistik ---------- */
+/* Zeitliche Reihenfolge. stat.ink liefert eine genaue Uhrzeit mit (zeit); ohne die stünden
+   Matches DESSELBEN Tages in der Reihenfolge des Imports - und die ist bei stat.ink genau
+   andersherum (neuestes zuerst). Dann zeigte "Dein letztes Match" das erste Spiel des Tages. */
+function zeitOrd(m) { return (m && m.zeit) ? String(m.zeit) : ((m && m.datum ? m.datum : "") + "T00:00:00"); }
+
 function istAnarchie(modus) { return modus !== "Revierkampf"; }
 
 function berechneStats(matches) {
@@ -1312,7 +1317,7 @@ function berechneStats(matches) {
   const wStd = wirkungen.length ? Math.sqrt(wirkungen.reduce((a, b) => a + (b - wMittel) ** 2, 0) / wirkungen.length) : 0;
   stats.konstanzCV = wMittel > 0 ? wStd / wMittel : 0;
   // Rollende Winrate (Fenster 10) in chronologischer Reihenfolge
-  const chrono = [...matches].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  const chrono = [...matches].sort((a, b) => zeitOrd(a).localeCompare(zeitOrd(b)) || a.id - b.id);
   stats.rollend = [];
   for (let i = 0; i < chrono.length; i++) {
     const fenster = chrono.slice(Math.max(0, i - 9), i + 1);
@@ -1333,8 +1338,11 @@ function berechneStats(matches) {
   if (chrono.length >= 20) {
     const l10 = chrono.slice(-10), v10 = chrono.slice(-20, -10);
     const wr = (a) => a.filter(m => m.ergebnis === "S").length / a.length;
-    const ad = (a) => a.reduce((x, m) => x + m.deaths, 0) / a.length;
-    stats.delta = { winrate: wr(l10) - wr(v10), deaths: ad(l10) - ad(v10) };
+    // Ø Deaths oben in der Kachel zählt nur vollständige Matches - der Vergleichspfeil
+    // darunter muss dieselbe Menge nehmen, sonst meldet er Verbesserungen, die es nicht gibt
+    const ad = (a) => { const v = a.filter(m => !m.unvollst); return v.length ? v.reduce((x, m) => x + m.deaths, 0) / v.length : null; };
+    const dA = ad(l10), dV = ad(v10);
+    stats.delta = { winrate: wr(l10) - wr(v10), deaths: (dA !== null && dV !== null) ? dA - dV : null };
   }
   return stats;
 }
@@ -1436,7 +1444,7 @@ function renderUebersicht(stats) {
     </div>`;
   }
   // Auto-Feedback: das neueste Match (kommt per stat.ink-Sync von selbst) sofort bewerten
-  const neuestes = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id)[0];
+  const neuestes = [...state.matches].sort((a, b) => zeitOrd(b).localeCompare(zeitOrd(a)) || b.id - a.id)[0];
   let feedbackHtml = "";
   if (neuestes) {
     const m = neuestes;
@@ -1532,7 +1540,7 @@ function renderUebersicht(stats) {
   });
   const berichtBtn = document.getElementById("claudeBerichtBtn");
   if (berichtBtn) berichtBtn.addEventListener("click", async () => {
-    const chrono = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id);
+    const chrono = [...state.matches].sort((a, b) => zeitOrd(b).localeCompare(zeitOrd(a)) || b.id - a.id);
     const modi = MODI.filter(mo => stats.proModus[mo]).map(mo => `- ${mo}: ${Math.round(stats.proModus[mo].winrate * 100)} % Siege (${stats.proModus[mo].n} Matches)`).join("\n");
     const karten = Object.entries(stats.proKarte).filter(([, v]) => v.n >= 3).sort((a, b) => a[1].winrate - b[1].winrate).slice(0, 5)
       .map(([k, v]) => `- ${k}: ${Math.round(v.winrate * 100)} % Siege (${v.n} Matches)`).join("\n");
@@ -1708,7 +1716,7 @@ function renderWaffenNutzung() {
 
 function renderMatches() {
   renderWaffenNutzung();
-  const chrono = [...state.matches].sort((a, b) => b.datum.localeCompare(a.datum) || b.id - a.id);
+  const chrono = [...state.matches].sort((a, b) => zeitOrd(b).localeCompare(zeitOrd(a)) || b.id - a.id);
   $("#matchCount").textContent = uz(chrono.length ? `${chrono.length} Matches gespeichert.` : "Noch keine Matches – trage oben dein erstes ein oder lade Beispieldaten.");
   if (!chrono.length) { $("#matchTabelle").innerHTML = ""; return; }
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical");
@@ -1828,6 +1836,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
     state.matches = data.matches.map(m => ({
       id: ++idM, ext: m && m.ext ? m.ext : undefined,
       datum: String((m && m.datum) || heuteISO()).slice(0, 10),
+      zeit: m && m.zeit ? String(m.zeit) : undefined,
       modus: m && MODI.includes(m.modus) ? m.modus : "Herrschaft",
       waffe: String((m && m.waffe) || "Unbekannt"), karte: m && m.karte ? String(m.karte) : undefined,
       ergebnis: m && m.ergebnis === "S" ? "S" : "N",
@@ -1838,6 +1847,7 @@ document.getElementById("importFile").addEventListener("change", async (e) => {
       auto: m && m.auto === true ? true : undefined }));
     state.srRuns = (Array.isArray(data.srRuns) ? data.srRuns : []).map(r => ({
       id: ++idS, ext: r && r.ext ? r.ext : undefined, datum: String((r && r.datum) || heuteISO()).slice(0, 10),
+      zeit: r && r.zeit ? String(r.zeit) : undefined,
       gefahr: z(r && r.gefahr, 333), wellen: z(r && r.wellen, 3),
       koenig: r && r.koenig === "S" ? "S" : r && r.koenig === "N" ? "N" : "",
       eier: z(r && r.eier, 999), bosse: z(r && r.bosse, 999),
@@ -1936,7 +1946,7 @@ function parseStatInk(objekte) {
       const modus = RULE_MAP[d.vsRule && d.vsRule.rule];
       const ich = (((d.myTeam || {}).players) || []).find(p => p.isMyself);
       if (!modus || !ich || !ich.result) { uebersprungen++; return; }
-      battles.push({ ext: d.id, datum: (d.playedTime || "").slice(0, 10) || heuteISO(), modus,
+      battles.push({ ext: d.id, datum: (d.playedTime || "").slice(0, 10) || heuteISO(), zeit: d.playedTime || "", modus,
         waffe: String((ich.weapon && ich.weapon.name) || "Unbekannt"),
         ergebnis: d.judgement === "WIN" ? "S" : "N",
         splats: +((ich.result.kill || 0) - (ich.result.assist || 0)) || 0, assists: +ich.result.assist || 0,
@@ -1951,6 +1961,7 @@ function parseStatInk(objekte) {
       if (!me) { uebersprungen++; return; }
       salmon.push({ ext: o.uuid || o.id,
         datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(),
+        zeit: (o.start_at && o.start_at.iso8601) || "",
         gefahr: Math.round(+o.danger_rate || 0),
         wellen: o.clear_waves == null ? 3 : Math.max(0, Math.min(3, +o.clear_waves)),
         koenig: o.king_salmonid ? (o.clear_extra ? "S" : "N") : "",
@@ -1974,7 +1985,8 @@ function parseStatInk(objekte) {
       karte = sn["de-DE"] || sn["de_DE"] || STAGE_MAP[o.stage.key] || sn["en-US"] || sn["en_US"] || "";
     }
     battles.push({ ext: o.uuid || o.id,
-      datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(), modus,
+      datum: ((o.start_at && o.start_at.iso8601) || "").slice(0, 10) || heuteISO(),
+      zeit: (o.start_at && o.start_at.iso8601) || "", modus,
       waffe: String(wname), karte: String(karte), ergebnis: o.result === "win" ? "S" : "N",
       splats: +o.kill || 0, assists: +o.assist || 0, deaths: +o.death || 0,
       spezials: +(o.special ?? 0), farbe: +(o.inked ?? 0), notiz: o.notiz ? String(o.notiz).slice(0, 200) : "",
@@ -1994,7 +2006,23 @@ function uebernehmeStatinkObjekte(objekte) {
   const { battles, salmon, uebersprungen } = parseStatInk(objekte);
   const bekannteB = new Set(state.matches.map(m => m.ext).filter(Boolean));
   const bekannteS = new Set(state.srRuns.map(r => r.ext).filter(Boolean));
-  let duplikate = 0;
+  let duplikate = 0, ersetzt = 0;
+  /* stat.ink ist die Wahrheit - aber dasselbe Spiel steht evtl. schon als eigener Eintrag da
+     (Kamera-Match, Schnell-Eingabe, von Hand getippt). Das wird ERSETZT statt ein zweites Mal
+     angelegt, sonst zaehlt jedes Spiel doppelt: Winrate, Modus-Statistik, Abzeichen, Formkurve. */
+  const verbraucht = new Set();
+  const eigenerEintrag = (liste, passtGrob, passtFein) => {
+    const kandidaten = liste.filter(x => !x.ext && !verbraucht.has(x.id) && passtGrob(x));
+    return kandidaten.find(x => passtFein(x) && (x.auto || x.unvollst))
+        || kandidaten.find(passtFein) || kandidaten.find(x => x.auto || x.unvollst) || null;
+  };
+  const ersetzeInPlace = (eintrag, neu) => {
+    const id = eintrag.id, notiz = eintrag.notiz;
+    verbraucht.add(id); ersetzt++;
+    Object.keys(eintrag).forEach(k => delete eintrag[k]);
+    Object.assign(eintrag, neu, { id });
+    if (!eintrag.notiz && notiz) eintrag.notiz = notiz; // eigene Notiz nicht wegwerfen
+  };
   let idB = state.matches.length ? Math.max(...state.matches.map(m => m.id)) : 0;
   for (const b of battles) {
     if (b.ext && bekannteB.has(b.ext)) {
@@ -2007,18 +2035,24 @@ function uebernehmeStatinkObjekte(objekte) {
       }
       continue;
     }
+    const eigen = eigenerEintrag(state.matches,
+      m => m.datum === b.datum && m.ergebnis === b.ergebnis, m => m.modus === b.modus);
+    if (eigen) { ersetzeInPlace(eigen, b); if (b.ext) bekannteB.add(b.ext); continue; }
     state.matches.push({ id: ++idB, ...b });
     if (b.ext) bekannteB.add(b.ext);
   }
   let idS = state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) : 0;
   for (const s of salmon) {
     if (s.ext && bekannteS.has(s.ext)) { duplikate++; continue; }
+    const eigenS = eigenerEintrag(state.srRuns,
+      r => r.datum === s.datum, r => (r.wellen === 3) === (s.wellen === 3));
+    if (eigenS) { ersetzeInPlace(eigenS, s); if (s.ext) bekannteS.add(s.ext); continue; }
     state.srRuns.push({ id: ++idS, ...s });
     if (s.ext) bekannteS.add(s.ext);
   }
   speichereState();
-  return { battles: battles.length, salmon: salmon.length, duplikate, uebersprungen,
-    neu: battles.length + salmon.length - duplikate };
+  return { battles: battles.length, salmon: salmon.length, duplikate, uebersprungen, ersetzt,
+    neu: battles.length + salmon.length - duplikate - ersetzt };
 }
 
 document.getElementById("statinkBtn").addEventListener("click", () => $("#statinkFile").click());
@@ -2030,7 +2064,7 @@ document.getElementById("statinkFile").addEventListener("change", async (e) => {
   }
   const erg = uebernehmeStatinkObjekte(objekte);
   renderAlles();
-  alert(`Import fertig: ${erg.battles} Matches und ${erg.salmon} Salmon-Schichten gefunden – ${erg.neu} neu übernommen, ${erg.duplikate} Duplikate übersprungen, ${erg.uebersprungen} nicht erkannte Einträge${leseFehler ? `, ${leseFehler} Dateien unlesbar` : ""}.`);
+  alert(`Import fertig: ${erg.battles} Matches und ${erg.salmon} Salmon-Schichten gefunden – ${erg.neu} neu übernommen, ${erg.duplikate} Duplikate übersprungen${erg.ersetzt ? `, ${erg.ersetzt} eigene Einträge mit den echten Zahlen ergänzt` : ""}, ${erg.uebersprungen} nicht erkannte Einträge${leseFehler ? `, ${leseFehler} Dateien unlesbar` : ""}.`);
   e.target.value = "";
 });
 
@@ -2178,6 +2212,14 @@ function renderCoach(stats, sr) {
       Den <strong>Selbst-Check</strong> kannst du aber jetzt schon ausfüllen – er fließt hier mit ein.</p></div>`;
     return;
   }
+  // Die Balken brauchen VOLLSTÄNDIGE Matches. Von Kamera-Matches kennt die App nur die Deaths -
+  // aus lauter Nullen wurden sonst leere Balken und ein grünes „Top-Niveau" bei Ø 0,0.
+  if (!stats.vollN) {
+    el.innerHTML = `<div class="card"><h2>Coach</h2><p>Bisher liegen nur Kamera-Matches vor – davon kennt die App nur die Deaths.
+      Für die Coach-Auswertung braucht es vollständige Matches: entweder über den <strong>stat.ink-Abgleich</strong>
+      (kommt automatisch) oder von Hand im Tab <strong>Matches</strong> eingetragen.</p></div>`;
+    return;
+  }
   const T = WISSEN.coach_schwellen, E = stats.erw;
   const meterDefs = [
     { label: "Ø Deaths pro Match", wert: stats.avgDeaths, top: E.deaths * T.deaths_faktor_top, ok: E.deaths * T.deaths_faktor_ok, runter: true, max: Math.max(E.deaths * 1.7, stats.avgDeaths * 1.2), einheit: "", hinweis: `Schnitt deines Modus-Mixes: ${fmt1(E.deaths)}` },
@@ -2192,8 +2234,8 @@ function renderCoach(stats, sr) {
     const statusText = status === "top" ? `<span class="meter-status sev good">✔ Top-Niveau</span>`
       : status === "ok" ? `<span class="meter-status sev warning">▲ Solide – Luft nach oben</span>`
       : `<span class="meter-status sev serious">⚠ Baustelle</span>`;
-    const fillPct = Math.min(100, (m.wert / m.max) * 100);
-    const tickPct = Math.min(100, (m.top / m.max) * 100);
+    const fillPct = m.max > 0 ? Math.min(100, Math.max(0, (m.wert / m.max) * 100)) : 0;
+    const tickPct = m.max > 0 ? Math.min(100, Math.max(0, (m.top / m.max) * 100)) : 0;
     return `<div class="meter-row">
       <div class="mlabel">${esc(m.label)}<br><span class="mvalue">${fmt1(m.wert)}${m.einheit ? " " + m.einheit : ""}</span>${m.hinweis ? `<br><span style="font-size:11.5px;color:var(--text-muted)">${esc(m.hinweis)}</span>` : ""}</div>
       <div class="meter">
@@ -2445,8 +2487,9 @@ function berechneSrStats(runs) {
   // Kamera-Schichten (unvollst): nur das Ergebnis ist bekannt -> zählen für die
   // Erfolgsquote, bleiben aber aus allen Durchschnitten und dem Verlauf draußen
   const daten = runs.filter(r => !r.unvollst);
+  const datenN = daten.length; // wie viele Schichten haben überhaupt Eier-/Boss-Zahlen?
   const nd = daten.length || 1;
-  const chrono = [...daten].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  const chrono = [...daten].sort((a, b) => zeitOrd(a).localeCompare(zeitOrd(b)) || a.id - b.id);
   const sum = (f) => daten.reduce((a, r) => a + f(r), 0);
   const voll = daten.filter(r => r.wellen === 3);
   // Erwartungswerte je nach Gefahrenstufe (bei gescheiterten Schichten anteilig nach Wellen)
@@ -2458,7 +2501,7 @@ function berechneSrStats(runs) {
   }
   return {
     expEier, expBosse,
-    n, chrono,
+    n, chrono, datenN,
     erfolgsquote: runs.filter(r => r.wellen === 3).length / n,
     avgEier: sum(r => r.eier) / nd,
     avgEierVoll: voll.length ? voll.reduce((a, r) => a + r.eier, 0) / voll.length : null,
@@ -2476,10 +2519,16 @@ function erzeugeSrTipps(sr) {
   const S = WISSEN.salmon && WISSEN.salmon.schwellen;
   if (!S) return [];
   const tipps = [];
-  if (sr.avgGerettet > S.gerettet_ok) tipps.push({ sev: "kritisch", titel: `Du fällst zu oft aus (Ø ${fmt1(sr.avgGerettet)}× gerettet pro Schicht)`,
+  if (sr.datenN && sr.avgGerettet > S.gerettet_ok) tipps.push({ sev: "kritisch", titel: `Du fällst zu oft aus (Ø ${fmt1(sr.avgGerettet)}× gerettet pro Schicht)`,
     text: `Das ist der größte Einzelhebel: Der Durchschnitt liegt bei 1,4–2 Ausfällen, 28 % der Top-Schichten (333 %) sind komplett ausfallfrei. Jeder Ausfall kostet Eier-Zeit und bindet einen Kollegen. Bleib in Korbnähe beim Team, halte dir einen gemalten Fluchtweg frei und geh nicht ohne Not an den Kartenrand.` });
-  else if (sr.avgGerettet > S.gerettet_top) tipps.push({ sev: "wichtig", titel: `Ausfälle okay (Ø ${fmt1(sr.avgGerettet)}), Top-Niveau wäre ≤ ${fmt1(S.gerettet_top)}`,
+  else if (sr.datenN && sr.avgGerettet > S.gerettet_top) tipps.push({ sev: "wichtig", titel: `Ausfälle okay (Ø ${fmt1(sr.avgGerettet)}), Top-Niveau wäre ≤ ${fmt1(S.gerettet_top)}`,
     text: `Achte besonders auf Flut (früh die Hochfläche beziehen) und Nachtwellen – dort passieren die meisten Ausfälle.` });
+  if (!sr.datenN) {
+    // Nur Kamera-Schichten: Ergebnis ja, Eier/Bosse nein - dazu darf der Coach nichts behaupten
+    tipps.push({ sev: "info", titel: "Nur Kamera-Schichten – Detailwerte fehlen noch",
+      text: "Erfolgsquote und Ausfälle stimmen, aber Eier, Bosse und Gefahrenstufe kennt die App von diesen Schichten nicht. Die kommen automatisch mit dem nächsten stat.ink-Abgleich dazu, dann wertet der Coach sie mit aus." });
+    return tipps;
+  }
   if (sr.avgEier < sr.expEier * S.eier_faktor_ok) tipps.push({ sev: "wichtig",
     titel: `Wenig Goldene Eier für deine Gefahrenstufe (Ø ${fmt1(sr.avgEier)}, Schnitt bei deinem Niveau: ${Math.round(sr.expEier)})`,
     text: `Der größte Hebel: Bosse ZUM KORB locken und erst dort erledigen – die Eier fallen dann neben den Korb statt an den Kartenrand. Zweiter Hebel: Eier WERFEN statt tragen. Und: Selbst Top-Teams sammeln nur ~2/3 der gespawnten Eier ein – schnelleres Eierlaufen bringt mehr als noch mehr Kills.` });
@@ -2587,7 +2636,7 @@ function renderSalmon() {
   renderSrEierChart(sr);
   const gut = cssVar("--status-good"), krit = cssVar("--status-critical"), warn = cssVar("--status-warning");
   // Alle Schichten zeigen – auch Kamera-Schichten (📷), von denen nur das Ergebnis bekannt ist
-  const alleRuns = [...state.srRuns].sort((a, b) => a.datum.localeCompare(b.datum) || a.id - b.id);
+  const alleRuns = [...state.srRuns].sort((a, b) => zeitOrd(a).localeCompare(zeitOrd(b)) || a.id - b.id);
   $("#srTabelle").innerHTML = `<table class="matches">
     <tr><th>Datum</th><th>Gefahr</th><th>Wellen</th><th>Extra-Welle</th><th>Eier</th><th>Bosse</th><th>Gerettet</th><th>Ausgefallen</th><th></th></tr>` +
     [...alleRuns].reverse().map(r => `<tr>
@@ -2793,10 +2842,12 @@ function renderLive(stats) {
 
   // Fokus-Verfolgung: Session vs. deine bisherigen Werte (ohne diese Session)
   let fokusHtml = "";
-  if (fokus.feld && sm.length) {
-    const basisMatches = state.matches.filter(m => !s.matchIds.includes(m.id));
+  // Nur vollständige Matches: bei einem Kamera-Match sind Farbpunkte, Spezials und Unterstützungen 0
+  const smVoll = sm.filter(m => !m.unvollst);
+  if (fokus.feld && smVoll.length) {
+    const basisMatches = state.matches.filter(m => !s.matchIds.includes(m.id) && !m.unvollst);
     const basis = basisMatches.length ? basisMatches.reduce((a, m) => a + m[fokus.feld], 0) / basisMatches.length : null;
-    const heute = sm.reduce((a, m) => a + m[fokus.feld], 0) / sm.length;
+    const heute = smVoll.reduce((a, m) => a + m[fokus.feld], 0) / smVoll.length;
     let bewertung = "";
     if (basis !== null) {
       const besser = fokus.runter ? heute < basis : heute > basis;
@@ -2900,7 +2951,7 @@ function renderLive(stats) {
     letzterQuickSave = jetzt;
     const match = {
       id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
-      datum: heuteISO(), modus: $("#qModus").value, waffe: $("#qWaffe").value.trim() || "Unbekannt",
+      datum: heuteISO(), zeit: new Date().toISOString(), modus: $("#qModus").value, waffe: $("#qWaffe").value.trim() || "Unbekannt",
       ergebnis,
       splats: +$("#qSplats").textContent, assists: +$("#qAssists").textContent,
       deaths: +$("#qDeaths").textContent, spezials: +$("#qSpezials").textContent,
@@ -3214,7 +3265,7 @@ function autoMatchSpeichern(erg) {
   const waffe = ((document.getElementById("qWaffe") || {}).value || "").trim()
     || (state.matches.length ? state.matches[state.matches.length - 1].waffe : "Unbekannt");
   const match = { id: state.matches.length ? Math.max(...state.matches.map(m => m.id)) + 1 : 1,
-    datum: heuteISO(), modus, waffe, ergebnis: erg,
+    datum: heuteISO(), zeit: new Date().toISOString(), modus, waffe, ergebnis: erg,
     splats: 0, assists: 0, deaths: autoDeaths, spezials: 0, farbe: 0, notiz: "",
     unvollst: true, auto: true };
   state.matches.push(match);
@@ -3229,7 +3280,7 @@ function autoMatchSpeichern(erg) {
    Bekannt ist nur das Ergebnis; Eier & Co. kommen später exakt per stat.ink. */
 function autoSrSpeichern(geschafft) {
   const run = { id: state.srRuns.length ? Math.max(...state.srRuns.map(r => r.id)) + 1 : 1,
-    datum: heuteISO(), gefahr: 0, wellen: geschafft ? 3 : 0, koenig: "",
+    datum: heuteISO(), zeit: new Date().toISOString(), gefahr: 0, wellen: geschafft ? 3 : 0, koenig: "",
     eier: 0, bosse: 0, rettungen: 0, gerettet: 0, unvollst: true, auto: true };
   state.srRuns.push(run);
   liveEingabeVerwerfen = true;
@@ -4671,19 +4722,24 @@ if ("serviceWorker" in navigator && location.protocol === "https:" && !window.cl
 
 // Automatischer stat.ink-Sync: beim Start und dann alle 30 Minuten (still im Hintergrund).
 // In der Web-Version auf claude.ai ist externer Abruf gesperrt -> dort Hinweis statt Sync.
+wendeSpracheAn(); // Sprachauswahl IMMER aufbauen - auch in der Chat-Vorschau (braucht kein Netz)
 if (window.claude) {
   const st = document.getElementById("syncStatus");
   if (st) st.textContent = uz("Auto-Sync gibt es in der PC-App – hier bitte den Datei-Import nutzen.");
 } else {
   if (navigator.onLine) setTimeout(() => statinkSync(true), 1500);
   setTimeout(ladeMetaLive, 2500);
-  wendeSpracheAn();
   setTimeout(ladeRotation, 800);
   setTimeout(ladeLaden, 1400);
   setTimeout(ladeSpielNamen, 600);
   setTimeout(ladeTextPaket, 900);
   setInterval(() => { if (navigator.onLine) ladeRotation(); }, 20 * 60 * 1000);
   setInterval(() => { if (navigator.onLine) statinkSync(true); }, 30 * 60 * 1000);
+  // Ohne Netz gestartet? Sobald es wieder da ist, alles nachholen - sonst fehlen Laden-Karte
+  // und Spielnamen bis zum kompletten Neustart der App.
+  addEventListener("online", () => {
+    ladeRotation(); ladeLaden(); ladeSpielNamen(); ladeMetaLive(); ladeTextPaket(); statinkSync(true);
+  });
 }
 </script>
 </body>
