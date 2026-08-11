@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.08"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-11.09"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3254,10 +3254,17 @@ function monEcke(sig) {
    Nur die Helligkeit zählt, damit die Tintenfarbe egal ist. */
 const MON_TOD_FELDER = [[0.30, 0.58, 0.27, 0.46],   // Schriftzeile „… erledigt!“
                         [0.12, 0.48, 0.55, 0.92]];  // Ausrüstungs-Anzeige unten links
-function monBanner(sig) {
+/* Im Salmon Run gibt es beim Ausfall dieselbe Meldung mittig im Bild („… erledigt!“), aber
+   KEINE Ausrüstungs-Anzeige - man treibt im Rettungsring weiter. Fuer den Ausfall zaehlt
+   deshalb nur der Mittelstreifen. Praktischer Nebeneffekt: Die eingebauten Todes-Bilder aus
+   echten Kaempfen taugen damit auch als Ausfall-Vorlage, denn die Meldung ist dieselbe. */
+const MON_SR_FELDER = [[0.28, 0.72, 0.26, 0.52]];
+function monSrBanner(sig) { return monFelder(sig, MON_SR_FELDER); }
+function monBanner(sig) { return monFelder(sig, MON_TOD_FELDER); }
+function monFelder(sig, felder) {
   const raster = Math.round(Math.sqrt(sig.length / 3));
   const out = [];
-  for (const [ax, bx, ay, by] of MON_TOD_FELDER) {
+  for (const [ax, bx, ay, by] of felder) {
     const x0 = Math.floor(raster * ax), x1 = Math.max(x0 + 1, Math.min(raster, Math.ceil(raster * bx)));
     const y0 = Math.floor(raster * ay), y1 = Math.max(y0 + 1, Math.min(raster, Math.ceil(raster * by)));
     for (let gy = y0; gy < y1; gy++) for (let gx = x0; gx < x1; gx++) {
@@ -3324,7 +3331,18 @@ function monKlassifiziere(sig) {
     return monAbstand(bannerN, monNormalisiere(monBanner(e)));
   };
   const minBanner = (liste) => { const l = (liste || []).map(abstandBanner); return l.length ? Math.min(...l) : Infinity; };
-  const bDeath = minBanner(B.death), bSpiel = minBanner(B.spiel), bSrdown = minBanner(B.srdown);
+  const bDeath = minBanner(B.death), bSpiel = minBanner(B.spiel);
+  // Ausfall im Salmon Run: eigener Bildbereich (nur der Mittelstreifen mit der Meldung).
+  // Ohne angelernte Ausfall-Bilder dienen die Todes-Bilder als Vorlage - dieselbe Meldung.
+  let srN = null;
+  const abstandSr = (e) => {
+    if (e.length !== sig.length) return abstand(e);
+    if (!srN) srN = monNormalisiere(monSrBanner(sig));
+    return monAbstand(srN, monNormalisiere(monSrBanner(e)));
+  };
+  const minSr = (liste) => { const l = (liste || []).map(abstandSr); return l.length ? Math.min(...l) : Infinity; };
+  const srVorlage = (B.srdown || []).length ? B.srdown : B.death;
+  const bSrdown = minSr(srVorlage), bSrSpiel = minSr(B.spiel);
 
   const alle = [];
   for (const [klasse, liste] of [["death", B.death], ["spiel", B.spiel], ["srja", B.srja], ["srnein", B.srnein], ["srdown", B.srdown]])
@@ -3344,7 +3362,7 @@ function monKlassifiziere(sig) {
   // Schwellen an echten Splatoon-3-Aufnahmen ausgemessen: Todes-Bilder liegen bei einem
   // Verhaeltnis von 0,49-0,73, normales Spiel bei 0,92-1,34. 0,80 trennt beides mit Abstand.
   const death = bDeath < bSpiel * 0.80 && bDeath < schwelle * 1.6;
-  const srdown = !death && bSrdown < Math.min(bSpiel, bDeath) * 0.80 && bSrdown < schwelle * 1.6;
+  const srdown = !death && bSrdown < bSrSpiel * 0.80 && bSrdown < schwelle * 1.6;
   // Ergebnis-Bildschirm am Ende: Sieg/Verloren (Ecke) oder Salmon-Schicht geschafft/gescheitert (ganzes Bild)
   // Der Ergebnis-Bildschirm wird an der Bild-ECKE erkannt („Sieg!“/„Verloren…“). Der Vergleich
   // muss deshalb auch gegen die Ecke von normalem Spiel laufen - sonst reicht schon eine helle
