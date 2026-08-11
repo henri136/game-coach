@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.05"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-11.06"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -987,6 +987,7 @@ const STORAGE_KEY = "splatoon3-coach-v1";
 const MODI = ["Revierkampf", "Herrschaft", "Turm-Kommando", "Operation Goldfisch", "Muschelchaos"];
 
 let state = ladeState();
+setTimeout(() => { ladeBilder(); }, 0); // angelernte Bilder aus der IndexedDB nachladen
 // Übergang: Wer schon stat.ink-Matches hat, aber nie einen Profilnamen gespeichert hat,
 // lief bisher über den eingebauten Standard "Henri" – einmalig übernehmen, damit der Sync weiterläuft.
 // WICHTIG: nur EINMAL beim allerersten Start prüfen. Sonst trägt sich der Name auch nach einem
@@ -1093,6 +1094,72 @@ function ladeState() {
   } catch (e) { /* Speicher gesperrt oder defekt -> im Arbeitsspeicher weiterarbeiten */ }
   return { matches: [], srRuns: [], habits: {}, theme: null, sprache: null, session: null, lastSummary: null, monitor: null, statink: null, videoTraining: {}, seedHelfer: null, aufnahmen: { profi: { sek: 0, deaths: 0 }, ich: { sek: 0, deaths: 0 } } };
 }
+/* =========================================================================================
+   Grosse Daten liegen NICHT im localStorage. Der ist bei Safari auf ~5 MB begrenzt, und die
+   angelernten Kamerabilder (je 576 Zellen x 3 Farbwerte) sprengen das schnell - dann scheitert
+   das Speichern lautlos und nichts wird mehr gelernt. Sie liegen deshalb in der IndexedDB:
+   Die ist um Groessenordnungen groesser (hunderte MB bis Gigabyte) und genau dafuer gedacht.
+   Im localStorage bleiben nur die kleinen Daten (Matches, Schichten, Einstellungen).
+   ========================================================================================= */
+let idbNutzbar = typeof indexedDB !== "undefined" && !!indexedDB;
+let bilderGeladen = false, bilderTimer = null;
+function idbOeffne() {
+  return new Promise((ok, fehl) => {
+    let a; try { a = indexedDB.open("splatoon3-coach", 1); } catch (e) { fehl(e); return; }
+    a.onupgradeneeded = () => { try { a.result.createObjectStore("bilder"); } catch (e) {} };
+    a.onsuccess = () => ok(a.result);
+    a.onerror = () => fehl(a.error);
+    a.onblocked = () => fehl(new Error("blockiert"));
+  });
+}
+async function idbSchreibe(schluessel, wert) {
+  const db = await idbOeffne();
+  return new Promise((ok, fehl) => {
+    const t = db.transaction("bilder", "readwrite");
+    t.objectStore("bilder").put(wert, schluessel);
+    t.oncomplete = () => { db.close(); ok(true); };
+    t.onerror = () => { db.close(); fehl(t.error); };
+  });
+}
+async function idbLies(schluessel) {
+  const db = await idbOeffne();
+  return new Promise((ok) => {
+    const t = db.transaction("bilder", "readonly");
+    const a = t.objectStore("bilder").get(schluessel);
+    a.onsuccess = () => { db.close(); ok(a.result); };
+    a.onerror = () => { db.close(); ok(null); };
+  });
+}
+/* Beim Start: angelernte Bilder aus der IndexedDB holen. Findet sie dort nichts, bleiben die
+   aus dem localStorage stehen (Umzug alter Datenstaende) und werden gleich uebernommen. */
+async function ladeBilder() {
+  if (!idbNutzbar) { bilderGeladen = true; return; }
+  try {
+    const b = await idbLies("beispiele");
+    const altVorhanden = !!(state.monitor && state.monitor.beispiele
+      && Object.keys(state.monitor.beispiele).some(k => (state.monitor.beispiele[k] || []).length));
+    if (b && typeof b === "object" && Object.keys(b).length) {
+      state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: b });
+      bilderGeladen = true;
+    } else {
+      bilderGeladen = true;
+      if (altVorhanden) { sichereBilder(); speichereState(); } // Umzug aus dem localStorage
+    }
+  } catch (e) { idbNutzbar = false; bilderGeladen = true; }
+  try { const st = document.getElementById("monLernStatus"); if (st && typeof lernStatusText === "function") st.textContent = lernStatusText(); } catch (e) {}
+}
+/* Bilder sichern - gebuendelt, damit schnelles Anlernen nicht hundert Schreibvorgaenge ausloest */
+function sichereBilder() {
+  if (!idbNutzbar || !bilderGeladen) return;
+  clearTimeout(bilderTimer);
+  bilderTimer = setTimeout(() => {
+    const B = (state.monitor && state.monitor.beispiele) || null;
+    if (B) idbSchreibe("beispiele", B).catch(() => { idbNutzbar = false; });
+  }, 300);
+}
+// Safari darf den Speicher nicht einfach wegraeumen, wenn es eng wird
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+
 let speicherWarnung = false, speicherAufgeraeumt = "";
 function istSpeicherVoll(e) {
   return !!e && (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED" || e.code === 22 || e.code === 1014);
@@ -1136,10 +1203,18 @@ function schaffePlatz(stufe) {
     return false;
   } catch (e) { return false; }
 }
+/* Was in den localStorage geht: alles AUSSER den angelernten Bildern (die liegen in der IndexedDB) */
+function zustandFuerSpeicher() {
+  if (!idbNutzbar || !bilderGeladen) return JSON.stringify(state);
+  const flach = Object.assign({}, state);
+  if (flach.monitor) { flach.monitor = Object.assign({}, flach.monitor); delete flach.monitor.beispiele; }
+  return JSON.stringify(flach);
+}
 function speichereState() {
+  sichereBilder();
   for (let versuch = 0; versuch < 4; versuch++) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(STORAGE_KEY, zustandFuerSpeicher());
       if (speicherAufgeraeumt && typeof kiEreignis === "function") kiEreignis("🧹 Speicher war voll – " + speicherAufgeraeumt + " geloescht, Speichern hat dann geklappt");
       speicherAufgeraeumt = ""; speicherWarnung = false;
       return true;
@@ -3101,7 +3176,7 @@ function liveCoachDeath() {
   lcSage(text);
 }
 const MON_RASTER_FEIN = 24;  // Seh-Raster 24×24 = 576 Zellen; ältere Beispiele (6×6, 12×12) bleiben gültig
-const MON_MAX_BEISPIELE = 12; // je Klasse - mehr bringt kaum Genauigkeit, kostet aber viel Speicher
+const MON_MAX_BEISPIELE = 40; // je Klasse - die Bilder liegen in der IndexedDB, Platz ist da
 const MON_BREITE = 192, MON_HOEHE = 108;
 
 let monRandZone = null; // erkannte Spielbild-Grenzen ohne schwarze Balken
@@ -3675,7 +3750,7 @@ function initialisiereMonitor() {
     const liste = B[feld] = B[feld] || [];
     const n = monNormalisiere(sig);
     if (liste.some(e => e.length === sig.length && monAbstand(n, monNormalisiere(e)) < 8)) return; // kennt die KI schon
-    if (liste.length >= 10) liste.shift();
+    if (liste.length >= 20) liste.shift();
     liste.push(sig);
     state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: B });
     speichereState();
@@ -3773,7 +3848,7 @@ function initialisiereMonitor() {
         && (A.letztesSpielLernen == null || jetzt - A.letztesSpielLernen > 90000)) {
       A.letztesSpielLernen = jetzt;
       const BL = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
-      if ((BL.spiel = BL.spiel || []).length < 10) {
+      if ((BL.spiel = BL.spiel || []).length < 20) {
         BL.spiel.push(sig);
         A.gelernt++;
         state.monitor = Object.assign({ empfindlichkeit: 30 }, state.monitor, { beispiele: BL });
@@ -3819,8 +3894,8 @@ function initialisiereMonitor() {
     // Selbst lernen: die eben gesehenen Bilder als Beispiele ablegen
     const B = (state.monitor && state.monitor.beispiele) || { death: [], spiel: [] };
     let neu = false;
-    if (A.dipSig && (B.death = B.death || []).length < 10) { B.death.push(A.dipSig); neu = true; }
-    if (A.hellSig && (B.spiel = B.spiel || []).length < 10) { B.spiel.push(A.hellSig); neu = true; }
+    if (A.dipSig && (B.death = B.death || []).length < 20) { B.death.push(A.dipSig); neu = true; }
+    if (A.hellSig && (B.spiel = B.spiel || []).length < 20) { B.spiel.push(A.hellSig); neu = true; }
     if (neu) {
       A.gelernt++;
       kiEreignis("🤖 Beispiele selbst gelernt (Death: " + (B.death || []).length + ", Spiel: " + (B.spiel || []).length + ")");
@@ -4236,13 +4311,22 @@ function initialisiereMonitor() {
   $("#monBericht").addEventListener("click", async () => {
     const B = (state.monitor && state.monitor.beispiele) || {};
     const anz = (k) => ((B[k] || []).length);
+    // Speicherlage: kleiner localStorage (Matches usw.) + grosser Bilderspeicher (IndexedDB)
+    let speicherZeile = "Speicher: " + Math.round(speicherBelegt() / 1024) + " KB Grunddaten"
+      + (speicherWarnung ? " – VOLL!" : " ✓") + " | Bilder: " + (idbNutzbar ? (bilderGeladen ? "IndexedDB ✓" : "IndexedDB (lädt noch)") : "localStorage (Notbetrieb)");
+    try {
+      if (navigator.storage && navigator.storage.estimate) {
+        const q = await navigator.storage.estimate();
+        if (q && q.quota) speicherZeile += " – " + (Math.round((q.usage || 0) / 104857.6) / 10) + " MB von " + Math.round(q.quota / 1048576) + " MB genutzt";
+      }
+    } catch (e) {}
     const text = [
       "KI-Bericht (App " + APP_VERSION + ", " + new Date().toLocaleString("de-DE") + ")",
       "Quelle: " + (monitorQuelle || "keine") + " | Modus: " + (modusSchaetzung || "noch offen")
         + (modusManuell ? " (von Hand festgelegt)" : modusBeweis ? " (durch dein Anlernen bewiesen)" : " (automatisch erkannt)"),
       "Modus-Beispiele: " + eigeneModusZahl("pvp") + " Kampf, " + eigeneModusZahl("sr") + " Salmon Run (selbst gelernt)"
         + (aufnahmeRolle ? " | ⚠️ VERGLEICHS-AUFNAHME LÄUFT: " + aufnahmeRolle + (aufnahmeRolle === "profi" ? " – Deaths zählen NICHT in den Zähler!" : "") : ""),
-      "Speicher: " + Math.round(speicherBelegt() / 1024) + " KB belegt" + (speicherWarnung ? " – VOLL! Es wird nichts mehr gesichert." : " ✓"),
+      speicherZeile,
       "Bild: Helligkeit " + (autoLern.basis != null ? Math.round(autoLern.basis) : "-") + " (Grundwert), zu dunkel: " + (autoLern.kameraDunkel ? "JA" : "nein"),
       "Dunkelste Stelle: " + (autoLern.minHell != null
         ? Math.round(autoLern.minHell) + " bei " + Math.floor(autoLern.minHellZeit / 60000) + ":" + String(Math.floor(autoLern.minHellZeit / 1000) % 60).padStart(2, "0") + " (Death-Grenze: " + Math.round(dunkelGrenze()) + ")"
