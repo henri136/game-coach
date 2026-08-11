@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.01"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-08-11.02"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -3668,7 +3668,7 @@ function initialisiereMonitor() {
       }
       // Im Datei-Modus zählt die VIDEO-Zeit (funktioniert auch bei 2x/4x-Tempo und Spulen)
       const jetzt = monitorQuelle === "datei" ? video.currentTime * 1000 : Date.now();
-      if (monitorQuelle === "datei" && jetzt < monitorLetzterTreffer - 1000) { monitorLetzterTreffer = -1e12; letzteAnalyse = -1e12; } // zurückgespult
+      if (monitorQuelle === "datei" && jetzt < letzteAnalyse - 1000) { letzteAnalyse = -1e12; monitorLetzterTreffer = -1e12; letzterAusfall = -1e12; imAusfall = false; srdownSerie = 0; } // zurückgespult
       // Nur analysieren, wenn das Video wirklich ~0,35 s weitergelaufen ist - schont das iPad,
       // damit die Wiedergabe nicht ruckelt (bei 4x-Tempo wird automatisch jeder Takt genutzt)
       if (monitorQuelle === "datei") {
