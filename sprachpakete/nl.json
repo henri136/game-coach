@@ -1086,5 +1086,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 Dit is het uitschakelscherm",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Vergelijkingsopname ‘Pro’ loopt – herkende deaths gaan nu naar de pro-statistiek en NIET naar jouw teller. Stoppen via ⚙️ Geavanceerd → ‘⏹ Opname stoppen’.",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Vergelijkingsopname ‘Ik’ loopt – deaths tellen ook mee in je vergelijkingsstatistiek. Stoppen via ⚙️ Geavanceerd → ‘⏹ Opname stoppen’.",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video geladen ✓ – druk hierboven op ‘🚀 Snelle analyse’, dan bladert de AI zelf door de video en telt je deaths."
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video geladen ✓ – druk hierboven op ‘🚀 Snelle analyse’, dan bladert de AI zelf door de video en telt je deaths.",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ Gepauzeerd – nog niets geleerd",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ Video gepauzeerd. Staat hier de death-melding? Druk dan op ☠ – zo leert de AI precies dit beeld.",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ Gepauzeerd – ik zie: ☠ death",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ Gepauzeerd – ik zie: 🎮 spel",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ Gepauzeerd – wat ik hier zie: ☠ death-scherm.",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ Gepauzeerd – wat ik hier zie: 🎮 normaal spel.",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "Klopt dat niet? Voeg dan precies dit beeld als voorbeeld toe met ☠ of 🎮.",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "Een nieuwe beelduitsnede verandert het beeld – je",
+"Die Erkennung fängt dann bei null an – deine": "De herkenning begint dan bij nul – je",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "geleerde voorbeelden passen dan niet meer en worden verwijderd. Toch doorgaan?",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "De import VERVANGT al je huidige gegevens – matches, diensten en zelfcheck. Dit kan niet ongedaan worden gemaakt. Echt doorgaan?",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ De opslag van je browser is vol – vanaf nu wordt er NIETS meer permanent bewaard! Doe een ‘Export (JSON)’ in het tabblad ‘Meer’ en druk dan op ‘Herkenning opnieuw aanleren’ onder ⚙️ Geavanceerd in het Live-tabblad – de geleerde beelden nemen de meeste ruimte in."
 }

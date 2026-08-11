@@ -1090,5 +1090,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 Esta es la pantalla de baja",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 La grabación comparativa «Pro» está activa: las muertes detectadas van a las estadísticas del pro y NO a tu contador. Deténla en ⚙️ Avanzado → «⏹ Detener grabación».",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 La grabación comparativa «Yo» está activa: las muertes cuentan además en tus estadísticas de comparación. Deténla en ⚙️ Avanzado → «⏹ Detener grabación».",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vídeo cargado ✓: pulsa arriba «🚀 Análisis rápido» y la IA recorrerá el vídeo sola contando tus muertes."
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vídeo cargado ✓: pulsa arriba «🚀 Análisis rápido» y la IA recorrerá el vídeo sola contando tus muertes.",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ En pausa – aún no se ha aprendido nada",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ Vídeo en pausa. ¿Aparece aquí el mensaje de muerte? Entonces pulsa ☠: la IA aprende justo esta imagen.",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ En pausa – veo: ☠ muerte",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ En pausa – veo: 🎮 juego",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ En pausa – lo que veo aquí: ☠ pantalla de muerte.",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ En pausa – lo que veo aquí: 🎮 juego normal.",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "¿No es correcto? Añade justo esta imagen como ejemplo con ☠ o 🎮.",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "Un nuevo recorte cambia la imagen: tus",
+"Die Erkennung fängt dann bei null an – deine": "El reconocimiento empezará de cero: tus",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "ejemplos aprendidos ya no encajarán y se borrarán. ¿Continuar de todos modos?",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "La importación SUSTITUYE todos tus datos actuales: partidas, turnos y autoevaluación. No se puede deshacer. ¿Continuar de verdad?",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ El almacenamiento del navegador está lleno: ¡a partir de ahora NO se guardará nada de forma permanente! Haz un «Exportar (JSON)» en la pestaña «Más» y luego pulsa «Volver a entrenar el reconocimiento» en ⚙️ Avanzado de la pestaña En vivo: las imágenes aprendidas ocupan más espacio."
 }

@@ -1091,5 +1091,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 Это экран нокаута",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Идёт сравнительная запись «Про» — распознанные смерти попадают в статистику профи, а НЕ в твой счётчик. Остановить: ⚙️ Расширенно → «⏹ Завершить запись».",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Идёт сравнительная запись «Я» — смерти дополнительно учитываются в твоей сравнительной статистике. Остановить: ⚙️ Расширенно → «⏹ Завершить запись».",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Видео загружено ✓ — нажми сверху «🚀 Быстрый анализ», и ИИ сам пролистает видео и посчитает твои смерти."
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Видео загружено ✓ — нажми сверху «🚀 Быстрый анализ», и ИИ сам пролистает видео и посчитает твои смерти.",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ Пауза – пока ничего не выучено",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ Видео на паузе. Здесь видно сообщение о смерти? Тогда нажми ☠ — ИИ выучит именно этот кадр.",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ Пауза – вижу: ☠ смерть",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ Пауза – вижу: 🎮 игра",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ Пауза – здесь я вижу: ☠ экран смерти.",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ Пауза – здесь я вижу: 🎮 обычная игра.",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "Неверно? Тогда добавь именно этот кадр как пример через ☠ или 🎮.",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "Новая область кадра меняет изображение —",
+"Die Erkennung fängt dann bei null an – deine": "Распознавание начнётся с нуля —",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "выученные примеры больше не подойдут и будут удалены. Всё равно продолжить?",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "Импорт ЗАМЕНИТ все твои текущие данные — матчи, смены и самопроверку. Это необратимо. Точно продолжить?",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ Хранилище браузера заполнено — с этого момента НИЧЕГО не сохраняется навсегда! Сделай «Экспорт (JSON)» на вкладке «Ещё», затем нажми «Переобучить распознавание» в ⚙️ Расширенно на вкладке Live — выученные изображения занимают больше всего места."
 }

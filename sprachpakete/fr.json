@@ -1089,5 +1089,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 Voici l'écran de mise hors jeu",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 L'enregistrement comparatif « Pro » est en cours – les morts détectées vont dans les stats du pro et PAS dans ton compteur. Arrête-le sous ⚙️ Avancé → « ⏹ Arrêter l'enregistrement ».",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 L'enregistrement comparatif « Moi » est en cours – les morts comptent aussi dans tes stats de comparaison. Arrête-le sous ⚙️ Avancé → « ⏹ Arrêter l'enregistrement ».",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vidéo chargée ✓ – appuie maintenant sur « 🚀 Analyse rapide » en haut : l'IA parcourt la vidéo toute seule et compte tes morts."
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Vidéo chargée ✓ – appuie maintenant sur « 🚀 Analyse rapide » en haut : l'IA parcourt la vidéo toute seule et compte tes morts.",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ En pause – rien d'appris encore",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ Vidéo en pause. Le message de mort est affiché ici ? Alors appuie sur ☠ – l'IA apprend exactement cette image.",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ En pause – je vois : ☠ mort",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ En pause – je vois : 🎮 jeu",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ En pause – ce que je vois ici : ☠ écran de mort.",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ En pause – ce que je vois ici : 🎮 jeu normal.",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "Ce n'est pas ça ? Ajoute alors cette image comme exemple avec ☠ ou 🎮.",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "Un nouveau cadrage change l'image – tes",
+"Die Erkennung fängt dann bei null an – deine": "La reconnaissance repart alors de zéro – tes",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "exemples appris ne conviendront plus et seront supprimés. Continuer quand même ?",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "L'import REMPLACE toutes tes données actuelles – matchs, quarts et auto-bilan. C'est irréversible. Vraiment continuer ?",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ Le stockage de ton navigateur est plein – plus RIEN ne sera enregistré durablement ! Fais un « Export (JSON) » dans l'onglet « Plus », puis appuie sur « Réapprendre la reconnaissance » sous ⚙️ Avancé dans l'onglet Direct – les images apprises prennent le plus de place."
 }

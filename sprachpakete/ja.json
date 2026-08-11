@@ -1085,5 +1085,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 これが救助待ち画面です",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 比較記録「プロ」が実行中 – 検出したデスはプロの統計に入り、あなたのカウンターには入りません。⚙️ 詳細 →「⏹ 記録を終了」で停止できます。",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 比較記録「自分」が実行中 – デスは比較統計にも加算されます。⚙️ 詳細 →「⏹ 記録を終了」で停止できます。",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "動画を読み込みました ✓ – 上の「🚀 高速分析」を押すと、AIが自動で動画をめくってデス数を数えます。"
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "動画を読み込みました ✓ – 上の「🚀 高速分析」を押すと、AIが自動で動画をめくってデス数を数えます。",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ 一時停止中 – まだ何も学習していません",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ 動画は一時停止中。ここにやられた表示が出ていますか？なら ☠ を押してください – AIがこの画面を学習します。",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ 一時停止中 – 見えているもの: ☠ デス",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ 一時停止中 – 見えているもの: 🎮 通常プレイ",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ 一時停止中 – ここで見えているもの: ☠ やられた画面。",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ 一時停止中 – ここで見えているもの: 🎮 通常プレイ。",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "違いますか？なら ☠ または 🎮 でこの画面を例として追加してください。",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "切り抜きを変えると画面が変わります – 学習済みの",
+"Die Erkennung fängt dann bei null an – deine": "認識はゼロからやり直しになります – 学習済みの",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "例は合わなくなるため削除されます。それでも実行しますか？",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "インポートすると現在のデータ（マッチ、シフト、セルフチェック）がすべて置き換わります。取り消せません。本当に続けますか？",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ ブラウザの保存領域がいっぱいです – これ以降は何も永続保存されません！「その他」タブで「エクスポート（JSON）」を行い、ライブタブの ⚙️ 詳細で「認識を学習し直す」を押してください – 学習した画像が最も容量を使います。"
 }

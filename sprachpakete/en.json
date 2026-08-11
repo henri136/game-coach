@@ -1082,5 +1082,17 @@
 "🛟 Das ist der Ausfall-Bildschirm": "🛟 This is the down screen",
 "👑 Vergleichs-Aufnahme „Profi“ läuft – erkannte Deaths zählen gerade in die Profi-Statistik und NICHT in deinen Death-Zähler. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "👑 Comparison recording “Pro” is running – detected deaths currently go into the pro statistics and NOT into your death counter. Stop it under ⚙️ Advanced → “⏹ Stop recording”.",
 "🎮 Vergleichs-Aufnahme „Ich“ läuft – Deaths zählen zusätzlich in deine Vergleichs-Statistik. Beenden unter ⚙️ Erweitert → „⏹ Aufnahme beenden“.": "🎮 Comparison recording “Me” is running – deaths also count towards your comparison statistics. Stop it under ⚙️ Advanced → “⏹ Stop recording”.",
-"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video loaded ✓ – now press “🚀 Fast analysis” above and the AI will page through the video on its own and count your deaths."
+"Video geladen ✓ – jetzt oben „🚀 Schnell-Analyse“ drücken, dann blättert die KI allein durchs Video und zählt deine Deaths.": "Video loaded ✓ – now press “🚀 Fast analysis” above and the AI will page through the video on its own and count your deaths.",
+"👁 ⏸ Pausiert – noch nichts angelernt": "👁 ⏸ Paused – nothing learned yet",
+"⏸ Video pausiert. Steht hier die Todes-Meldung? Dann drück ☠ – so lernt die KI genau dieses Bild.": "⏸ Video paused. Is the splat message showing here? Then press ☠ – that teaches the AI exactly this frame.",
+"👁 ⏸ Pausiert – ich sehe: ☠ Death": "👁 ⏸ Paused – I see: ☠ death",
+"👁 ⏸ Pausiert – ich sehe: 🎮 Spiel": "👁 ⏸ Paused – I see: 🎮 play",
+"⏸ Pausiert – ich sehe hier: ☠ Todes-Bildschirm.": "⏸ Paused – what I see here: ☠ death screen.",
+"⏸ Pausiert – ich sehe hier: 🎮 normales Spiel.": "⏸ Paused – what I see here: 🎮 normal play.",
+"Passt das nicht? Dann leg mit ☠ bzw. 🎮 genau dieses Bild als Beispiel nach.": "Not right? Then add exactly this frame as an example with ☠ or 🎮.",
+"Ein neuer Bildausschnitt verändert das Bild – deine": "A new image section changes the picture – your",
+"Die Erkennung fängt dann bei null an – deine": "Recognition then starts from scratch – your",
+"gelernten Beispiele passen dann nicht mehr und werden gelöscht. Trotzdem machen?": "learned examples no longer fit and will be deleted. Do it anyway?",
+"Der Import ERSETZT alle deine jetzigen Daten – Matches, Schichten und Selbst-Check. Das lässt sich nicht rückgängig machen. Wirklich fortfahren?": "The import REPLACES all your current data – matches, shifts and self-check. This cannot be undone. Really continue?",
+"⚠️ Der Speicher deines Browsers ist voll – ab jetzt wird NICHTS mehr dauerhaft gesichert! Bitte im Tab „Mehr“ einmal „Export (JSON)“ machen und dann im Live-Tab unter ⚙️ Erweitert „Erkennung neu anlernen“ drücken – die angelernten Bilder brauchen den meisten Platz.": "⚠️ Your browser storage is full – NOTHING will be saved permanently from now on! Please do an “Export (JSON)” in the “More” tab, then press “Retrain recognition” under ⚙️ Advanced in the Live tab – the learned images take up the most space."
 }
