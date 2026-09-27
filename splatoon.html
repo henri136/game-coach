@@ -438,7 +438,7 @@
 /* Update-System: APP_VERSION bei JEDER Änderung hochzählen (Format JJJJ-MM-TT.N).
    Der Loader bootet eine per Update-Knopf geladene neuere Version aus dem lokalen
    Speicher – die App bleibt damit auch nach Updates komplett offline nutzbar. */
-const APP_VERSION = "2026-08-11.11"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
+const APP_VERSION = "2026-09-27.01"; // Zähler ab jetzt immer zweistellig (String-Vergleich!)
 (function () {
   try {
     const u = JSON.parse(localStorage.getItem("splatoon3-coach-update") || "null");
@@ -4931,6 +4931,11 @@ if (window.claude) {
   setTimeout(ladeTextPaket, 900);
   setInterval(() => { if (navigator.onLine) ladeRotation(); }, 20 * 60 * 1000);
   setInterval(() => { if (navigator.onLine) statinkSync(true); }, 30 * 60 * 1000);
+  // Zurück in der App (z. B. nach dem Spielen)? Gleich nachsehen statt bis zu 30 Minuten zu warten.
+  document.addEventListener("visibilitychange", () => {
+    const zuletzt = Date.parse((state.statink && state.statink.letzterSync) || "") || 0;
+    if (document.visibilityState === "visible" && navigator.onLine && Date.now() - zuletzt > 2 * 60000) statinkSync(true);
+  });
   // Ohne Netz gestartet? Sobald es wieder da ist, alles nachholen - sonst fehlen Laden-Karte
   // und Spielnamen bis zum kompletten Neustart der App.
   addEventListener("online", () => {

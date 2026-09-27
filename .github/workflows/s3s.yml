@@ -1,6 +1,6 @@
 name: Matches automatisch zu stat.ink hochladen (s3s)
 
-# Ersetzt den PC: Lädt alle 4 Stunden neue Splatoon-3-Matches und
+# Ersetzt den PC: Lädt alle 30 Minuten neue Splatoon-3-Matches und
 # Salmon-Run-Schichten von Nintendo zu stat.ink hoch - von dort holt
 # sie sich die Coach-App automatisch.
 #
@@ -17,12 +17,12 @@ name: Matches automatisch zu stat.ink hochladen (s3s)
 # 2. Auf GitHub: dieses Repository -> Settings -> Secrets and variables
 #    -> Actions -> "New repository secret"
 #    Name: S3S_AUTOMATIK   |   Inhalt: einfügen (Strg+V)
-# 3. Fertig! Ab dann läuft der Upload automatisch alle 4 Stunden.
+# 3. Fertig! Ab dann läuft der Upload automatisch alle 30 Minuten.
 #    (Zum Testen: Actions-Tab -> diesen Workflow wählen -> "Run workflow")
 
 on:
   schedule:
-    - cron: "23 */4 * * *"   # alle 4 Stunden
+    - cron: "7,37 * * * *"   # alle 30 Minuten (nicht zur vollen Stunde - da verspätet GitHub oft)
   workflow_dispatch: {}       # jederzeit von Hand startbar
 
 jobs:
@@ -57,17 +57,18 @@ jobs:
           NA_TOKEN=$(python -c 'import json; print(json.load(open("config.txt")).get("na_session_token", ""))')
           if [ -z "$NA_TOKEN" ]; then
             echo "::error::Im Secret fehlt der Nintendo-Anmeldeschlüssel - Einrichtung neu machen."
-            exit 1
+            exit 0
           fi
           echo "::add-mask::$NA_TOKEN"
           # Ausgaben unterdrücken: die Logs dieses öffentlichen Repos sind einsehbar.
-          # Fehler aber melden - sonst sieht ein kaputter Lauf aus wie ein erfolgreicher.
+          # Fehler als ::error::-Hinweis am Lauf melden, der Lauf selbst endet aber ohne
+          # Fehlschlag (exit 0) - sonst schickt GitHub bei jedem kaputten Lauf eine E-Mail.
           if ! nxapi util update-s3s-token config.txt --token "$NA_TOKEN" > /dev/null 2>&1; then
             echo "::error::Keine frischen Nintendo-Zugangscodes bekommen (nxapi) - evtl. Einrichtung neu machen."
-            exit 1
+            exit 0
           fi
           if ! timeout 480 python s3s.py -r > /dev/null 2>&1; then
             echo "::error::s3s konnte die Matches nicht hochladen."
-            exit 1
+            exit 0
           fi
           echo "Durchlauf beendet."
