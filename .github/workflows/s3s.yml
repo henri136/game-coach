@@ -2,7 +2,8 @@ name: Matches automatisch zu stat.ink hochladen (s3s)
 
 # Ersetzt den PC: Lädt alle 30 Minuten neue Splatoon-3-Matches und
 # Salmon-Run-Schichten von Nintendo zu stat.ink hoch - von dort holt
-# sie sich die Coach-App automatisch.
+# sie sich die Coach-App automatisch. Danach genauso die Splatoon-2-Kämpfe und
+# -Schichten mit splatnet2statink (nur zu stat.ink, die App kennt nur Splatoon 3).
 #
 # Seit dem Update der Nintendo-Switch-Online-App auf Version 3 (2025) kann
 # s3s die Nintendo-Zugangscodes nicht mehr selbst erzeugen (s3s-Issue #198).
@@ -70,5 +71,39 @@ jobs:
           if ! timeout 480 python s3s.py -r > /dev/null 2>&1; then
             echo "::error::s3s konnte die Matches nicht hochladen."
             exit 0
+          fi
+          echo "Durchlauf beendet."
+      - name: splatnet2statink holen
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: frozenpandaman/splatnet2statink
+          path: s2s
+      - name: Neue Splatoon-2-Kämpfe hochladen
+        env:
+          S3S_AUTOMATIK: ${{ secrets.S3S_AUTOMATIK }}
+          NXAPI_USER_AGENT: game-coach-s3s/1.0 (+https://github.com/henri136/game-coach)
+          NXAPI_SKIP_UPDATE_CHECK: "1"
+        run: |
+          # Gleicher Aufbau wie oben: Fehler nur als Hinweis, immer exit 0 (keine E-Mails).
+          # nxapi nutzt die Nintendo-Anmeldung aus dem Schritt davor weiter.
+          cd s2s 2>/dev/null || exit 0   # Holen fehlgeschlagen -> diesmal auslassen
+          if [ -z "$S3S_AUTOMATIK" ] || [ ! -f splatnet2statink.py ]; then exit 0; fi
+          if ! pip install -q -r requirements.txt > /dev/null 2>&1; then
+            echo "::error::Splatoon 2: Abhängigkeiten liessen sich nicht installieren."
+            exit 0
+          fi
+          printf '%s' "$S3S_AUTOMATIK" > config.txt
+          NA_TOKEN=$(python -c 'import json; print(json.load(open("config.txt")).get("na_session_token", ""))')
+          echo "::add-mask::$NA_TOKEN"
+          if ! nxapi util update-s2s-token config.txt --token "$NA_TOKEN" > /dev/null 2>&1; then
+            echo "::error::Splatoon 2: keine frischen Nintendo-Zugangscodes bekommen (nxapi)."
+            exit 0
+          fi
+          if ! timeout 480 python splatnet2statink.py -r > /dev/null 2>&1; then
+            echo "::error::Splatoon 2: Kämpfe konnten nicht hochgeladen werden."
+          fi
+          if ! timeout 480 python splatnet2statink.py -r --salmon > /dev/null 2>&1; then
+            echo "::error::Splatoon 2: Salmon-Run-Schichten konnten nicht hochgeladen werden."
           fi
           echo "Durchlauf beendet."
